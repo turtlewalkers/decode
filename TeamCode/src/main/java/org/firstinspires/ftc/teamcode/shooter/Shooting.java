@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -17,16 +18,17 @@ public class Shooting extends OpMode {
     static TelemetryManager telemetryM;
     double shooterX = 135;
     double shooterY = 135;
-    private Servo turret;
-    private DcMotorEx flywheel;
-    double multiplier = (double) 28 / 60;
+    private DcMotorEx turret;
+
+    private PIDController controller;
+
+    public static double p = -0.025, i = 0, d = 0;
+    public static double target = 0;
 
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        turret = hardwareMap.get(Servo.class, "turret");
-        turret.scaleRange(0, 0.67);
-        turret.setDirection(Servo.Direction.FORWARD);
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
 //        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
     }
 
@@ -41,6 +43,7 @@ public class Shooting extends OpMode {
         follower.setStartingPose(new Pose(72, 72, 0));
         follower.startTeleopDrive();
         follower.update();
+        controller = new PIDController(p, i, d);
     }
 
     /**
@@ -59,10 +62,12 @@ public class Shooting extends OpMode {
         double theta = Math.atan(Math.abs(shooterY - robotY) / Math.abs(shooterX - robotX)); // radians
         double turretAngle = theta - robotHeading;
         double turretDegrees = Math.toDegrees(turretAngle);
-        turretDegrees += 90;
-        turretDegrees /= 180;
-
-        turret.setPosition(1-turretDegrees);
+        turretDegrees = (turretDegrees + 180) % 360 / 360.0;
+        target = turretDegrees * 1610;
+        controller.setPID(p, i, d);
+        int pos = turret.getCurrentPosition();
+        double pid = controller.calculate(pos, target);
+        turret.setPower(pid);
 //        flywheel.setVelocity(rpm * multiplier);
 
         telemetry.addData("Turret angle: ", Math.toDegrees(turretAngle));
