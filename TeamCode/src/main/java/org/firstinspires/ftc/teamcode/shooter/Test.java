@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.shooter;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.arcrobotics.ftclib.controller.PIDController;
+import com.seattlesolvers.solverslib.controller.PIDController;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.arcrobotics.ftclib.util.InterpLUT;
+import com.seattlesolvers.solverslib.util.InterpLUT;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -58,7 +58,6 @@ public class Test extends OpMode {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         hood = hardwareMap.get(Servo.class, "hood");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         RPM.add(0, 330);
         RPM.add(39, 330);
         RPM.add(50, 355);
@@ -95,7 +94,7 @@ public class Test extends OpMode {
         controller = new PIDController(p, i, d);
         Memory.autoRan = false;
     }
-    
+
     @Override
     public void init_loop() {
         if (gamepad1.a) {
