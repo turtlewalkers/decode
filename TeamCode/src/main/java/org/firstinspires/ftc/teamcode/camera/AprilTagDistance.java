@@ -1,79 +1,62 @@
 package org.firstinspires.ftc.teamcode.camera;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@Autonomous(name = "Limelight USB AprilTag Distance", group = "Vision")
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+@TeleOp(name = "AprilTagDistance", group = "Camera")
 public class AprilTagDistance extends LinearOpMode {
 
-    private VisionPortal visionPortal;
-    private AprilTagProcessor aprilTag;
-
-    // ⚙️ Camera/field constants
-    private static final double CAMERA_HEIGHT_METERS = 0.28;  // Camera height
-    private static final double TAG_HEIGHT_METERS = 0.78;     // Basket tag height
-    private static final double CAMERA_ANGLE_DEGREES = 14.0;  // Camera tilt
-
-    // Example basket tag IDs
-    private static final int[] BASKET_TAG_IDS = {20, 24};
+    // Limelight configuration
     private static final String LIMELIGHT_URL = "http://10.0.0.11:5801";
-    private static final int LIMELIGHT_PIPELINE = 6;
+
     @Override
-    public void runOpMode() {
-
-        // ✅ Initialize AprilTag processor
-        aprilTag = new AprilTagProcessor.Builder()
-                .setDrawAxes(true)
-                .setDrawTagID(true)
-                .setDrawCubeProjection(true)
-                .build();
-
-        // ✅ Initialize VisionPortal with Limelight as USB camera
-
-
-        telemetry.addLine("Initialized — waiting for start");
-        telemetry.update();
+    public void runOpMode() throws InterruptedException {
         waitForStart();
 
         while (opModeIsActive()) {
-            AprilTagDetection tag = getBasketTag();
+            double horizontalAngle = getHorizontalAngle();
 
-            if (tag != null) {
-                double x = tag.ftcPose.x;  // Forward from camera
-                double y = tag.ftcPose.y;  // Left/right
-                double z = tag.ftcPose.z;  // Up/down
-
-                double flatDistance = Math.hypot(x, y);
-
-                telemetry.addLine("🎯 Basket AprilTag Detected");
-                telemetry.addData("Tag ID", tag.id);
-                telemetry.addData("X (Forward m)", x);
-                telemetry.addData("Y (Sideways m)", y);
-                telemetry.addData("Z (Up m)", z);
-                telemetry.addData("Flat Distance (m)", flatDistance);
-            } else {
-                telemetry.addLine("No Basket AprilTag Detected");
-            }
-
+            // Telemetry output
+            telemetry.addData("Horizontal Angle (tx)", "%.2f°", horizontalAngle);
             telemetry.update();
+
         }
     }
 
-    /**
-     * Returns the first basket tag detected.
-     */
-    private AprilTagDetection getBasketTag() {
-        for (AprilTagDetection tag : aprilTag.getDetections()) {
-            for (int id : BASKET_TAG_IDS) {
-                if (tag.id == id) return tag;
+    private double getHorizontalAngle() {
+        try {
+            URL url = new URL(LIMELIGHT_URL + "/json");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(200);
+            connection.setReadTimeout(200);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) response.append(line);
+            in.close();
+
+            JSONObject json = new JSONObject(response.toString());
+            JSONArray fiducials = json.getJSONObject("Results").optJSONArray("Targets_Fiducials");
+
+            if (fiducials != null && fiducials.length() > 0) {
+                JSONObject tag = fiducials.getJSONObject(0);
+                return tag.optDouble("txnc", 0.0); // horizontal offset in degrees
             }
+
+        } catch (Exception e) {
+            telemetry.addData("Error", e.getMessage());
         }
-        return null;
+
+        return 0.0;
     }
 }

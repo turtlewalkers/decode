@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -14,29 +15,29 @@ import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
 
 @Autonomous
-public class AutonLinearBlue extends LinearOpMode {
+public class RedAuto extends LinearOpMode {
     TurtleRobot robot = new TurtleRobot(this);
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     public static int target = 430;
     private int pathState;
     private static double vel = 0;
-    private final Pose Start = new Pose(28.5, 128, Math.toRadians(135));
-    private final Pose ScorePosition = new Pose(60  , 85, Math.toRadians(135));
-    private final Pose Grab1 = new Pose(48, 85, Math.toRadians(180));
-    private final Pose Collect1 = new Pose(17, 85, Math.toRadians(180));
-    private final Pose Grab2 = new Pose(48, 60, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(12, 60, Math.toRadians(180));
-    private final Pose Grab3 = new Pose(48, 36, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(12, 36, Math.toRadians(180));
-    private final Pose byebye = new Pose(50, 20, Math.toRadians(90));
+    private final Pose Start = new Pose(115.5, 128, Math.toRadians(45));
+    private final Pose ScorePosition = new Pose(88  , 85, Math.toRadians(45));
+    private final Pose Grab1 = new Pose(96, 85, Math.toRadians(0));
+    private final Pose Collect1 = new Pose(120, 85, Math.toRadians(0));
+    private final Pose Grab2 = new Pose(90, 60, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(127, 60, Math.toRadians(0));
+    private final Pose Grab3 = new Pose(96,36, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(127, 36, Math.toRadians(0));
+    private final Pose byebye = new Pose(90, 70, Math.toRadians(90));
     private Path PreloadShoot;
     private PathChain Goto1, Pickup1, Shoot1, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, tatawireless;
     /**
      * This method is called once at the init of the OpMode.
      **/
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
@@ -101,70 +102,69 @@ public class AutonLinearBlue extends LinearOpMode {
                 .build();
 
         waitForStart();
-        Memory.autoRan = true;
-        Memory.allianceRed = false;
+        try {
+            Memory.autoRan = true;
+            Memory.allianceRed = true;
 
-        robot.intake.setPower(1);
-        updateShooterPID();
+            updateShooterPID();
 
-        robot.latch.setPosition(0);
-        followPath(PreloadShoot, true);
+            robot.latch.setPosition(0);
+            followPath(PreloadShoot, true);
+            robot.intake.setPower(1);
+            waitShoot(300);
 
-        waitShoot(300);
+            runShooter();
 
-        robot.latch.setPosition(1);
-        robot.intake.setPower(1);
-        waitShoot(2200);
-        robot.intake.setPower(0);
-        robot.latch.setPosition(0);
+            followPath(Goto1, true);
+            robot.intake.setPower(1);
+            followPath(Pickup1, true);
 
-        followPath(Goto1,true);
-        robot.intake.setPower(1);
-        followPath(Pickup1,true);
-        sleep(600);
-        robot.intake.setPower(0);
+            waitMillis(420);
+            robot.intake.setPower(0);
 
-        followPath(Shoot1,true);
-        robot.latch.setPosition(1);
-        robot.intake.setPower(1);
-        waitShoot(2200);
-        robot.latch.setPosition(0);
-        robot.intake.setPower(0);
+            followPath(Shoot1, true);
 
-        followPath(Goto2, true);
-        robot.intake.setPower(1);
-        followPath(Pickup2, true);
-        sleep(600);
-        robot.intake.setPower(0);
+            runShooter();
 
-        followPath(Shoot2, true);
-        robot.latch.setPosition(1);
-        robot.intake.setPower(1);
-        waitShoot(2200);
-        robot.intake.setPower(0);
-        robot.latch.setPosition(0);
+            followPath(Goto2, true);
+            robot.intake.setPower(1);
+            followPath(Pickup2, true);
+            waitMillis(420);
+            robot.intake.setPower(0);
 
-        followPath(Goto3, true);
-        robot.intake.setPower(1);
-        followPath(Pickup3, true);
-        sleep(600);
-        robot.intake.setPower(0);
+            followPath(Shoot2, true);
 
-        followPath(Shoot3, true);
-        robot.intake.setPower(1);
-        robot.latch.setPosition(1);
-        waitShoot(2200);
-        robot.latch.setPosition(0);
-        robot.intake.setPower(0);
+            runShooter();
 
-        robot.shooterb.setPower(0);
-        robot.shootert.setPower(0);
-        followPath(tatawireless, true);
+            followPath(Goto3, true);
+            robot.intake.setPower(1);
+            followPath(Pickup3, true);
+            waitMillis(420);
+            robot.intake.setPower(0);
+            followPath(Shoot3, true);
 
-        robot.shooterb.setPower(0);
-        robot.shootert.setPower(0);
-        robot.turret.setPower(0);
+            runShooter();
+
+            robot.shooterb.setPower(0);
+            robot.shootert.setPower(0);
+            robot.turret.setPower(0);
+            followPath(tatawireless, true);
+
+        } catch (Exception e) {
+            telemetry.addData("Exception", e.toString());
+            telemetry.update();
+            sleep(10000000);
+        }
     }
+
+    private void runShooter() {
+        robot.intake.setPower(1);
+        robot.latch.setPosition(1);
+        waitShoot(2200);
+        robot.latch.setPosition(0);
+        robot.intake.setPower(0);
+    }
+
     public void followPath(PathChain path, boolean holdEnd) {
         follower.followPath(path, holdEnd);
         Memory.robotAutoX = follower.getPose().getX();
@@ -189,21 +189,21 @@ public class AutonLinearBlue extends LinearOpMode {
     }
 
     public void updateShooterPID() {
-            robot.controller.setPID(robot.p, robot.i, robot.d);
-            double presentVoltage = robot.volt.getVoltage();
-            vel = vel * robot.alpha + robot.shooterb.getVelocity() * (2 * Math.PI / 28) * (1 - robot.alpha);
+        robot.controller.setPID(robot.p, robot.i, robot.d);
+        double presentVoltage = robot.volt.getVoltage();
+        vel = vel * robot.alpha + robot.shooterb.getVelocity() * (2 * Math.PI / 28) * (1 - robot.alpha);
 
-            double pid = robot.controller.calculate(vel, target);
-            pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-            robot.shooterb.setPower(pid);
-            robot.shootert.setPower(-1 * pid);
+        double pid = robot.controller.calculate(vel, target);
+        pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
+        robot.shooterb.setPower(pid);
+        robot.shootert.setPower(-1 * pid);
     }
 
     public void updateTurretPID() {
         double turretPos = ((double)robot.turret.getCurrentPosition()) / TurtleRobot.TICKS_PER_DEGREES;
         telemetry.addData("Turret Pos", turretPos);
 
-        double turretPower = robot.controllerTurret.calculate(turretPos, 0);
+        double turretPower = robot.controllerTurret.calculate(turretPos, -5);
         telemetry.addData("Power", turretPower);
         robot.turret.setPower(turretPower);
     }
@@ -213,6 +213,14 @@ public class AutonLinearBlue extends LinearOpMode {
         while (System.currentTimeMillis() < start + sleepTimeMillis) {
             updateShooterPID();
             updateTurretPID();
+//            follower.update();
+            sleep(1);
+        }
+    }
+
+    public void waitMillis(long sleepTimeMillis) {
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() < start + sleepTimeMillis) {
 //            follower.update();
             sleep(1);
         }

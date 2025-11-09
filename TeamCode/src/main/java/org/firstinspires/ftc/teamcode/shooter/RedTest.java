@@ -21,12 +21,12 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Config
 @TeleOp
-public class Test extends OpMode {
+public class RedTest extends OpMode {
     public static Follower follower;
     private PIDController controller, controllerTurret;
     private TelemetryManager telemetryM;
     public static double p = 0.2, i = 0.05, d = 0;
-    public static double pT = 0.1, iT = 0, dT = 0;
+    public static double pT = 0.12, iT = 0, dT = 0;
     public static double f = 0.0265;
     private static double vel = 0;
     public static double target = 0;
@@ -48,6 +48,9 @@ public class Test extends OpMode {
     public boolean stopAutoTurret = false;
     @Override
     public void init() {
+        if (Memory.allianceRed) {
+            shooterY = 10;
+        }
         controller = new PIDController(p, i, d);
         controllerTurret = new PIDController(pT, iT, dT);
         shooterb = hardwareMap.get(DcMotorEx.class, "sb");
@@ -59,13 +62,14 @@ public class Test extends OpMode {
         hood = hardwareMap.get(Servo.class, "hood");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        RPM.add(0, 330);
-        RPM.add(39, 330);
-        RPM.add(50, 355);
-        RPM.add(60, 380);
-        RPM.add(74, 395);
-        RPM.add(90, 430);
-        RPM.add(180, 430);
+        RPM.add(0, 350);
+        RPM.add(20, 350);
+        RPM.add(39, 350);
+        RPM.add(50, 375);
+        RPM.add(60, 400);
+        RPM.add(74, 415);
+        RPM.add(90, 450);
+        RPM.add(180, 450);
         RPM.createLUT();
 
         angle.add(0, 1);
@@ -85,17 +89,16 @@ public class Test extends OpMode {
     public void start() {
         follower = Constants.createFollower(hardwareMap);
         if (Memory.autoRan) {
-            follower.setStartingPose(new Pose(Memory.robotAutoX, Memory.robotAutoY, 0));
+            follower.setStartingPose(new Pose(90, 70, 180));
         } else {
-            follower.setStartingPose(new Pose(72, 72, 0));
+            follower.setStartingPose(new Pose(72, 72, 90));
         }
-        follower.setStartingPose(new Pose(90, 72, 0));
         follower.startTeleOpDrive();
         follower.update();
         controller = new PIDController(p, i, d);
         Memory.autoRan = false;
     }
-    
+
     @Override
     public void init_loop() {
         if (gamepad1.a) {
@@ -104,12 +107,6 @@ public class Test extends OpMode {
             Memory.allianceRed = false;
         }
         telemetry.addData("Alliance", Memory.allianceRed ? "Red" : "Blue");
-
-        if (Memory.allianceRed) {
-            shooterY = 10;
-        } else {
-            shooterY = 135;
-        }
     }
 
     @Override
@@ -118,10 +115,6 @@ public class Test extends OpMode {
         if (gamepad1.left_trigger != 0) multiplier = 0.3;
         follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
         follower.update();
-
-        if (gamepad1.dpad_up) {
-            follower.setStartingPose(new Pose(72, 72, 0));
-        }
 
         if (gamepad1.xWasPressed()) {
             stopAutoTurret = !stopAutoTurret;
@@ -137,7 +130,13 @@ public class Test extends OpMode {
         double distance = Math.sqrt(dx*dx + dy*dy);
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        telemetry.addData("autoX", Memory.robotAutoX);
+        telemetry.addData("autoY", Memory.robotAutoY);
+        telemetry.addData("autoHeading", Memory.robotHeading);
 
+        telemetry.addData("Target Angle", targetAngleDeg);
+        telemetry.addData("x", shooterX);
+        telemetry.addData("y", shooterY);
 
         if (turretOffset <= 45 && turretOffset >= -45) {
             if (gamepad1.dpad_right && turretOffset > -45) {
@@ -159,6 +158,7 @@ public class Test extends OpMode {
 //        turretOffset += (gamepad2.right_trigger - gamepad2.left_trigger) * 5;
 //        int offsetTicks = (int)(turretOffset * TICKS_PER_DEGREE);
 //        int finalTargetTicks = targetTicks + offsetTicks;
+
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
         telemetry.addData("TurretPower", turretPower);
         telemetry.addData("stopAutoTurret", stopAutoTurret);
@@ -177,8 +177,8 @@ public class Test extends OpMode {
         double pid = controller.calculate(vel, target);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
         if (!gamepad1.a || robotX >= 40) {
-            shooterb.setPower((pid + f * target) / presentVoltage);
-            shootert.setPower((-1) * (pid + f * target) / presentVoltage);
+            shooterb.setPower(((pid + f * target) / presentVoltage)*0.9);
+            shootert.setPower(((-1) * (pid + f * target) / presentVoltage)*0.9);
         } else {
             shootert.setPower(0);
             shooterb.setPower(0);

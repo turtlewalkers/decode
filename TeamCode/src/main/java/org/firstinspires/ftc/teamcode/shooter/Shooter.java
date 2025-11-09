@@ -60,6 +60,7 @@ public class Shooter extends OpMode {
             latch.setPosition(0);
         }
 
+        //hood.setPosition(0);
         controller.setPID(p, i, d);
         double presentVoltage = volt.getVoltage();
         vel = vel * alpha + shooterb.getVelocity() * (2 * Math.PI / 28) * (1 - alpha);
