@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Config
 @TeleOp
-public class Test extends OpMode {
+public class Teleop extends OpMode {
     public static Follower follower;
     private PIDController controller, controllerTurret;
     private TelemetryManager telemetryM;

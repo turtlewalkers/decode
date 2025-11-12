@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
 
-@Autonomous
+@Autonomous()
 public class AutonLinear extends LinearOpMode {
     TurtleRobot robot = new TurtleRobot(this);
     private Follower follower;
