@@ -155,7 +155,7 @@ public class AutonBlue extends CommandOpMode {
 
                 new InstantCommand(() -> shooter.flywheel(false))
         );
-
+        waitForStart();
         schedule(auton);
     }
 

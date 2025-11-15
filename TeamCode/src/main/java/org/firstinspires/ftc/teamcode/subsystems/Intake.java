@@ -16,6 +16,7 @@ public class Intake extends SubsystemBase {
         intake = new MotorEx(hMap, "intake");
         latch = new ServoEx(hMap, "latch");
         intake.setRunMode(MotorEx.RunMode.RawPower);
+        intake.set(0);
     }
 
     public Command collect() {

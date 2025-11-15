@@ -40,7 +40,7 @@ public class Shooter extends SubsystemBase {
         shootert = new MotorEx(hMap, "st");
         shooterb = new MotorEx(hMap, "sb");
         turret = new MotorEx(hMap, "turret");
-        hood = new ServoEx(hMap, "latch");
+        hood = new ServoEx(hMap, "hood");
         volt = hMap.get(VoltageSensor.class, "Control Hub");
         shooterb.setRunMode(MotorEx.RunMode.RawPower);
         shootert.setRunMode(MotorEx.RunMode.RawPower);
@@ -87,19 +87,19 @@ public class Shooter extends SubsystemBase {
         double distance = Math.sqrt(dx*dx + dy*dy);
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        Log.d("Target angle", String.valueOf(targetAngleDeg));
         targetAngleDeg = Math.max(targetAngleDeg, -30);
         targetAngleDeg = Math.min(targetAngleDeg, 240);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
         turret.set(turretPower / presentVoltage);
+        target = RPM.get(distance);
+        hood.set(angle.get(distance));
+        double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
+        double flywheelPID = controllerShooter.calculate(vel, target);
+        flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));
 
         if (flywheelOn) {
-            target = RPM.get(distance);
-            hood.set(angle.get(distance));
-            double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
-            double flywheelPID = controllerShooter.calculate(vel, target);
-            flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));
-
             shootert.set((-1) * flywheelPID / presentVoltage);
             shooterb.set(flywheelPID / presentVoltage);
         } else {
@@ -107,6 +107,5 @@ public class Shooter extends SubsystemBase {
             shootert.set(0);
         }
 
-        Log.d("Turret angle", String.valueOf(targetAngleDeg));
     }
 }

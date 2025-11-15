@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.button.GamepadButton;
+import com.seattlesolvers.solverslib.command.button.Trigger;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.seattlesolvers.solverslib.util.TelemetryData;
@@ -47,26 +48,20 @@ public class TeleopNew extends CommandOpMode {
 
         shooter = new Shooter(hardwareMap, () -> follower.getPose(), shooterX, shooterY);
 
-        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                intake.collect()
-        );
-
+        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(intake.collect());
+        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5).whenActive(intake.stop());
         gamepad.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 intake.reverse()
         );
 
-        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
-                intake.stop()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
+        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5).whenActive(
                 new ParallelCommandGroup(
-                    intake.collect(),
-                    intake.open()
+                        intake.collect(),
+                        intake.open()
                 )
         );
 
-        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenReleased(
+        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5).whenActive(
                 new ParallelCommandGroup(
                         intake.stop(),
                         intake.close()
