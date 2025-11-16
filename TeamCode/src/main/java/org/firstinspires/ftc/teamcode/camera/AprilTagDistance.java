@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.camera;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,13 +14,15 @@ import java.net.URL;
 
 @TeleOp(name = "AprilTagDistance", group = "Camera")
 public class AprilTagDistance extends LinearOpMode {
-
+    private Limelight3A limelight;
     // Limelight configuration
     private static final String LIMELIGHT_URL = "http://10.0.0.11:5801";
 
     @Override
     public void runOpMode() throws InterruptedException {
         waitForStart();
+
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         while (opModeIsActive()) {
             double horizontalAngle = getHorizontalAngle();

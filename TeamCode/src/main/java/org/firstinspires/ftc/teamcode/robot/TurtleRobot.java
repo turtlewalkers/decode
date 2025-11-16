@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
@@ -47,6 +48,7 @@ public class TurtleRobot {
         shootert = hardwareMap.get(DcMotorEx.class, "st");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         hood = hardwareMap.get(Servo.class, "hood");
+        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
 //        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         RPM.add(20, 350);
