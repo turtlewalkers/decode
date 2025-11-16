@@ -3,12 +3,14 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import android.util.Log;
 
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.seattlesolvers.solverslib.controller.PIDController;
+import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 import com.seattlesolvers.solverslib.util.InterpLUT;
@@ -28,8 +30,8 @@ public class Shooter extends SubsystemBase {
     InterpLUT angle = new InterpLUT();
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
-    public static double p = 0.2, i = 0.05, d = 0;
-    public static double pT = 0.12, iT = 0, dT = 0;
+    public static double p = 0.6, i = 0.1, d = 0;
+    public static double pT = 0.3, iT = 0, dT = 0;
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
@@ -44,28 +46,26 @@ public class Shooter extends SubsystemBase {
         volt = hMap.get(VoltageSensor.class, "Control Hub");
         shooterb.setRunMode(MotorEx.RunMode.RawPower);
         shootert.setRunMode(MotorEx.RunMode.RawPower);
+        turret.encoder.reset();
         turret.setRunMode(MotorEx.RunMode.RawPower);
 
         controllerShooter = new PIDController(p, i, d);
         controllerTurret = new PIDController(pT, iT, dT);
 
-        RPM.add(0, 330);
-        RPM.add(39, 330);
-        RPM.add(50, 355);
-        RPM.add(60, 380);
-        RPM.add(74, 395);
-        RPM.add(90, 430);
-        RPM.add(180, 430);
+        RPM.add(0, 315);
+        RPM.add(40.5, 315);
+        RPM.add(60.25, 330);
+        RPM.add(90, 380);
+        RPM.add(106.5, 410);
+        RPM.add(210, 410);
         RPM.createLUT();
 
         angle.add(0, 1);
-        angle.add(20, 1);
-        angle.add(39, 0.7);
-        angle.add(50, 0.6);
-        angle.add(60, 0.5);
-        angle.add(74, 0.4);
-        angle.add(90, 0.3);
-        angle.add(180, 0.3);
+        angle.add(40.5, 1);
+        angle.add(60.25, 0.3);
+        angle.add(90, 0.15);
+        angle.add(106.5, 0.05);
+        angle.add(210, 0.05);
         angle.createLUT();
     }
 
@@ -85,12 +85,13 @@ public class Shooter extends SubsystemBase {
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
         double distance = Math.sqrt(dx*dx + dy*dy);
+        Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
-        Log.d("Target angle", String.valueOf(targetAngleDeg));
-        targetAngleDeg = Math.max(targetAngleDeg, -30);
+        targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 240);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
@@ -101,7 +102,7 @@ public class Shooter extends SubsystemBase {
 
         if (flywheelOn) {
             shootert.set((-1) * flywheelPID / presentVoltage);
-            shooterb.set(flywheelPID / presentVoltage);
+            shooterb.set((-1) * flywheelPID / presentVoltage);
         } else {
             shooterb.set(0);
             shootert.set(0);

@@ -8,6 +8,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
@@ -110,8 +111,8 @@ public class AutonBlue extends CommandOpMode {
 
         buildpaths();
 
-        SequentialCommandGroup auton = new SequentialCommandGroup(
-
+        schedule(
+                new RunCommand(() -> follower.update()),
                 // === Preload ===
                 intake.collect(),                        // robot.intake.setPower(1);
                 shooter.flywheel(true),
@@ -155,8 +156,6 @@ public class AutonBlue extends CommandOpMode {
 
                 new InstantCommand(() -> shooter.flywheel(false))
         );
-        waitForStart();
-        schedule(auton);
     }
 
 

@@ -34,16 +34,16 @@ public class TeleopNew extends CommandOpMode {
         follower.setStartingPose(Memory.robotPose);
         super.reset();
 
-        follower.startTeleopDrive();
+        follower.startTeleopDrive(true);
         gamepad = new GamepadEx(gamepad1);
         intake = new Intake(hardwareMap);
 
         if (Memory.allianceRed) {
-            shooterX = 144;
-            shooterY = 144;
+            shooterX = 138;
+            shooterY = 138;
         } else {
-            shooterX = 0;
-            shooterY = 144;
+            shooterX = 6;
+            shooterY = 138;
         }
 
         shooter = new Shooter(hardwareMap, () -> follower.getPose(), shooterX, shooterY);
@@ -57,14 +57,16 @@ public class TeleopNew extends CommandOpMode {
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5).whenActive(
                 new ParallelCommandGroup(
                         intake.collect(),
-                        intake.open()
+                        intake.open(),
+                        intake.LEDon()
                 )
         );
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5).whenActive(
                 new ParallelCommandGroup(
                         intake.stop(),
-                        intake.close()
+                        intake.close(),
+                        intake.LEDoff()
                 )
         );
 
