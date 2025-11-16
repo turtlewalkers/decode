@@ -176,7 +176,7 @@ public class Teleop extends OpMode {
         double pid = controller.calculate(vel, target);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
         if (!gamepad1.a || robotX >= 40) {
-            shooterb.setPower((pid + f * target) / presentVoltage);
+            shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
             shootert.setPower((-1) * (pid + f * target) / presentVoltage);
         } else {
             shootert.setPower(0);

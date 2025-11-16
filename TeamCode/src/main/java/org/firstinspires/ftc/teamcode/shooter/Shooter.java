@@ -25,8 +25,8 @@ public class Shooter extends OpMode {
     private FtcDashboard dashboard;
     private PIDController controller;
     private TelemetryManager telemetryM;
-    public static double p = 0.2, i = 0.05, d = 0;
-    public static double f = 0.0265;
+    public static double p = 0.6, i = 0.1, d = 0;
+    public static double f = 0.026;
     public static double target = 0;
     private static double vel = 0;
     public static double alpha = 0.6;
@@ -66,7 +66,7 @@ public class Shooter extends OpMode {
         vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double pid = controller.calculate(vel, target);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-        shooterb.setPower((pid + f * target) / presentVoltage);
+        shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
         shootert.setPower((-1) * (pid + f * target) / presentVoltage);
 
         TelemetryPacket packet = new TelemetryPacket();

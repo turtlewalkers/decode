@@ -46,7 +46,6 @@ public class TestPedro extends CommandOpMode {
                 new InstantCommand(),
                 new FollowPathCommand(follower, PreloadShoot, true)
         );
-        waitForStart();
         schedule(auton);
     }
 
@@ -55,15 +54,10 @@ public class TestPedro extends CommandOpMode {
     public void run() {
         super.run();
 
-        telemetryData.addData("X", follower.getPose().getX());
-        telemetryData.addData("Y", follower.getPose().getY());
-        telemetryData.addData("Heading", follower.getPose().getHeading());
-        telemetryData.update();
-
-        Memory.robotHeading = follower.getHeading();
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotPose = follower.getPose();
+        telemetryData.addData("Pedro pose tracker: ", follower.debug()[0]);
+        telemetryData.addData("Pedro error calculator", follower.debug()[1]);
+        telemetryData.addData("Pedro vector calculator", follower.debug()[2]);
+        telemetryData.addData("Pedro drivetrain", follower.debug()[3]);
     }
 
     @Override
