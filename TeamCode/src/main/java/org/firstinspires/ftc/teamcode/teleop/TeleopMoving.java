@@ -16,16 +16,16 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Config
 @TeleOp
-public class TeleopNew extends CommandOpMode {
+public class TeleopMoving extends CommandOpMode {
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     private GamepadEx gamepad;
     private Intake intake;
-    private Shooter shooter;
+    private ShooterMove shooter;
     public static double shooterX, shooterY;
 
     @Override
@@ -46,7 +46,7 @@ public class TeleopNew extends CommandOpMode {
             shooterY = 138;
         }
 
-        shooter = new Shooter(hardwareMap, () -> follower, shooterX, shooterY);
+        shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY);
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(intake.collect());
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5).whenActive(intake.stop());

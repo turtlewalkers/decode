@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
 
 import java.util.function.Supplier;
 
-public class Shooter extends SubsystemBase {
+public class ShooterMove extends SubsystemBase {
     private final MotorEx shootert, shooterb, turret;
     private final ServoEx hood;
     private VoltageSensor volt;
@@ -37,7 +37,7 @@ public class Shooter extends SubsystemBase {
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
-    public Shooter(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY) {
+    public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
         this.followerSupplier = followerSupplier;
@@ -98,6 +98,18 @@ public class Shooter extends SubsystemBase {
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
         double distance = Math.sqrt(dx*dx + dy*dy);
+
+        for (int i = 0; i < 5; ++i) {
+            double shotTime = shottime.get(distance);
+
+            double vX = followerSupplier.get().getVelocity().getXComponent();
+            double vY = followerSupplier.get().getVelocity().getYComponent();
+
+            dx = shooterX - robotX - vX * shotTime;
+            dy = shooterY - robotY - vY * shotTime;
+            distance = Math.sqrt(dx*dx + dy*dy);
+        }
+
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);

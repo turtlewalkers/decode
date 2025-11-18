@@ -107,7 +107,7 @@ public class AutonBlue extends CommandOpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
         intake = new Intake(hardwareMap);
-        shooter = new Shooter(hardwareMap, () -> Start, 0, 144);
+        shooter = new Shooter(hardwareMap, () -> follower, 0, 144);
 
         buildpaths();
 

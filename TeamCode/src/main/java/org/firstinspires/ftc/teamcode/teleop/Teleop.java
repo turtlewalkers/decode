@@ -25,8 +25,8 @@ public class Teleop extends OpMode {
     public static Follower follower;
     private PIDController controller, controllerTurret;
     private TelemetryManager telemetryM;
-    public static double p = 0.2, i = 0.05, d = 0;
-    public static double pT = 0.1, iT = 0, dT = 0;
+    public static double p = 0.6, i = 0.1, d = 0;
+    public static double pT = 0.3, iT = 0, dT = 0.00001;
     public static double f = 0.0265;
     private static double vel = 0;
     public static double target = 0;
@@ -64,15 +64,15 @@ public class Teleop extends OpMode {
         RPM.add(60.25, 330);
         RPM.add(90, 380);
         RPM.add(106.5, 410);
-        RPM.add(210, 410);
+        RPM.add(210, 450);
         RPM.createLUT();
 
         angle.add(0, 1);
         angle.add(40.5, 1);
-        angle.add(60.25, 0.3);
-        angle.add(90, 0.15);
-        angle.add(106.5, 0.05);
-        angle.add(210, 0.05);
+        angle.add(60.25, 0.4);
+        angle.add(90, 0.25);
+        angle.add(106.5, 0.15);
+        angle.add(210, 0.15);
         angle.createLUT();
 
         shottime.add(0, 1);
@@ -89,12 +89,7 @@ public class Teleop extends OpMode {
     @Override
     public void start() {
         follower = Constants.createFollower(hardwareMap);
-        if (Memory.autoRan) {
-            follower.setStartingPose(new Pose(Memory.robotAutoX, Memory.robotAutoY, 0));
-        } else {
-            follower.setStartingPose(new Pose(72, 72, 0));
-        }
-        follower.setStartingPose(new Pose(90, 72, 0));
+        follower.setStartingPose(Memory.robotPose);
         follower.startTeleOpDrive(true);
         follower.update();
         controller = new PIDController(p, i, d);
