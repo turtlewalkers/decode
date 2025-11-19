@@ -113,48 +113,55 @@ public class AutonBlue extends CommandOpMode {
 
         schedule(
                 new RunCommand(() -> follower.update()),
-                // === Preload ===
-                intake.collect(),                        // robot.intake.setPower(1);
-                shooter.flywheel(true),
+                new SequentialCommandGroup(
+                        // === Preload ===
+                        intake.collect(),                        // robot.intake.setPower(1);
+                        shooter.flywheel(true),
+                        shooter.turretOff(false),
 
-                new FollowPathCommand(follower, PreloadShoot, true),
-                new WaitCommand(300),
+                        new FollowPathCommand(follower, PreloadShoot),
+//                        new WaitCommand(300),
 
-                // === Cycle 1 ===
-                new FollowPathCommand(follower, Goto1, true),
-                intake.collect(),                        // start intake
-                new FollowPathCommand(follower, Pickup1, true),
+                        // === Cycle 1 ===
+                        shooter.turretOff(true),
+                        new FollowPathCommand(follower, Goto1, true),
+                        new FollowPathCommand(follower, Pickup1, true),
+//                        intake.collect(),
+                        shooter.turretOff(false),
+                        new InstantCommand(() -> {
+                            telemetry.addData("Before crash", 1);
+                            telemetry.update();
+                        }),
 
-                new InstantCommand(() -> {
-                    telemetry.addData("Before crash", 1);
-                    telemetry.update();
-                }),
-
-                new FollowPathCommand(follower, Shoot1, true),
-                new WaitCommand(300),
-
-                // === Cycle 2 ===
-                new FollowPathCommand(follower, Goto2, true),
-                intake.collect(),
-                new FollowPathCommand(follower, Pickup2, true),
-                intake.stop(),
-
-                new FollowPathCommand(follower, Shoot2, true),
-                new WaitCommand(300),
-
-                // === Cycle 3 ===
-                new FollowPathCommand(follower, Goto3, true),
-                intake.collect(),
-                new FollowPathCommand(follower, Pickup3, true),
-                intake.stop(),
-
-                new FollowPathCommand(follower, Shoot3, true),
-                new WaitCommand(300),
-
-                // === End Pose / Park ===
-                new FollowPathCommand(follower, tatawireless, true),
-
-                new InstantCommand(() -> shooter.flywheel(false))
+                        new WaitCommand(300),
+//
+                        new FollowPathCommand(follower, Shoot1, true),
+                        new WaitCommand(300),
+//
+//                        // === Cycle 2 ===
+                        shooter.turretOff(true),
+                        new FollowPathCommand(follower, Goto2, true),
+                        new FollowPathCommand(follower, Pickup2, true),
+                        shooter.turretOff(false),
+                        new FollowPathCommand(follower, Shoot2, true),
+                        new WaitCommand(300),
+//
+//                        // === Cycle 3 ===
+                        shooter.turretOff(true),
+                        new FollowPathCommand(follower, Goto3, true),
+//                        intake.collect(),
+                        new FollowPathCommand(follower, Pickup3, true),
+//                        intake.stop(),
+                        shooter.turretOff(false),
+                        new FollowPathCommand(follower, Shoot3, true),
+                        new WaitCommand(300),
+//
+//                        // === End Pose / Park ===
+                        shooter.turretOff(true),
+                        new FollowPathCommand(follower, tatawireless, true),
+//
+                        new InstantCommand(() -> shooter.flywheel(false))
+                )
         );
     }
 

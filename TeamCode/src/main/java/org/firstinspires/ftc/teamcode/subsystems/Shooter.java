@@ -30,6 +30,7 @@ public class Shooter extends SubsystemBase {
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
+    private int turretOff = 1;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 0.6, i = 0.1, d = 0;
@@ -85,6 +86,9 @@ public class Shooter extends SubsystemBase {
     public Command flywheel (boolean on) {
         return new InstantCommand(() -> flywheelOn = on);
     }
+    public Command turretOff (boolean off) {
+        return new InstantCommand(() -> turretOff = off ? 0 : 1);
+    }
 
     @Override
     public void periodic() {
@@ -106,7 +110,7 @@ public class Shooter extends SubsystemBase {
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
-        turret.set(turretPower / presentVoltage);
+        turret.set(turretPower / presentVoltage * turretOff);
         target = RPM.get(distance);
         hood.set(angle.get(distance));
         double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
