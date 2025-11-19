@@ -5,7 +5,9 @@ import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.gamepad.Gamepad;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.button.GamepadButton;
 import com.seattlesolvers.solverslib.command.button.Trigger;
@@ -27,6 +29,7 @@ public class TeleopMoving extends CommandOpMode {
     private Intake intake;
     private ShooterMove shooter;
     public static double shooterX, shooterY;
+    private double multiplier = 1;
 
     @Override
     public void initialize() {
@@ -59,6 +62,7 @@ public class TeleopMoving extends CommandOpMode {
                         intake.collect(),
                         intake.open(),
                         intake.LEDon()
+//                        new InstantCommand(() -> multiplier = 0.1)
                 )
         );
 
@@ -67,6 +71,7 @@ public class TeleopMoving extends CommandOpMode {
                         intake.stop(),
                         intake.close(),
                         intake.LEDoff()
+//                        new InstantCommand(() -> multiplier = 1)
                 )
         );
 
@@ -83,7 +88,7 @@ public class TeleopMoving extends CommandOpMode {
     public void run() {
         super.run();
 
-        follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+        follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
         follower.update();
 
         telemetryData.addData("X", follower.getPose().getX());
