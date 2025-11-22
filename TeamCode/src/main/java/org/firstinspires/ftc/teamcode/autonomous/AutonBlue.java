@@ -28,26 +28,26 @@ public class AutonBlue extends CommandOpMode {
     private Shooter shooter;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     // Poses:
-    private final Pose Start = new Pose(28.5, 128, Math.toRadians(135));
-
-    private final Pose Paneer2 = new Pose(29, 127.5, Math.toRadians(135));
-    private final Pose ScorePosition = new Pose(60  , 85, Math.toRadians(135));
-    private final Pose Grab1 = new Pose(48, 85, Math.toRadians(180));
-    private final Pose Collect1 = new Pose(19, 85, Math.toRadians(180));
-    private final Pose GotoGate = new Pose(25, 74, Math.toRadians(180));
-    private final Pose OpenGate = new Pose(18, 73, Math.toRadians(180));
-    private final Pose LeaveGate = new Pose(50, 72, Math.toRadians(180));
-    private final Pose Grab2 = new Pose(48, 60, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(12, 60, Math.toRadians(180));
-    private final Pose Grab3 = new Pose(48, 36, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(12, 36, Math.toRadians(180));
-    private final Pose Grab4Setup = new Pose(16, 48, Math.toRadians(240));
-    private final Pose Grab4 = new Pose(8, 25, Math.toRadians(260));
-    private final Pose Collect4 = new Pose(8, 9, Math.toRadians(270));
-    private final Pose byebye = new Pose(50, 70, Math.toRadians(90));
+    private final Pose Start = new Pose(28.5-5, 135-4, Math.toRadians(135));
+    private final Pose Paneer2 = new Pose(29-5, 127.5+2, Math.toRadians(135));
+    private final Pose ScorePosition = new Pose(60-5  , 85+2, Math.toRadians(135));
+    private final Pose Grab1 = new Pose(48-5, 85+3, Math.toRadians(180));
+    private final Pose Collect1 = new Pose(19-5, 85+3, Math.toRadians(180));
+    private final Pose GotoGate = new Pose(25-5, 74+3, Math.toRadians(180));
+    private final Pose OpenGate = new Pose(18-5, 73+3, Math.toRadians(180));
+    private final Pose LeaveGate = new Pose(50-5, 72+3, Math.toRadians(180));
+    private final Pose Grab2 = new Pose(48-5, 62+3, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(12-4, 62+3, Math.toRadians(180));
+    private final Pose Grab3 = new Pose(48-5, 36+3, Math.toRadians(180));
+    private final Pose Collect3 = new Pose(12-5, 36+3, Math.toRadians(180));
+    private final Pose Grab4Setup = new Pose(16-5, 48+3, Math.toRadians(240));
+    private final Pose Grab4 = new Pose(8-2, 25+3, Math.toRadians(260));
+    private final Pose GotoS4 = new Pose(20-5, 40, Math.toRadians(260));
+    private final Pose Collect4 = new Pose(8-2, 9+3, Math.toRadians(270));
+    private final Pose byebye = new Pose(50-5, 70+3, Math.toRadians(90));
     private Path PreloadShoot;
     private Path Paneer;
-    private PathChain Goto1, Pickup1, Shoot1, ToGate, GateOpen, GateLeave, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4, tatawireless, tatawireless2;
+    private PathChain Goto1, Pickup1, Shoot1, ToGate, GateOpen, GateLeave, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
     public void buildpaths() {
         follower = Constants.createFollower(hardwareMap);
@@ -135,10 +135,16 @@ public class AutonBlue extends CommandOpMode {
                 .setLinearHeadingInterpolation(Grab4.getHeading(), Collect4.getHeading())
                 .build();
 
-        Shoot4 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect4, ScorePosition))
-                .setLinearHeadingInterpolation(Collect4.getHeading(), ScorePosition.getHeading())
+        Shoot4P1= follower.pathBuilder()
+                .addPath(new BezierLine(Collect4, GotoS4))
+                .setLinearHeadingInterpolation(Collect4.getHeading(), GotoS4.getHeading())
                 .build();
+
+        Shoot4P2= follower.pathBuilder()
+                .addPath(new BezierLine(GotoS4, ScorePosition))
+                .setLinearHeadingInterpolation(GotoS4.getHeading(), ScorePosition.getHeading())
+                .build();
+
 
 
         tatawireless = follower.pathBuilder()
@@ -162,76 +168,74 @@ public class AutonBlue extends CommandOpMode {
         schedule(
                 new RunCommand(() -> follower.update()),
                 new SequentialCommandGroup(
-                        new ParallelCommandGroup (
+                        new ParallelCommandGroup(
 //                                new FollowPathCommand(follower, Paneer),
                                 new FollowPathCommand(follower, PreloadShoot),
                                 // === Preload ===
-                                intake.collect(),                        // robot.intake.setPower(1);
+//                                intake.collect(),                        // robot.intake.setPower(1);
                                 intake.close(),
                                 shooter.flywheel(true),
                                 shooter.turretOff(false)
 
                         ),
-
-
+                        new WaitCommand(50),
                         intake.open(),
-                        new WaitCommand(1800),
+                        intake.collect(),
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, Goto1, false),
                         intake.close(),
 
 
-                        new FollowPathCommand(follower, Pickup1, false),
+                        new FollowPathCommand(follower, Pickup1, true),
 
-                        new WaitCommand(100),
                         shooter.turretOff(false),
-//                        intake.collect(),
                         new FollowPathCommand(follower, Shoot1, true),
+                        new WaitCommand(50),
                         intake.open(),
-                        new WaitCommand(1800),
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, GateOpen, false).withTimeout(2000),
+                        new FollowPathCommand(follower, GateOpen, true).withTimeout(2000),
                         intake.close(),
+                        new WaitCommand(500),
 
 
                         new FollowPathCommand(follower, GateLeave, false),
 
                         new FollowPathCommand(follower, Goto2, false),
 
-                        new WaitCommand(100),
-
-                        new FollowPathCommand(follower, Pickup2, false),
-
-                        new WaitCommand(100),
+                        new FollowPathCommand(follower, Pickup2, true),
                         shooter.turretOff(false),
-
                         new FollowPathCommand(follower, Shoot2, true),
+                        new WaitCommand(50),
                         intake.open(),
-                        new WaitCommand(1800),
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, Goto3, false),
                         intake.close(),
 
-                        new FollowPathCommand(follower, Pickup3, false),
+                        new FollowPathCommand(follower, Pickup3, true),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot3, true),
+                        new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1800),
                         shooter.turretOff(true),
-
-                        new FollowPathCommand(follower, Goto4Part1, false),
                         intake.close(),
+
+                        new FollowPathCommand(follower, Goto4Part1, false).withTimeout(1300),
 
                         new FollowPathCommand(follower, Goto4, false).withTimeout(1000),
-                        new WaitCommand(300),
                         shooter.turretOff(false),
-                        new FollowPathCommand(follower, Shoot4, true),
+                        new FollowPathCommand(follower, Shoot4P1, false, 0.8),
+                        new FollowPathCommand(follower, Shoot4P2, true),
+                        new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1800),
                         intake.close(),
 
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, tatawireless, false),
+                        new FollowPathCommand(follower, tatawireless, true),
                         new WaitCommand(1800),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )

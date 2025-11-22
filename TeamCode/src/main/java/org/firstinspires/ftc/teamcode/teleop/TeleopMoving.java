@@ -2,9 +2,10 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 
 import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.gamepad.Gamepad;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -25,7 +26,7 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 public class TeleopMoving extends CommandOpMode {
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
-    private GamepadEx gamepad;
+    private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
     private ShooterMove shooter;
     public static double shooterX, shooterY;
@@ -39,6 +40,7 @@ public class TeleopMoving extends CommandOpMode {
 
         follower.startTeleopDrive(true);
         gamepad = new GamepadEx(gamepad1);
+        gamepadOffset = new GamepadEx(gamepad2);
         intake = new Intake(hardwareMap);
 
         if (Memory.allianceRed) {
@@ -48,7 +50,9 @@ public class TeleopMoving extends CommandOpMode {
             shooterX = 6;
             shooterY = 138;
         }
-
+        if (!Memory.autoRan) {
+            Memory.robotPose = new Pose(72, 72, Math.toRadians(90));
+        }
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
         shooter.turretOff(false);
         Memory.autoRan = false;
@@ -83,6 +87,26 @@ public class TeleopMoving extends CommandOpMode {
 
         gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
                 shooter.flywheel(false)
+        );
+
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                shooter.decreaseHoodOffset()
+        );
+
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
+            shooter.increaseHoodOffset()
+        );
+
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
+                shooter.decreaseTurretOffset()
+        );
+
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
+            shooter.increaseTurretOffset()
+        );
+
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(
+                shooter.OffsetZero()
         );
     }
 

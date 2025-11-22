@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
@@ -31,6 +32,8 @@ public class ShooterMove extends SubsystemBase {
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
     private int turretOff = 0;
+    private double turretOffset = 0;
+    private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 0.6, i = 0.1, d = 0;
@@ -59,13 +62,14 @@ public class ShooterMove extends SubsystemBase {
         controllerShooter = new PIDController(p, i, d);
         controllerTurret = new PIDController(pT, iT, dT);
 
-        RPM.add(0, 315);
-        RPM.add(40.5, 315);
-        RPM.add(60.25, 330);
-        RPM.add(90, 380);
-        RPM.add(106.5, 410);
-        RPM.add(132, 450);
-        RPM.add(300, 550);
+        RPM.add(0, 330);
+        RPM.add(40.5, 330);
+        RPM.add(60.25, 345);
+        RPM.add(90, 395);
+        RPM.add(106.5, 420);
+        RPM.add(132, 460);
+        RPM.add(210, 485);
+        RPM.add(3000, 485);
         RPM.createLUT();
 
         angle.add(0, 1);
@@ -74,7 +78,8 @@ public class ShooterMove extends SubsystemBase {
         angle.add(90, 0.25);
         angle.add(106.5, 0.15);
         angle.add(132, 0.15);
-        angle.add(300, 0.05);
+        angle.add(210, 0.15);
+        angle.add(3000, 0.15);
         angle.createLUT();
 
         shottime.add(0, 1);
@@ -83,6 +88,7 @@ public class ShooterMove extends SubsystemBase {
         shottime.add(87.8, 1);
         shottime.add(106.6, 1);
         shottime.add(300, 1);
+        shottime.add(3000, 1);
         shottime.createLUT();
     }
 
@@ -91,6 +97,29 @@ public class ShooterMove extends SubsystemBase {
     }
     public Command turretOff (boolean off) {
         return new InstantCommand(() -> turretOff = off ? 0 : 1);
+    }
+
+    public Command increaseTurretOffset () {
+        return new InstantCommand(() -> turretOffset += 5);
+    }
+
+    public Command decreaseTurretOffset () {
+        return new InstantCommand(() -> turretOffset -= 5);
+    }
+
+    public Command increaseHoodOffset () {
+        return new InstantCommand(() -> hoodOffset += 0.05);
+    }
+
+    public Command decreaseHoodOffset () {
+        return new InstantCommand(() -> hoodOffset -= 0.05);
+    }
+
+    public Command OffsetZero () {
+        return new ParallelCommandGroup(
+                new InstantCommand(() -> hoodOffset = 0),
+                new InstantCommand(() -> turretOffset = 0)
+        );
     }
 
     @Override
@@ -122,12 +151,13 @@ public class ShooterMove extends SubsystemBase {
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 240);
+        targetAngleDeg += turretOffset;
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
-        hood.set(angle.get(distance));
+        hood.set(angle.get(distance) + hoodOffset);
         double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double flywheelPID = controllerShooter.calculate(vel, target);
         flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));

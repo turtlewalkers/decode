@@ -59,13 +59,14 @@ public class Shooter extends SubsystemBase {
         controllerShooter = new PIDController(p, i, d);
         controllerTurret = new PIDController(pT, iT, dT);
 
-        RPM.add(0, 315);
-        RPM.add(40.5, 315);
-        RPM.add(60.25, 330);
-        RPM.add(90, 380);
-        RPM.add(106.5, 410);
-        RPM.add(132, 450);
-        RPM.add(210, 475);
+        RPM.add(0, 330);
+        RPM.add(40.5, 330);
+        RPM.add(60.25, 345);
+        RPM.add(90, 395);
+        RPM.add(106.5, 420);
+        RPM.add(132, 460);
+        RPM.add(210, 485);
+        RPM.add(3000, 485);
         RPM.createLUT();
 
         angle.add(0, 1);
@@ -75,6 +76,7 @@ public class Shooter extends SubsystemBase {
         angle.add(106.5, 0.15);
         angle.add(132, 0.15);
         angle.add(210, 0.15);
+        angle.add(3000, 0.15);
         angle.createLUT();
 
         shottime.add(0, 1);

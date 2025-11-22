@@ -30,27 +30,28 @@ public class AutonRed extends CommandOpMode {
     private double redoffset = 4;
 
     // Poses:
-    private final Pose Start = new Pose(115.5-redoffset+2.5, 128, Math.toRadians(45));
+    private final Pose Start = new Pose(115.5+2, 135-9, Math.toRadians(45));
 
-    private final Pose Paneer2 = new Pose(115-redoffset+2.5, 127.5, Math.toRadians(45));
-    private final Pose ScorePositiona = new Pose(84, 85, Math.toRadians(45));
-    private final Pose ScorePosition = new Pose(82, 88, Math.toRadians(315));
-    private final Pose Grab1 = new Pose(96-redoffset+2.5,  85, Math.toRadians(0));
-    private final Pose Collect1 = new Pose(120-redoffset, 85, Math.toRadians(0));
-    private final Pose GotoGate = new Pose(119-redoffset+2.5, 74, Math.toRadians(0));
-    private final Pose OpenGate = new Pose(122-redoffset, 73, Math.toRadians(0));
-    private final Pose LeaveGate = new Pose(94-redoffset, 72, Math.toRadians(0));
-    private final Pose Grab2 = new Pose(95-redoffset+2.5, 60, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(127-redoffset, 60, Math.toRadians(0));
-    private final Pose Grab3 = new Pose(94-redoffset+2.5, 36, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(128-redoffset, 36, Math.toRadians(0));
-    private final Pose Grab4Setup = new Pose(126-redoffset, 48, Math.toRadians(300));
-    private final Pose Grab4 = new Pose(130-redoffset, 25, Math.toRadians(280));
-    private final Pose Collect4 = new Pose(130-redoffset, 9, Math.toRadians(270));
-    private final Pose byebye = new Pose(90-redoffset, 70, Math.toRadians(90));
+    private final Pose Paneer2 = new Pose(115+2, 127.5-5, Math.toRadians(45));
+    private final Pose ScorePositiona = new Pose(84+2, 85-5, Math.toRadians(45));
+    private final Pose ScorePosition = new Pose(82+2, 88-5, Math.toRadians(315));
+    private final Pose Grab1 = new Pose(96+2,  85-4, Math.toRadians(0));
+    private final Pose Collect1 = new Pose(120+2, 85-4, Math.toRadians(0));
+    private final Pose GotoGate = new Pose(119+2, 74-5, Math.toRadians(0));
+    private final Pose OpenGate = new Pose(121, 73-3, Math.toRadians(0));
+    private final Pose LeaveGate = new Pose(94+2, 72-3, Math.toRadians(0));
+    private final Pose Grab2 = new Pose(95+2, 60-4, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(127+2, 60-4, Math.toRadians(0));
+    private final Pose Grab3 = new Pose(94+2, 36-4, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(128+2, 36-4, Math.toRadians(0));
+    private final Pose Grab4Setup = new Pose(126+2, 48-4, Math.toRadians(300));
+    private final Pose Grab4 = new Pose(130+2, 25-4, Math.toRadians(280));
+    private final Pose GotoS4 = new Pose(120, 28, Math.toRadians(280));
+    private final Pose Collect4 = new Pose(130+2, 10, Math.toRadians(270));
+    private final Pose byebye = new Pose(90+2, 70-5, Math.toRadians(90));
     private Path PreloadShoot;
     private Path Paneer;
-    private PathChain Goto1, Pickup1, Shoot1, ToGate, GateOpen, GateLeave, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4, tatawireless, tatawireless2;
+    private PathChain Goto1, Pickup1, Shoot1, ToGate, GateOpen, GateLeave, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
 
     public void buildpaths() {
@@ -65,8 +66,8 @@ public class AutonRed extends CommandOpMode {
 
 
         Goto1 = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePosition, Grab1))
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Grab1.getHeading())
+                .addPath(new BezierLine(ScorePositiona, Grab1))
+                .setLinearHeadingInterpolation(ScorePositiona.getHeading(), Grab1.getHeading())
                 .build();
 
         Pickup1 = follower.pathBuilder()
@@ -139,9 +140,14 @@ public class AutonRed extends CommandOpMode {
                 .setLinearHeadingInterpolation(Grab4.getHeading(), Collect4.getHeading())
                 .build();
 
-        Shoot4 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect4, ScorePosition))
-                .setLinearHeadingInterpolation(Collect4.getHeading(), ScorePosition.getHeading())
+        Shoot4P1 = follower.pathBuilder()
+                .addPath(new BezierLine(Collect4, GotoS4))
+                .setLinearHeadingInterpolation(Collect4.getHeading(), GotoS4.getHeading())
+                .build();
+
+        Shoot4P2 = follower.pathBuilder()
+                .addPath(new BezierLine(GotoS4, ScorePosition))
+                .setLinearHeadingInterpolation(GotoS4.getHeading(), ScorePosition.getHeading())
                 .build();
 
 
@@ -171,16 +177,18 @@ public class AutonRed extends CommandOpMode {
 //                                new FollowPathCommand(follower, Paneer),
                                 new FollowPathCommand(follower, PreloadShoot),
                                 // === Preload ===
-                                intake.collect(),                        // robot.intake.setPower(1);
+//                                intake.collect(),                        // robot.intake.setPower(1);
                                 intake.close(),
                                 shooter.flywheel(true),
                                 shooter.turretOff(false)
 
                         ),
+                        new WaitCommand(50),
                         intake.open(),
+                        intake.collect(),
                         new WaitCommand(1300),
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, Goto1, true),
+                        new FollowPathCommand(follower, Goto1, false),
                         intake.close(),
 
 
@@ -188,29 +196,33 @@ public class AutonRed extends CommandOpMode {
 
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot1, true),
+                        new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1300),
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, GateOpen, true).withTimeout(2000),
                         intake.close(),
+                        new WaitCommand(500),
 
 
                         new FollowPathCommand(follower, GateLeave, false),
 
-                        new FollowPathCommand(follower, Goto2, true),
+                        new FollowPathCommand(follower, Goto2, false),
 
                         new FollowPathCommand(follower, Pickup2, true),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot2, true),
+                        new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1300),
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, Goto3, true),
+                        new FollowPathCommand(follower, Goto3, false),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot3, true),
+                        new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1800),
                         shooter.turretOff(true),
@@ -220,7 +232,9 @@ public class AutonRed extends CommandOpMode {
 
                         new FollowPathCommand(follower, Goto4, false).withTimeout(1000),
                         shooter.turretOff(false),
-                        new FollowPathCommand(follower, Shoot4, true),
+                        new FollowPathCommand(follower, Shoot4P1, false, 0.8),
+                        new FollowPathCommand(follower, Shoot4P2, true),
+                        new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1800),
                         intake.close(),
