@@ -38,6 +38,9 @@ public class ShooterMove extends SubsystemBase {
     private PIDController controllerShooter, controllerTurret;
     public static double p = 0.6, i = 0.1, d = 0;
     public static double pT = 0.3, iT = 0, dT = 0.00001;
+    public static boolean ENABLE_FF = false;
+    public static double kV = 0.0212;
+    public static double kS = 0.84;
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
@@ -149,22 +152,32 @@ public class ShooterMove extends SubsystemBase {
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 240);
-        targetAngleDeg += turretOffset;
+        targetAngleDeg *= turretOff;
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
-        hood.set(angle.get(distance) + hoodOffset);
+        double theta = angle.get(distance) + hoodOffset;
+        theta = Math.max(theta, 0);
+        theta = Math.min(theta, 1);
+        hood.set(theta);
         double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double flywheelPID = controllerShooter.calculate(vel, target);
         flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));
 
+        double pidVolts = flywheelPID;
+        double ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+        double flywheelVolts = pidVolts + ffvolts;
+        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+
         if (flywheelOn) {
-            shootert.set((-1) * flywheelPID / presentVoltage);
-            shooterb.set((-1) * flywheelPID / presentVoltage);
+            shootert.set((-1) * flywheelVolts / presentVoltage);
+            shooterb.set((-1) * flywheelVolts / presentVoltage);
         } else {
             shooterb.set(0);
             shootert.set(0);

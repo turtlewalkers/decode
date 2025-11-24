@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.kV;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -21,7 +23,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-@Disabled
 @Config
 @TeleOp
 public class AirSort extends OpMode {
@@ -82,8 +83,13 @@ public class AirSort extends OpMode {
                     // first shot
                     pid = controller.calculate(vel, target);
                     pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-                    shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
-                    shootert.setPower((-1) * (pid + f * target) / presentVoltage);
+                    double pidVolts = pid;
+                    double ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+                    double flywheelVolts = pidVolts + ffvolts;
+                    flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+                    shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
+                    shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
 
                     if (timer.milliseconds() > time) {
                         hood.setPosition(theta2);
@@ -96,9 +102,13 @@ public class AirSort extends OpMode {
                     // second shot
                     pid = controller.calculate(vel, target2);
                     pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-                    shooterb.setPower((-1) * (pid + f * target2) / presentVoltage);
-                    shootert.setPower((-1) * (pid + f * target2) / presentVoltage);
-
+                    pidVolts = pid;
+                    ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+                    flywheelVolts = pidVolts + ffvolts;
+                    flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+                    shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
+                    shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
                     if (timer.milliseconds() > time) {
                         hood.setPosition(theta);
                         shootingStep++;
@@ -110,8 +120,13 @@ public class AirSort extends OpMode {
                     // third shot
                     pid = controller.calculate(vel, target);
                     pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-                    shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
-                    shootert.setPower((-1) * (pid + f * target) / presentVoltage);
+                    pidVolts = pid;
+                    ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+                    flywheelVolts = pidVolts + ffvolts;
+                    flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+                    shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
+                    shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
 
                     shootingSequenceActive = false; // done
                     latch.setPosition(0);
@@ -123,9 +138,13 @@ public class AirSort extends OpMode {
         double presentVoltage = volt.getVoltage();
         vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double pid = controller.calculate(vel, target);
-        pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-        shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
-        shootert.setPower((-1) * (pid + f * target) / presentVoltage);
+        double pidVolts = pid;
+        double ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+        double flywheelVolts = pidVolts + ffvolts;
+        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+        shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
+        shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("Velocity", vel);
