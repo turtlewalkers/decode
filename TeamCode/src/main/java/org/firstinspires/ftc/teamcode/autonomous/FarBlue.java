@@ -47,7 +47,7 @@ public class FarBlue extends CommandOpMode {
         Memory.autoRan = true;
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        intake = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap, () -> follower, 6, 138);
         shooter = new Shooter(hardwareMap, () -> follower, 6, 138, true);
 
         buildpaths();

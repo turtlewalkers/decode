@@ -165,8 +165,8 @@ public class AutonRed extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap, () -> follower, 138, 138, true);
+        intake = new Intake(hardwareMap, () -> follower, 138, 138);
 
         buildpaths();
 

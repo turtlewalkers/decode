@@ -165,7 +165,7 @@ public class RedBack extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        intake = new Intake(hardwareMap);
+        intake = new Intake(hardwareMap, () -> follower, 138, 138);
         shooter = new Shooter(hardwareMap, () -> follower, 138, 138, true);
 
         buildpaths();

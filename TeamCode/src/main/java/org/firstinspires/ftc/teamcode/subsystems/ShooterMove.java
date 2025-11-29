@@ -71,6 +71,7 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(90, 395);
         RPM.add(106.5, 420);
         RPM.add(132, 460);
+        RPM.add(145, 480);
         RPM.add(210, 485);
         RPM.add(3000, 485);
         RPM.createLUT();
@@ -80,7 +81,7 @@ public class ShooterMove extends SubsystemBase {
         angle.add(60.25, 0.4);
         angle.add(90, 0.25);
         angle.add(106.5, 0.15);
-        angle.add(132, 0.15);
+        angle.add(132, 0);
         angle.add(210, 0.15);
         angle.add(3000, 0.15);
         angle.createLUT();
@@ -177,7 +178,7 @@ public class ShooterMove extends SubsystemBase {
 
         if (flywheelOn) {
             shootert.set((-1) * flywheelVolts / presentVoltage);
-            shooterb.set((-1) * flywheelVolts / presentVoltage);
+            shooterb.set(flywheelVolts / presentVoltage);
         } else {
             shooterb.set(0);
             shootert.set(0);

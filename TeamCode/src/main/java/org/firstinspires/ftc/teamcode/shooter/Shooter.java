@@ -27,16 +27,17 @@ public class Shooter extends OpMode {
     private FtcDashboard dashboard;
     private PIDController controller;
     private TelemetryManager telemetryM;
-    public static double p = 0.6, i = 0.1, d = 0;
+    public static double p = 1, i = 0.06, d = 0;
     public static double f = 0.026;
     public static double target = 0;
     private static double vel = 0;
     public static double alpha = 0.6;
     private Servo hood, latch;
     public static double theta = 0;
-    public static boolean ENABLE_FF = false;
-    public static double kV = 0.0201482361111569;
-    public static double kS = 0.753131659621148;
+    public static boolean ENABLE_FF = true;
+    public static double kV = 0.0216569064699438;
+    public static double kS = 0.887902418781865;
+    public static double multipler = 0.65;
     private DcMotorEx shooterb, shootert, intake;
     private VoltageSensor volt;
 
@@ -55,7 +56,7 @@ public class Shooter extends OpMode {
 
     @Override
     public void loop() {
-        intake.setPower(gamepad1.right_trigger);
+        intake.setPower(gamepad1.right_trigger * multipler);
         hood.setPosition(theta);
 
         if (gamepad1.y) {
@@ -76,7 +77,7 @@ public class Shooter extends OpMode {
         ffvolts += kS * Math.signum(target);
         double flywheelVolts = pidVolts + ffvolts;
         flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
-        shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
+        shooterb.setPower((flywheelVolts) / presentVoltage);
         shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
 
         TelemetryPacket packet = new TelemetryPacket();

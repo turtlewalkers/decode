@@ -127,7 +127,7 @@ public class ShooterTest extends LinearOpMode {
             double appliedPower = runShooter ? testPower : 0.0;
 
             // Apply to motors (both same direction for this test)
-            shooterBottom.set(-appliedPower);
+            shooterBottom.set(appliedPower);
             shooterTop.set(-appliedPower);
 
             // Read velocity from bottom motor

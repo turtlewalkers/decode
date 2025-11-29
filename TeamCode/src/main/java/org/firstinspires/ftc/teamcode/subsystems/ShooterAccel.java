@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
 
 import java.util.function.Supplier;
 
-public class Shooter extends SubsystemBase {
+public class ShooterAccel extends SubsystemBase {
     private final MotorEx shootert, shooterb, turret;
     private final ServoEx hood;
     private VoltageSensor volt;
@@ -31,15 +31,21 @@ public class Shooter extends SubsystemBase {
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
+    private double robottime = 0.2;
     private int turretOff = 0;
+    private double turretOffset = 0;
+    private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 0.6, i = 0.1, d = 0;
     public static double pT = 0.3, iT = 0, dT = 0.00001;
+    public static boolean ENABLE_FF = false;
+    public static double kV = 0.0212;
+    public static double kS = 0.84;
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
-    public Shooter(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
+    public ShooterAccel(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
         this.followerSupplier = followerSupplier;
@@ -50,6 +56,7 @@ public class Shooter extends SubsystemBase {
         volt = hMap.get(VoltageSensor.class, "Control Hub");
         shooterb.setRunMode(MotorEx.RunMode.RawPower);
         shootert.setRunMode(MotorEx.RunMode.RawPower);
+        Log.d("Initial Turret Pose", String.valueOf((double)turret.getCurrentPosition() / TICKS_PER_DEGREES));
         if (turretReset) {
             turret.stopAndResetEncoder();
         }
@@ -65,7 +72,6 @@ public class Shooter extends SubsystemBase {
         RPM.add(90, 395);
         RPM.add(106.5, 420);
         RPM.add(132, 460);
-        RPM.add(145, 480);
         RPM.add(210, 485);
         RPM.add(3000, 485);
         RPM.createLUT();
@@ -75,7 +81,7 @@ public class Shooter extends SubsystemBase {
         angle.add(60.25, 0.4);
         angle.add(90, 0.25);
         angle.add(106.5, 0.15);
-        angle.add(132, 0);
+        angle.add(132, 0.15);
         angle.add(210, 0.15);
         angle.add(3000, 0.15);
         angle.createLUT();
@@ -85,7 +91,8 @@ public class Shooter extends SubsystemBase {
         shottime.add(61.6, 0.81);
         shottime.add(87.8, 1);
         shottime.add(106.6, 1);
-        shottime.add(210, 1);
+        shottime.add(300, 1);
+        shottime.add(3000, 1);
         shottime.createLUT();
     }
 
@@ -94,6 +101,29 @@ public class Shooter extends SubsystemBase {
     }
     public Command turretOff (boolean off) {
         return new InstantCommand(() -> turretOff = off ? 0 : 1);
+    }
+
+    public Command increaseTurretOffset () {
+        return new InstantCommand(() -> turretOffset += 5);
+    }
+
+    public Command decreaseTurretOffset () {
+        return new InstantCommand(() -> turretOffset -= 5);
+    }
+
+    public Command increaseHoodOffset () {
+        return new InstantCommand(() -> hoodOffset += 0.05);
+    }
+
+    public Command decreaseHoodOffset () {
+        return new InstantCommand(() -> hoodOffset -= 0.05);
+    }
+
+    public Command OffsetZero () {
+        return new ParallelCommandGroup(
+                new InstantCommand(() -> hoodOffset = 0),
+                new InstantCommand(() -> turretOffset = 0)
+        );
     }
 
     @Override
@@ -107,10 +137,27 @@ public class Shooter extends SubsystemBase {
 
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
-        double distance = Math.sqrt(dx * dx + dy * dy);
+        double distance = Math.sqrt(dx*dx + dy*dy);
+
+        double vX = followerSupplier.get().getVelocity().getXComponent();
+        double vY = followerSupplier.get().getVelocity().getYComponent();
+        double aX = followerSupplier.get().getAcceleration().getXComponent();
+        double aY = followerSupplier.get().getAcceleration().getYComponent();
+
+        for (int i = 0; i < 5; ++i) {
+            double shotTime = shottime.get(distance);
+
+            // vf = vi + at
+            // robot time = time ball is in robot
+            dx = shooterX - robotX - (vX + aX * robottime) * shotTime;
+            dy = shooterY - robotY - (vY + aY * robottime) * shotTime;
+            distance = Math.sqrt(dx*dx + dy*dy);
+        }
+
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 240);
         targetAngleDeg *= turretOff;
@@ -119,14 +166,23 @@ public class Shooter extends SubsystemBase {
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
-        hood.set(angle.get(distance));
+        double theta = angle.get(distance) + hoodOffset;
+        theta = Math.max(theta, 0);
+        theta = Math.min(theta, 1);
+        hood.set(theta);
         double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double flywheelPID = controllerShooter.calculate(vel, target);
         flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));
 
+        double pidVolts = flywheelPID;
+        double ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+        double flywheelVolts = pidVolts + ffvolts;
+        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+
         if (flywheelOn) {
-            shootert.set((-1) * flywheelPID / presentVoltage);
-            shooterb.set(flywheelPID / presentVoltage);
+            shootert.set((-1) * flywheelVolts / presentVoltage);
+            shooterb.set((-1) * flywheelVolts / presentVoltage);
         } else {
             shooterb.set(0);
             shootert.set(0);
