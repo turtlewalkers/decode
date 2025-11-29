@@ -24,16 +24,17 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.ShooterAccel;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Config
 @TeleOp
-public class TeleopMoving extends CommandOpMode {
+public class TeleopAccel extends CommandOpMode {
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
-    private ShooterMove shooter;
+    private ShooterAccel shooter;
     public static double shooterX, shooterY;
     private double multiplier = 1;
     private Path Park;
@@ -66,8 +67,8 @@ public class TeleopMoving extends CommandOpMode {
         }
         Park = new Path(new BezierLine(start, end));
         Park.setConstantHeadingInterpolation(Math.toRadians(90));
-        shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
         intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
+        shooter = new ShooterAccel(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
         shooter.turretOff(false);
         Memory.autoRan = false;
 
@@ -131,7 +132,7 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
-            shooter.increaseHoodOffset()
+                shooter.increaseHoodOffset()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
@@ -139,7 +140,7 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-            shooter.increaseTurretOffset()
+                shooter.increaseTurretOffset()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(

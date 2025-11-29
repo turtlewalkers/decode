@@ -36,7 +36,6 @@ public class TeleopNew extends CommandOpMode {
 
         follower.startTeleopDrive(true);
         gamepad = new GamepadEx(gamepad1);
-        intake = new Intake(hardwareMap);
 
         if (Memory.allianceRed) {
             shooterX = 138;
@@ -47,6 +46,7 @@ public class TeleopNew extends CommandOpMode {
         }
 
         shooter = new Shooter(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
+        intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
         Memory.autoRan = false;
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(intake.collect());
