@@ -27,7 +27,7 @@ public class Shooter extends OpMode {
     private FtcDashboard dashboard;
     private PIDController controller;
     private TelemetryManager telemetryM;
-    public static double p = 1, i = 0.06, d = 0;
+    public static double p = 1, i = 0.1, d = 0;
     public static double f = 0.026;
     public static double target = 0;
     private static double vel = 0;
@@ -35,8 +35,8 @@ public class Shooter extends OpMode {
     private Servo hood, latch;
     public static double theta = 0;
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.0216569064699438;
-    public static double kS = 0.887902418781865;
+    public static double kV = 0.0234569587412933;
+    public static double kS = 0.964058461983476;
     public static double multipler = 0.65;
     private DcMotorEx shooterb, shootert, intake;
     private VoltageSensor volt;
