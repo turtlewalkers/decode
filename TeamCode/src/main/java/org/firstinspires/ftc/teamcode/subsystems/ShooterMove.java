@@ -32,7 +32,7 @@ public class ShooterMove extends SubsystemBase {
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
     private int turretOff = 0;
-    private double turretOffset = 0;
+    public static double turretOffset = 0;
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
@@ -153,13 +153,16 @@ public class ShooterMove extends SubsystemBase {
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 270);
-        targetAngleDeg *= turretOff;
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
+        if (Math.abs(turretPower) <= 0.03) {
+            turretPower = 0;
+        }
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;

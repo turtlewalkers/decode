@@ -46,6 +46,9 @@ public class Turret extends OpMode {
         controller.setPID(p, i, d);
         double pos = turret.getCurrentPosition() / TICKS_PER_DEGREES;
         double pid = controller.calculate(pos, target);
+        if (Math.abs(pid) <= 0.03) {
+            pid = 0;
+        }
         turret.setPower(pid);
 
         telemetry.addData("Position", pos);

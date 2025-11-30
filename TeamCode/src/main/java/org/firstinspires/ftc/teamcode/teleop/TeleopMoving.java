@@ -24,6 +24,7 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Config
@@ -34,6 +35,7 @@ public class TeleopMoving extends CommandOpMode {
     private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
     private ShooterMove shooter;
+    private Limelight limelight;
     public static double shooterX, shooterY;
     private double multiplier = 1;
     private Path Park;
@@ -68,8 +70,13 @@ public class TeleopMoving extends CommandOpMode {
         Park.setConstantHeadingInterpolation(Math.toRadians(90));
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
         intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
+        limelight = new Limelight(hardwareMap, () -> follower);
         shooter.turretOff(false);
         Memory.autoRan = false;
+
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                new InstantCommand(() -> Memory.allianceRed = false)
+        );
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(intake.collect());
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5).whenActive(intake.stop());
@@ -148,6 +155,22 @@ public class TeleopMoving extends CommandOpMode {
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.B).whenPressed(
                 new InstantCommand(() -> follower.setPose(relocalize))
+        );
+
+        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
+                limelight.relocalize()
+        );
+
+        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenReleased(
+                limelight.norelocalize()
+        );
+
+        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
+                limelight.fixTurret()
+        );
+
+        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
+                limelight.nofixTurret()
         );
     }
 
