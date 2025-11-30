@@ -54,7 +54,7 @@ public class TeleopMoving extends CommandOpMode {
             shooterX = 138;
             shooterY = 138;
             end = new Pose(36.5, 38, Math.toRadians(90));
-            relocalize = new Pose(7.6, 9.4, Math.toRadians(90));
+            relocalize = new Pose(4.7, 11.04, Math.toRadians(90));
         } else {
             shooterX = 6;
             shooterY = 138;

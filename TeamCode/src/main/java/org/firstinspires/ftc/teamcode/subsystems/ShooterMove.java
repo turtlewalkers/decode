@@ -43,7 +43,6 @@ public class ShooterMove extends SubsystemBase {
     public static double kS = 0.84;
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
-
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
@@ -87,13 +86,13 @@ public class ShooterMove extends SubsystemBase {
         angle.add(3000, 0.1);
         angle.createLUT();
 
-        shottime.add(0, 1);
-        shottime.add(40.8, 1);
-        shottime.add(61.6, 0.81);
-        shottime.add(87.8, 1);
-        shottime.add(106.6, 1);
-        shottime.add(300, 1);
-        shottime.add(3000, 1);
+        shottime.add(0, 0.6);
+        shottime.add(41.1, 0.6);
+        shottime.add(51.8, 0.77);
+        shottime.add(74.8, 0.72);
+        shottime.add(93.3, 0.8);
+        shottime.add(111, 0.85);
+        shottime.add(3000, 0.85);
         shottime.createLUT();
     }
 
@@ -156,7 +155,7 @@ public class ShooterMove extends SubsystemBase {
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 240);
+        targetAngleDeg = Math.min(targetAngleDeg, 270);
         targetAngleDeg *= turretOff;
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));

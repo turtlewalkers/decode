@@ -58,11 +58,11 @@ public class Intake extends SubsystemBase {
     }
 
     public Command LEDon() {
-        return new InstantCommand(() -> led.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN));
+        return new InstantCommand(() -> led.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE));
     }
 
     public Command LEDoff() {
-        return new InstantCommand(() -> led.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE));
+        return new InstantCommand(() -> led.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED));
     }
 
     @Override
@@ -75,9 +75,5 @@ public class Intake extends SubsystemBase {
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
         double distance = Math.sqrt(dx*dx + dy*dy);
-
-        if (distance >= 120) {
-            speed = 0.67;
-        }
     }
 }
