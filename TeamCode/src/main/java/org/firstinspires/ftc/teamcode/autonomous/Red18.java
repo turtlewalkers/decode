@@ -20,52 +20,37 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.RunCommand;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
-import com.seattlesolvers.solverslib.command.WaitCommand;
-import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
-import com.seattlesolvers.solverslib.util.TelemetryData;
-
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
 public class Red18 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
-    private Shooter shooter;
+    private ShooterMove shooter;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     private double redoffset = 4;
 
     // Poses:
-    private final Pose Start = new Pose(115.5+4, 135-9, Math.toRadians(45));
+    private final Pose Start = new Pose(119.5-1, 126+3, Math.toRadians(45));
 
-    private final Pose Paneer2 = new Pose(115+2, 127.5-5, Math.toRadians(45));
-    private final Pose ScorePositiona = new Pose(84+2, 85-5, Math.toRadians(330));
-    private final Pose ScorePosition = new Pose(82+2, 88-5, Math.toRadians(315));
-    private final Pose Grab1 = new Pose(96+2,  85, Math.toRadians(0));
-    private final Pose Collect1 = new Pose(120+2, 85-4, Math.toRadians(0));
-    private final Pose GotoGate = new Pose(120, 59, Math.toRadians(25));
-//    private final Pose IntakeGate = new Pose(121, 62, Math.toRadians(0));
-    private final Pose CollectGate = new Pose(131.5, 61, Math.toRadians(25));
-    private final Pose LeaveGate = new Pose(120, 62, Math.toRadians(0));
-    private final Pose Grab2 = new Pose(95+2, 60, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(127+2, 60-4, Math.toRadians(0));
-    private final Pose Grab3 = new Pose(94+2, 36, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(128+2, 36-4, Math.toRadians(0));
-    private final Pose Grab4Setup = new Pose(126+2, 48-4, Math.toRadians(300));
-    private final Pose Grab4 = new Pose(130+2, 25-4, Math.toRadians(280));
-    private final Pose GotoS4 = new Pose(120, 28, Math.toRadians(280));
-    private final Pose Collect4 = new Pose(130+2, 10, Math.toRadians(270));
-    private final Pose byebye = new Pose(90+2, 70-5, Math.toRadians(90));
+    private final Pose Paneer2 = new Pose(115+2-1, 127.5-5+3, Math.toRadians(45));
+    private final Pose ScorePositiona = new Pose(84+2-1, 85-5+3, Math.toRadians(330));
+    private final Pose ScorePosition = new Pose(82+2-1, 88-5+3, Math.toRadians(315));
+    private final Pose Grab1 = new Pose(96+2-1,  85+3, Math.toRadians(0));
+    private final Pose Collect1 = new Pose(120+2-1, 85-4+3, Math.toRadians(0));
+    private final Pose GotoGate = new Pose(120-1, 59+3, Math.toRadians(25));
+    //    private final Pose IntakeGate = new Pose(121, 62, Math.toRadians(0));
+    private final Pose CollectGate = new Pose(131.5-1, 61+3, Math.toRadians(25));
+    private final Pose LeaveGate = new Pose(120-1, 62+3, Math.toRadians(0));
+    private final Pose Grab2 = new Pose(95+2-1, 60+3, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(127+2-1, 60-4+3, Math.toRadians(0));
+    private final Pose Grab3 = new Pose(94+2-1, 36+3, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(128+2-1, 36-4+3, Math.toRadians(0));
+    private final Pose Grab4Setup = new Pose(126+2-1, 48-4+3, Math.toRadians(300));
+    private final Pose Grab4 = new Pose(130+2-1, 25-4+3, Math.toRadians(280));
+    private final Pose GotoS4 = new Pose(120-1, 28+3, Math.toRadians(280));
+    private final Pose Collect4 = new Pose(130+2-1, 10+3, Math.toRadians(270));
+    private final Pose byebye = new Pose(90+2-1, 70-5+3, Math.toRadians(90));
     private Path PreloadShoot;
     private Path Paneer;
     private PathChain Goto1, Pickup1, Shoot1, ToGate, GotoIntakeGate, GateIntake, ShootGate1, ShootGate2, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
@@ -201,7 +186,7 @@ public class Red18 extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new Shooter(hardwareMap, () -> follower, 138, 138, true);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138, true);
         intake = new Intake(hardwareMap, () -> follower, 138, 138);
 
         buildpaths();
