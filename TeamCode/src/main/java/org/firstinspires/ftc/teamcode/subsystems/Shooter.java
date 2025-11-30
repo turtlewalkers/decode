@@ -34,8 +34,8 @@ public class Shooter extends SubsystemBase {
     private int turretOff = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
-    public static double p = 0.6, i = 0.1, d = 0;
-    public static double pT = 0.3, iT = 0, dT = 0.00001;
+    public static double p = 1, i = 0.1, d = 0;
+    public static double pT = 0.14, iT = 0, dT = 0.00001;
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
@@ -59,25 +59,26 @@ public class Shooter extends SubsystemBase {
         controllerShooter = new PIDController(p, i, d);
         controllerTurret = new PIDController(pT, iT, dT);
 
-        RPM.add(0, 330);
-        RPM.add(40.5, 330);
-        RPM.add(60.25, 345);
-        RPM.add(90, 395);
-        RPM.add(106.5, 420);
-        RPM.add(132, 460);
-        RPM.add(145, 480);
-        RPM.add(210, 485);
+        RPM.add(0, 310);
+        RPM.add(39.5, 310);
+        RPM.add(48, 330);
+        RPM.add(61, 350);
+        RPM.add(90, 380);
+        RPM.add(119.5, 400);
+        RPM.add(136, 420);
+        RPM.add(145, 440);
         RPM.add(3000, 485);
         RPM.createLUT();
 
-        angle.add(0, 1);
-        angle.add(40.5, 1);
-        angle.add(60.25, 0.4);
-        angle.add(90, 0.25);
-        angle.add(106.5, 0.15);
-        angle.add(132, 0);
-        angle.add(210, 0.15);
-        angle.add(3000, 0.15);
+        angle.add(0, 0.65);
+        angle.add(39.5, 0.65);
+        angle.add(48, 0.45);
+        angle.add(61, 0.2);
+        angle.add(90, 0.2);
+        angle.add(119.5, 0.15);
+        angle.add(136, 0.15);
+        angle.add(145, 0.1);
+        angle.add(3000, 0.1);
         angle.createLUT();
 
         shottime.add(0, 1);
@@ -112,7 +113,7 @@ public class Shooter extends SubsystemBase {
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 240);
+        targetAngleDeg = Math.min(targetAngleDeg, 270);
         targetAngleDeg *= turretOff;
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
