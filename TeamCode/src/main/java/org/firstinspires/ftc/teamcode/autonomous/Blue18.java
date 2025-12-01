@@ -19,24 +19,24 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class AutonBlue extends CommandOpMode {
+public class Blue18 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     // Poses:
-    private final Pose Start = new Pose(28.5, 135-4, Math.toRadians(135));
+    private final Pose Start = new Pose(28.5-5.5, 135-4, Math.toRadians(135));
     private final Pose Paneer2 = new Pose(29-5, 127.5+2, Math.toRadians(135));
-    private final Pose ScorePosition = new Pose(60-5  , 85+2, Math.toRadians(135));
+    private final Pose ScorePosition = new Pose(60-5  , 85+2, Math.toRadians(225));
+    private final Pose ScorePositionA = new Pose(60-5  , 85+2, Math.toRadians(170));
     private final Pose Grab1 = new Pose(48-5, 85+3, Math.toRadians(180));
     private final Pose Collect1 = new Pose(19-5, 85+3, Math.toRadians(180));
     private final Pose GotoGate = new Pose(25-5, 74+3, Math.toRadians(180));
-    private final Pose OpenGate = new Pose(18-5, 73+1, Math.toRadians(180));
-    private final Pose LeaveGate = new Pose(50-5, 72+3, Math.toRadians(180));
+    private final Pose CollectGate = new Pose(14.5, 61+3, Math.toRadians(155));
+    private final Pose LeaveGate = new Pose(25, 62+3, Math.toRadians(180));
     private final Pose Grab2 = new Pose(48-5, 62+3, Math.toRadians(180));
     private final Pose Collect2 = new Pose(12-4, 62+3, Math.toRadians(180));
     private final Pose Grab3 = new Pose(48-5, 36+3, Math.toRadians(180));
@@ -48,7 +48,7 @@ public class AutonBlue extends CommandOpMode {
     private final Pose byebye = new Pose(50-5, 70+3, Math.toRadians(90));
     private Path PreloadShoot;
     private Path Paneer;
-    private PathChain Goto1, Pickup1, Shoot1, ToGate, GateOpen, GateLeave, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private PathChain Goto1, Pickup1, Shoot1, GotoIntakeGate, ShootGate1, ShootGate2, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
     public void buildpaths() {
         follower = Constants.createFollower(hardwareMap);
@@ -57,19 +57,19 @@ public class AutonBlue extends CommandOpMode {
         Paneer = new Path(new BezierLine(Start, Paneer2));
         Paneer.setLinearHeadingInterpolation(Start.getHeading(), Paneer2.getHeading());
 
-        PreloadShoot = new Path(new BezierLine(Paneer2, ScorePosition));
-        PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePosition.getHeading());
+        PreloadShoot = new Path(new BezierLine(Paneer2, ScorePositionA));
+        PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePositionA.getHeading());
 
 
         Goto1 = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePosition, Grab1))
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Grab1.getHeading())
+                .addPath(new BezierLine(ScorePositionA, Collect1))
+                .setLinearHeadingInterpolation(ScorePositionA.getHeading(), Collect1.getHeading())
                 .build();
-
-        Pickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(Grab1, Collect1))
-                .setLinearHeadingInterpolation(Grab1.getHeading(), Collect1.getHeading())
-                .build();
+//
+//        Pickup1 = follower.pathBuilder()
+//                .addPath(new BezierLine(Grab1, Collect1))
+//                .setLinearHeadingInterpolation(Grab1.getHeading(), Collect1.getHeading())
+//                .build();
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         Shoot1 = follower.pathBuilder()
@@ -77,18 +77,25 @@ public class AutonBlue extends CommandOpMode {
                 .setLinearHeadingInterpolation(Collect1.getHeading(), ScorePosition.getHeading())
                 .build();
 
-        ToGate = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePosition, GotoGate))
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), GotoGate.getHeading())
+        GotoIntakeGate = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        ScorePosition,
+                        new Pose(44, 58), // Control point
+                        CollectGate)
+                )
+                .setLinearHeadingInterpolation(ScorePosition.getHeading(), CollectGate.getHeading())
                 .build();
-
-        GateOpen = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePosition, OpenGate))
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), OpenGate.getHeading())
+//        GateIntake = follower.pathBuilder()
+//                .addPath(new BezierLine(IntakeGate, CollectGate))
+//                .setLinearHeadingInterpolation(IntakeGate.getHeading(), CollectGate.getHeading   ())
+//                .build();
+        ShootGate1 = follower.pathBuilder()
+                .addPath(new BezierLine(CollectGate, LeaveGate))
+                .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
                 .build();
-        GateLeave = follower.pathBuilder()
-                .addPath(new BezierLine(OpenGate, LeaveGate))
-                .setLinearHeadingInterpolation(OpenGate.getHeading(), LeaveGate.getHeading())
+        ShootGate2 = follower.pathBuilder()
+                .addPath(new BezierLine(LeaveGate, ScorePosition))
+                .setLinearHeadingInterpolation(LeaveGate.getHeading(), ScorePosition.getHeading())
                 .build();
 
         Goto2 = follower.pathBuilder()
@@ -97,8 +104,12 @@ public class AutonBlue extends CommandOpMode {
                 .build();
 
         Pickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(Grab2, Collect2))
-                .setLinearHeadingInterpolation(Grab2.getHeading(), Collect2.getHeading())
+                .addPath(new BezierCurve(
+                        ScorePosition,
+                        new Pose(44, 54),
+                        Collect2)
+                )
+                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect2.getHeading())
                 .build();
 
         Shoot2 = follower.pathBuilder()
@@ -112,8 +123,12 @@ public class AutonBlue extends CommandOpMode {
                 .build();
 
         Pickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(Grab3, Collect3))
-                .setLinearHeadingInterpolation(Grab3.getHeading(), Collect3.getHeading())
+                .addPath(new BezierCurve(
+                        ScorePosition,
+                        new Pose(54, 28),
+                        Collect3)
+                )
+                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect3.getHeading())
                 .build();
 
         Shoot3 = follower.pathBuilder()
@@ -186,24 +201,16 @@ public class AutonBlue extends CommandOpMode {
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, Goto1, false),
                         intake.close(),
-
-
-                        new FollowPathCommand(follower, Pickup1, true),
-
+//
+//                        new FollowPathCommand(follower, Pickup1, true),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot1, true),
                         new WaitCommand(50),
                         intake.open(),
                         new WaitCommand(1300),
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, GateOpen, true).withTimeout(2000),
                         intake.close(),
-                        new WaitCommand(500),
 
-
-                        new FollowPathCommand(follower, GateLeave, false),
-
-                        new FollowPathCommand(follower, Goto2, false),
 
                         new FollowPathCommand(follower, Pickup2, true),
                         shooter.turretOff(false),
@@ -212,7 +219,20 @@ public class AutonBlue extends CommandOpMode {
                         intake.open(),
                         new WaitCommand(1300),
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, Goto3, false),
+
+                        intake.close(),
+                        new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1500),
+                        shooter.turretOff(false),
+//                        new FollowPathCommand(follower, GateIntake, true),
+                        new WaitCommand(1800),
+
+                        new FollowPathCommand(follower, ShootGate1),
+                        new FollowPathCommand(follower, ShootGate2),
+                        intake.collect(),
+                        intake.open(),
+                        new WaitCommand(1300),
+
+//                        new FollowPathCommand(follower, Goto3, false),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
@@ -220,7 +240,7 @@ public class AutonBlue extends CommandOpMode {
                         new FollowPathCommand(follower, Shoot3, true),
                         new WaitCommand(50),
                         intake.open(),
-                        new WaitCommand(1800),
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
                         intake.close(),
 
@@ -232,12 +252,12 @@ public class AutonBlue extends CommandOpMode {
                         new FollowPathCommand(follower, Shoot4P2, true),
                         new WaitCommand(50),
                         intake.open(),
-                        new WaitCommand(1800),
+                        new WaitCommand(1300),
                         intake.close(),
 
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, tatawireless, true),
-                        new WaitCommand(1800),
+                        new WaitCommand(1000),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
         );

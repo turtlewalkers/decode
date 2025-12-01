@@ -153,6 +153,12 @@ public class ShooterMove extends SubsystemBase {
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+//        if (targetAngleDeg >= 200) {
+//            targetAngleDeg -= 360;
+//        }
+//        if (targetAngleDeg <= -160) {
+//            targetAngleDeg += 360;
+//        }
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
