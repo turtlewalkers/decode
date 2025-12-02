@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 public class AutonRed extends CommandOpMode {
     private Follower follower;
     private Intake intake;
-    private ShooterMove shooter;
+    private Shooter shooter;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     private double redoffset = 4;
 
@@ -166,7 +166,7 @@ public class AutonRed extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138, true);
+        shooter = new Shooter(hardwareMap, () -> follower, 136, 140, true);
         intake = new Intake(hardwareMap, () -> follower, 138, 138);
 
         buildpaths();
