@@ -48,7 +48,6 @@ public class Intake extends SubsystemBase {
     public Command stop() {
         return new InstantCommand(() -> intake.set(0));
     }
-
     public Command open() {
         return new InstantCommand(() -> latch.set(1));
     }

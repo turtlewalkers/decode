@@ -87,7 +87,7 @@ public class Limelight extends SubsystemBase {
                     if (targetId == fr.getFiducialId() && turret) {
                         double angle = fr.getTargetXDegrees();
                         Log.d("tX", String.valueOf(fr.getTargetXDegrees()));
-                        ShooterMove.turretOffset = angle;
+                        ShooterMove.turretOffset += angle*0.1;
                     }
                 }
             }

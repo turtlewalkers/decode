@@ -38,7 +38,7 @@ public class TeleopMoving extends CommandOpMode {
     private Limelight limelight;
     public static double shooterX, shooterY;
     private double multiplier = 1;
-    private Path Park;
+    private Path Park, Stay;
     private Pose end, start, relocalize;
 
     @Override
@@ -67,11 +67,13 @@ public class TeleopMoving extends CommandOpMode {
             Memory.robotPose = new Pose(72, 72, Math.toRadians(90));
         }
         Park = new Path(new BezierLine(start, end));
+        Stay = new Path(new BezierLine(start, start));
         Park.setConstantHeadingInterpolation(Math.toRadians(90));
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
         intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
         limelight = new Limelight(hardwareMap, () -> follower);
         shooter.turretOff(false);
+        shooter.flywheel(true);
         Memory.autoRan = false;
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
@@ -102,6 +104,10 @@ public class TeleopMoving extends CommandOpMode {
                 )
         );
 
+        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                shooter.turretOff(true)
+        );
+
         gamepad.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
                 shooter.turretOff(false)
         );
@@ -120,18 +126,20 @@ public class TeleopMoving extends CommandOpMode {
                 })
         );
 
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                shooter.turretOff(true)
+        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
+                new SequentialCommandGroup(
+                        new InstantCommand(() -> start = follower.getPose()),
+                        new FollowPathCommand(follower, Stay, true)
+                )
         );
-
+        gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
+                shooter.flywheel(false)
+        );
         gamepad.getGamepadButton(GamepadKeys.Button.A).whenPressed(
                 shooter.flywheel(true)
         );
 
-        gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
-                shooter.flywheel(false)
-        );
+
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 shooter.decreaseHoodOffset()
@@ -141,11 +149,11 @@ public class TeleopMoving extends CommandOpMode {
             shooter.increaseHoodOffset()
         );
 
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
                 shooter.decreaseTurretOffset()
         );
 
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
             shooter.increaseTurretOffset()
         );
 
