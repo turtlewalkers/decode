@@ -37,7 +37,7 @@ public class ShooterMove extends SubsystemBase {
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 1.68, iT = 0, dT = 0.03;
+    public static double pT = 1.68, iT = 0, dT = 0.025;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0212;
     public static double kS = 0.84;
@@ -87,12 +87,13 @@ public class ShooterMove extends SubsystemBase {
         angle.createLUT();
 
         shottime.add(0, 0.6);
-        shottime.add(41.1, 0.6);
-        shottime.add(51.8, 0.77);
-        shottime.add(74.8, 0.72);
-        shottime.add(93.3, 0.8);
-        shottime.add(111, 0.85);
-        shottime.add(3000, 0.85);
+        shottime.add(41.1, 0.5);
+        shottime.add(51.8, 0.51);
+        shottime.add(74.8, 0.62);
+        shottime.add(93.3, 0.62);
+        shottime.add(111, 0.75);
+        shottime.add(122, 0.76);
+        shottime.add(3000, 0.76);
         shottime.createLUT();
     }
 
@@ -143,15 +144,15 @@ public class ShooterMove extends SubsystemBase {
 
         double vX = followerSupplier.get().getVelocity().getXComponent();
         double vY = followerSupplier.get().getVelocity().getYComponent();
+        double vTheta = followerSupplier.get().getAngularVelocity();
 
         dx = shooterX - robotX - vX * shotTime;
         dy = shooterY - robotY - vY * shotTime;
         distance = Math.sqrt(dx*dx + dy*dy);
 
-
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
-        double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading) - vTheta * shotTime;
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
