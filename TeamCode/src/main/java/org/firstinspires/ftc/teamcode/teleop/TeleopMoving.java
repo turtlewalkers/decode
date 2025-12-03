@@ -87,11 +87,13 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5).whenActive(
-                new ParallelCommandGroup(
-                        intake.collect(),
+                new SequentialCommandGroup(
                         intake.open(),
-                        intake.LEDon()
+                        new ParallelCommandGroup(
+                                intake.collect(),
+                                intake.LEDon()
 //                        new InstantCommand(() -> multiplier = 0.1)
+                        )
                 )
         );
 
