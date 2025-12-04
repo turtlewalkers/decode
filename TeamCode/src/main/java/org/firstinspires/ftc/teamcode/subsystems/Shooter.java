@@ -32,13 +32,17 @@ public class Shooter extends SubsystemBase {
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
     private int turretOff = 0;
+    public static double turretOffset = 0;
+    private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 0.14, iT = 0, dT = 0.00001;
+    public static double pT = 1.68, iT = 0, dT = 0.035;
+    public static boolean ENABLE_FF = false;
+    public static double kV = 0.0212;
+    public static double kS = 0.84;
     public static double f = 0.0265;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
-
     public Shooter(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
@@ -50,6 +54,7 @@ public class Shooter extends SubsystemBase {
         volt = hMap.get(VoltageSensor.class, "Control Hub");
         shooterb.setRunMode(MotorEx.RunMode.RawPower);
         shootert.setRunMode(MotorEx.RunMode.RawPower);
+        Log.d("Initial Turret Pose", String.valueOf((double)turret.getCurrentPosition() / TICKS_PER_DEGREES));
         if (turretReset) {
             turret.stopAndResetEncoder();
         }
@@ -80,14 +85,6 @@ public class Shooter extends SubsystemBase {
         angle.add(145, 0.1);
         angle.add(3000, 0.1);
         angle.createLUT();
-
-        shottime.add(0, 1);
-        shottime.add(40.8, 1);
-        shottime.add(61.6, 0.81);
-        shottime.add(87.8, 1);
-        shottime.add(106.6, 1);
-        shottime.add(210, 1);
-        shottime.createLUT();
     }
 
     public Command flywheel (boolean on) {
@@ -95,6 +92,29 @@ public class Shooter extends SubsystemBase {
     }
     public Command turretOff (boolean off) {
         return new InstantCommand(() -> turretOff = off ? 0 : 1);
+    }
+
+    public Command increaseTurretOffset () {
+        return new InstantCommand(() -> turretOffset += 5);
+    }
+
+    public Command decreaseTurretOffset () {
+        return new InstantCommand(() -> turretOffset -= 5);
+    }
+
+    public Command increaseHoodOffset () {
+        return new InstantCommand(() -> hoodOffset += 0.05);
+    }
+
+    public Command decreaseHoodOffset () {
+        return new InstantCommand(() -> hoodOffset -= 0.05);
+    }
+
+    public Command OffsetZero () {
+        return new ParallelCommandGroup(
+                new InstantCommand(() -> hoodOffset = 0),
+                new InstantCommand(() -> turretOffset = 0)
+        );
     }
 
     @Override
@@ -108,26 +128,39 @@ public class Shooter extends SubsystemBase {
 
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
-        double distance = Math.sqrt(dx * dx + dy * dy);
-        Log.d("Distance", String.valueOf(distance));
+        double distance = Math.sqrt(dx*dx + dy*dy);
+
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
-        targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 270);
         targetAngleDeg *= turretOff;
+        targetAngleDeg += turretOffset;
+        targetAngleDeg = Math.max(targetAngleDeg, -100);
+        targetAngleDeg = Math.min(targetAngleDeg, 240);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
+        if (Math.abs(turretPower) <= 0.03) {
+            turretPower = 0;
+        }
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
-        hood.set(angle.get(distance));
+        double theta = angle.get(distance) + hoodOffset;
+        theta = Math.max(theta, 0);
+        theta = Math.min(theta, 1);
+        hood.set(theta);
         double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double flywheelPID = controllerShooter.calculate(vel, target);
         flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));
 
+        double pidVolts = flywheelPID;
+        double ffvolts = kV * target;
+//        ffvolts += kS * Math.signum(target);
+        double flywheelVolts = pidVolts + ffvolts;
+        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+
         if (flywheelOn) {
-            shootert.set((-1) * flywheelPID / presentVoltage);
-            shooterb.set(flywheelPID / presentVoltage);
+            shootert.set((-1) * flywheelVolts / presentVoltage);
+            shooterb.set(flywheelVolts / presentVoltage);
         } else {
             shooterb.set(0);
             shootert.set(0);

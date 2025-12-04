@@ -26,7 +26,7 @@ public class ShooterMove extends SubsystemBase {
     private final ServoEx hood;
     private VoltageSensor volt;
     private final Supplier<Follower> followerSupplier;
-    private boolean flywheelOn = false;
+    private boolean flywheelOn = true;
     private static double vel = 0, target = 0;
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
@@ -37,12 +37,12 @@ public class ShooterMove extends SubsystemBase {
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 0.14, iT = 0, dT = 0.00001;
+    public static double pT = 1.68, iT = 0, dT = 0.025;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0212;
     public static double kS = 0.84;
     public static double f = 0.0265;
-    public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+    public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
@@ -77,22 +77,23 @@ public class ShooterMove extends SubsystemBase {
 
         angle.add(0, 0.65);
         angle.add(39.5, 0.65);
-        angle.add(48, 0.45);
-        angle.add(61, 0.2);
-        angle.add(90, 0.2);
-        angle.add(119.5, 0.15);
+        angle.add(48, 0.5);
+        angle.add(61, 0.35);
+        angle.add(90, 0.23);
+        angle.add(119.5, 0.2);
         angle.add(136, 0.15);
         angle.add(145, 0.12);
         angle.add(3000, 0.1);
         angle.createLUT();
 
         shottime.add(0, 0.6);
-        shottime.add(41.1, 0.6);
-        shottime.add(51.8, 0.77);
-        shottime.add(74.8, 0.72);
-        shottime.add(93.3, 0.8);
-        shottime.add(111, 0.85);
-        shottime.add(3000, 0.85);
+        shottime.add(41.1, 0.5);
+        shottime.add(51.8, 0.51);
+        shottime.add(74.8, 0.62);
+        shottime.add(93.3, 0.62);
+        shottime.add(111, 0.75);
+        shottime.add(122, 0.76);
+        shottime.add(3000, 0.76);
         shottime.createLUT();
     }
 
@@ -139,36 +140,26 @@ public class ShooterMove extends SubsystemBase {
         double dy = shooterY - robotY;
         double distance = Math.sqrt(dx*dx + dy*dy);
 
-        for (int i = 0; i < 5; ++i) {
-            double shotTime = shottime.get(distance);
+        double shotTime = shottime.get(distance);
 
-            double vX = followerSupplier.get().getVelocity().getXComponent();
-            double vY = followerSupplier.get().getVelocity().getYComponent();
+        double vX = followerSupplier.get().getVelocity().getXComponent();
+        double vY = followerSupplier.get().getVelocity().getYComponent();
+        double vTheta = followerSupplier.get().getAngularVelocity();
 
-            dx = shooterX - robotX - vX * shotTime;
-            dy = shooterY - robotY - vY * shotTime;
-            distance = Math.sqrt(dx*dx + dy*dy);
-        }
+        dx = shooterX - robotX - vX * shotTime;
+        dy = shooterY - robotY - vY * shotTime;
+        distance = Math.sqrt(dx*dx + dy*dy);
 
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
-        double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
-//        if (targetAngleDeg >= 200) {
-//            targetAngleDeg -= 360;
-//        }
-//        if (targetAngleDeg <= -160) {
-//            targetAngleDeg += 360;
-//        }
+        double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading) - vTheta * shotTime;
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 270);
+        targetAngleDeg = Math.min(targetAngleDeg, 240);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
-        if (Math.abs(turretPower) <= 0.03) {
-            turretPower = 0;
-        }
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;
