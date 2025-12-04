@@ -156,7 +156,7 @@ public class ShooterMove extends SubsystemBase {
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 240);
+        targetAngleDeg = Math.min(targetAngleDeg, 260);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);

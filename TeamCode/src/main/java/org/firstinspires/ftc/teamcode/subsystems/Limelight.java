@@ -47,7 +47,6 @@ public class Limelight extends SubsystemBase {
 
     public Command fixTurret() {
         return new ParallelCommandGroup(
-                new InstantCommand(() -> fix = true),
                 new InstantCommand(() -> turret = true)
         );
     }
@@ -61,7 +60,7 @@ public class Limelight extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (fix) {
+        if (fix || turret) {
             LLResult result = limelight.getLatestResult();
 
             if (result.isValid()) {
@@ -77,9 +76,11 @@ public class Limelight extends SubsystemBase {
                 double decodeX = 72 + llY_in;
                 double decodeY = 72 - llX_in;
 
-                Follower follower = followerSupplier.get();
-                double robotHeading = followerSupplier.get().getHeading();
-                follower.setPose(new Pose(decodeX, decodeY, robotHeading));
+                if (fix) {
+                    Follower follower = followerSupplier.get();
+                    double robotHeading = followerSupplier.get().getHeading();
+                    follower.setPose(new Pose(decodeX, decodeY, robotHeading));
+                }
 
                 for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
                     int targetId = 20;
