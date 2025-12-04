@@ -35,22 +35,34 @@ public class Red18 extends CommandOpMode {
 
     private final Pose Paneer2 = new Pose(115+2-1, 127.5-5+3, Math.toRadians(45));
     private final Pose ScorePositiona = new Pose(85, 85-4, Math.toRadians(0));
+<<<<<<< Updated upstream
     private final Pose ScorePosition = new Pose(82+2-1, 88-5+3, Math.toRadians(315));
+=======
+    private final Pose ScorePosition = new Pose(84, 82, Math.toRadians(315));
+>>>>>>> Stashed changes
     private final Pose Grab1 = new Pose(96+2-1,  85-4, Math.toRadians(0));
     private final Pose Collect1 = new Pose(120+2-1, 85-4, Math.toRadians(0));
     private final Pose GotoGate = new Pose(120-1, 59+3, Math.toRadians(25));
     //    private final Pose IntakeGate = new Pose(121, 62, Math.toRadians(0));
+<<<<<<< Updated upstream
     private final Pose CollectGate = new Pose(132, 65, Math.toRadians(28));
     private final Pose LeaveGate = new Pose(120-1, 62+3, Math.toRadians(0));
     private final Pose Grab2 = new Pose(95+2-1, 60+3, Math.toRadians(0));
     private final Pose Collect2 = new Pose(127+2-1, 56, Math.toRadians(0));
+=======
+    private final Pose CollectGate = new Pose(127, 65, Math.toRadians(28));
+
+    private final Pose LeaveGate = new Pose(132, 60, Math.toRadians(28));
+    private final Pose Grab2 = new Pose(95+2-1, 60+3, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(120, 62, Math.toRadians(0));
+>>>>>>> Stashed changes
     private final Pose Grab3 = new Pose(94+2-1, 36+3, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(128+2-1, 36-4+3, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(120, 38, Math.toRadians(0));
     private final Pose Grab4Setup = new Pose(126+2-1, 48-4+3, Math.toRadians(300));
     private final Pose Grab4 = new Pose(130+2-1, 25-4+3, Math.toRadians(280));
     private final Pose GotoS4 = new Pose(120-1, 28+3, Math.toRadians(280));
     private final Pose Collect4 = new Pose(130+2-1, 10+3, Math.toRadians(270));
-    private final Pose byebye = new Pose(90+2-1, 70-5+3, Math.toRadians(90));
+    private final Pose byebye = new Pose(90+2-1, 70-5+3, Math.toRadians(0));
     private Path PreloadShoot;
     private Path Paneer;
     private PathChain Goto1, Pickup1, Shoot1, ToGate, GotoIntakeGate, GateIntake, ShootGate1, ShootGate2, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
@@ -100,7 +112,11 @@ public class Red18 extends CommandOpMode {
 //                .setLinearHeadingInterpolation(IntakeGate.getHeading(), CollectGate.getHeading   ())
 //                .build();
         ShootGate1 = follower.pathBuilder()
-                .addPath(new BezierLine(CollectGate, LeaveGate))
+                .addPath(new BezierCurve(
+                CollectGate,
+                new Pose(130, 63),
+                LeaveGate)
+        )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
                 .build();
         ShootGate2 = follower.pathBuilder()
@@ -116,7 +132,7 @@ public class Red18 extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(100, 54),
+                        new Pose(100, 57),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect2.getHeading())
@@ -135,7 +151,7 @@ public class Red18 extends CommandOpMode {
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(90, 28),
+                        new Pose(90, 32),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect3.getHeading())
@@ -208,21 +224,33 @@ public class Red18 extends CommandOpMode {
                                 shooter.turretOff(false)
 
                         ),
-                        new WaitCommand(50),
                         intake.open(),
+                        new WaitCommand(50),
                         intake.collect(),
+<<<<<<< Updated upstream
                         new WaitCommand(1500),
+=======
+                        new WaitCommand(1400),
+>>>>>>> Stashed changes
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, Goto1, false),
                         intake.close(),
 
                         shooter.turretOff(false),
+<<<<<<< Updated upstream
                         new FollowPathCommand(follower, Shoot1, true),
                         intake.stop(),
                         intake.open(),
                         new WaitCommand(50),
                         intake.collect(),
                         new WaitCommand(1500),
+=======
+                        intake.stop(),
+                        intake.open(),
+                        new FollowPathCommand(follower, Shoot1, true),
+                        intake.collect(),
+                        new WaitCommand(1400),
+>>>>>>> Stashed changes
                         shooter.turretOff(true),
                         intake.close(),
 
@@ -232,30 +260,47 @@ public class Red18 extends CommandOpMode {
                         new FollowPathCommand(follower, Shoot2, true),
                         intake.stop(),
                         intake.open(),
+<<<<<<< Updated upstream
                         new WaitCommand(50),
                         intake.collect(),
                         new WaitCommand(1500),
+=======
+                        new WaitCommand(1400),
+                        intake.collect(),
+>>>>>>> Stashed changes
                         shooter.turretOff(true),
 
                         intake.close(),
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1200),
                         shooter.turretOff(false),
 //                        new FollowPathCommand(follower, GateIntake, true),
+<<<<<<< Updated upstream
                         new WaitCommand(1300),
 
+=======
+>>>>>>> Stashed changes
                         new FollowPathCommand(follower, ShootGate1),
+                        new WaitCommand(1300),
+                        intake.stop(),
+                        intake.open(),
                         new FollowPathCommand(follower, ShootGate2),
+<<<<<<< Updated upstream
                         intake.stop(),
                         intake.open(),
                         new WaitCommand(50),
                         intake.collect(),
                         new WaitCommand(1500),
+=======
+                        intake.collect(),
+                        new WaitCommand(1400),
+>>>>>>> Stashed changes
 
 //                        new FollowPathCommand(follower, Goto3, false),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
                         shooter.turretOff(false),
+<<<<<<< Updated upstream
                         new FollowPathCommand(follower, Shoot3, true),
                         intake.stop(),
                         intake.open(),
@@ -264,6 +309,17 @@ public class Red18 extends CommandOpMode {
                         new WaitCommand(1500),
                         shooter.turretOff(true),
                         intake.close(),
+=======
+                        intake.stop(),
+                        intake.open(),
+                        new FollowPathCommand(follower, Shoot3, true),
+                        intake.collect(),
+                        new WaitCommand(1400),
+                        shooter.turretOff(true),
+                        intake.close(),
+
+
+>>>>>>> Stashed changes
                         new FollowPathCommand(follower, Goto4, false).withTimeout(1700),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot4P1, false, 1),
@@ -272,7 +328,11 @@ public class Red18 extends CommandOpMode {
                         intake.open(),
                         new WaitCommand(50),
                         intake.collect(),
+<<<<<<< Updated upstream
                         new WaitCommand(1500),
+=======
+                        new WaitCommand(1400),
+>>>>>>> Stashed changes
                         intake.close(),
 
                         shooter.turretOff(true),
