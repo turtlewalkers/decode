@@ -31,7 +31,7 @@ public class Constants {
             .xVelocity(79.420)
             .yVelocity(66.690);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.7)
+            .mass(11.8)
             .forwardZeroPowerAcceleration(-33)
             .lateralZeroPowerAcceleration(-62)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.116, 0, 0.009, 0.01))
