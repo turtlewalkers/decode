@@ -34,35 +34,23 @@ public class Red18 extends CommandOpMode {
     private final Pose Start = new Pose(119.5-1, 126+3, Math.toRadians(45));
 
     private final Pose Paneer2 = new Pose(115+2-1, 127.5-5+3, Math.toRadians(45));
-    private final Pose ScorePositiona = new Pose(85, 85-4, Math.toRadians(0));
-<<<<<<< Updated upstream
+    private final Pose ScorePositiona = new Pose(84+2-1, 85-5+3, Math.toRadians(330));
     private final Pose ScorePosition = new Pose(82+2-1, 88-5+3, Math.toRadians(315));
-=======
-    private final Pose ScorePosition = new Pose(84, 82, Math.toRadians(315));
->>>>>>> Stashed changes
-    private final Pose Grab1 = new Pose(96+2-1,  85-4, Math.toRadians(0));
-    private final Pose Collect1 = new Pose(120+2-1, 85-4, Math.toRadians(0));
+    private final Pose Grab1 = new Pose(96+2-1,  85+3, Math.toRadians(0));
+    private final Pose Collect1 = new Pose(120+2-1, 85-4+3, Math.toRadians(0));
     private final Pose GotoGate = new Pose(120-1, 59+3, Math.toRadians(25));
     //    private final Pose IntakeGate = new Pose(121, 62, Math.toRadians(0));
-<<<<<<< Updated upstream
-    private final Pose CollectGate = new Pose(132, 65, Math.toRadians(28));
+    private final Pose CollectGate = new Pose(131.5-1, 61+3, Math.toRadians(25));
     private final Pose LeaveGate = new Pose(120-1, 62+3, Math.toRadians(0));
     private final Pose Grab2 = new Pose(95+2-1, 60+3, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(127+2-1, 56, Math.toRadians(0));
-=======
-    private final Pose CollectGate = new Pose(127, 65, Math.toRadians(28));
-
-    private final Pose LeaveGate = new Pose(132, 60, Math.toRadians(28));
-    private final Pose Grab2 = new Pose(95+2-1, 60+3, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(120, 62, Math.toRadians(0));
->>>>>>> Stashed changes
+    private final Pose Collect2 = new Pose(127+2-1, 60-4+3, Math.toRadians(0));
     private final Pose Grab3 = new Pose(94+2-1, 36+3, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(120, 38, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(128+2-1, 36-4+3, Math.toRadians(0));
     private final Pose Grab4Setup = new Pose(126+2-1, 48-4+3, Math.toRadians(300));
     private final Pose Grab4 = new Pose(130+2-1, 25-4+3, Math.toRadians(280));
     private final Pose GotoS4 = new Pose(120-1, 28+3, Math.toRadians(280));
     private final Pose Collect4 = new Pose(130+2-1, 10+3, Math.toRadians(270));
-    private final Pose byebye = new Pose(90+2-1, 70-5+3, Math.toRadians(0));
+    private final Pose byebye = new Pose(90+2-1, 70-5+3, Math.toRadians(90));
     private Path PreloadShoot;
     private Path Paneer;
     private PathChain Goto1, Pickup1, Shoot1, ToGate, GotoIntakeGate, GateIntake, ShootGate1, ShootGate2, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
@@ -80,14 +68,14 @@ public class Red18 extends CommandOpMode {
 
 
         Goto1 = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePositiona, Collect1))
-                .setLinearHeadingInterpolation(ScorePositiona.getHeading(), Collect1.getHeading())
+                .addPath(new BezierLine(ScorePositiona, Grab1))
+                .setLinearHeadingInterpolation(ScorePositiona.getHeading(), Grab1.getHeading())
                 .build();
 
-//        Pickup1 = follower.pathBuilder()
-//                .addPath(new BezierLine(Grab1, Collect1))
-//                .setLinearHeadingInterpolation(Grab1.getHeading(), Collect1.getHeading())
-//                .build();
+        Pickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(Grab1, Collect1))
+                .setLinearHeadingInterpolation(Grab1.getHeading(), Collect1.getHeading())
+                .build();
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         Shoot1 = follower.pathBuilder()
@@ -102,7 +90,7 @@ public class Red18 extends CommandOpMode {
         GotoIntakeGate = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(100, 60), // Control point
+                        new Pose(100, 58), // Control point
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), CollectGate.getHeading())
@@ -112,11 +100,7 @@ public class Red18 extends CommandOpMode {
 //                .setLinearHeadingInterpolation(IntakeGate.getHeading(), CollectGate.getHeading   ())
 //                .build();
         ShootGate1 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                CollectGate,
-                new Pose(130, 63),
-                LeaveGate)
-        )
+                .addPath(new BezierLine(CollectGate, LeaveGate))
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
                 .build();
         ShootGate2 = follower.pathBuilder()
@@ -132,7 +116,7 @@ public class Red18 extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(100, 57),
+                        new Pose(100, 54),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect2.getHeading())
@@ -151,7 +135,7 @@ public class Red18 extends CommandOpMode {
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(90, 32),
+                        new Pose(90, 28),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect3.getHeading())
@@ -173,12 +157,8 @@ public class Red18 extends CommandOpMode {
                 .build();
 
         Goto4 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        ScorePosition,
-                        new Pose(132, 70), // Control point
-                        Collect4)
-                )
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect4.getHeading())
+                .addPath(new BezierLine(Grab4, Collect4))
+                .setLinearHeadingInterpolation(Grab4.getHeading(), Collect4.getHeading())
                 .build();
 
         Shoot4P1 = follower.pathBuilder()
@@ -224,33 +204,22 @@ public class Red18 extends CommandOpMode {
                                 shooter.turretOff(false)
 
                         ),
-                        intake.open(),
                         new WaitCommand(50),
+                        intake.open(),
                         intake.collect(),
-<<<<<<< Updated upstream
-                        new WaitCommand(1500),
-=======
-                        new WaitCommand(1400),
->>>>>>> Stashed changes
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, Goto1, false),
                         intake.close(),
 
+
+                        new FollowPathCommand(follower, Pickup1, true),
+
                         shooter.turretOff(false),
-<<<<<<< Updated upstream
                         new FollowPathCommand(follower, Shoot1, true),
-                        intake.stop(),
-                        intake.open(),
                         new WaitCommand(50),
-                        intake.collect(),
-                        new WaitCommand(1500),
-=======
-                        intake.stop(),
                         intake.open(),
-                        new FollowPathCommand(follower, Shoot1, true),
-                        intake.collect(),
-                        new WaitCommand(1400),
->>>>>>> Stashed changes
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
                         intake.close(),
 
@@ -258,86 +227,49 @@ public class Red18 extends CommandOpMode {
                         new FollowPathCommand(follower, Pickup2, true),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot2, true),
-                        intake.stop(),
-                        intake.open(),
-<<<<<<< Updated upstream
                         new WaitCommand(50),
-                        intake.collect(),
-                        new WaitCommand(1500),
-=======
-                        new WaitCommand(1400),
-                        intake.collect(),
->>>>>>> Stashed changes
+                        intake.open(),
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
 
                         intake.close(),
-                        new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1200),
+                        new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1500),
                         shooter.turretOff(false),
 //                        new FollowPathCommand(follower, GateIntake, true),
-<<<<<<< Updated upstream
-                        new WaitCommand(1300),
+                        new WaitCommand(1800),
 
-=======
->>>>>>> Stashed changes
                         new FollowPathCommand(follower, ShootGate1),
-                        new WaitCommand(1300),
-                        intake.stop(),
-                        intake.open(),
                         new FollowPathCommand(follower, ShootGate2),
-<<<<<<< Updated upstream
-                        intake.stop(),
+                        intake.collect(),
                         intake.open(),
-                        new WaitCommand(50),
-                        intake.collect(),
-                        new WaitCommand(1500),
-=======
-                        intake.collect(),
-                        new WaitCommand(1400),
->>>>>>> Stashed changes
+                        new WaitCommand(1300),
 
 //                        new FollowPathCommand(follower, Goto3, false),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
                         shooter.turretOff(false),
-<<<<<<< Updated upstream
                         new FollowPathCommand(follower, Shoot3, true),
-                        intake.stop(),
-                        intake.open(),
                         new WaitCommand(50),
-                        intake.collect(),
-                        new WaitCommand(1500),
-                        shooter.turretOff(true),
-                        intake.close(),
-=======
-                        intake.stop(),
                         intake.open(),
-                        new FollowPathCommand(follower, Shoot3, true),
-                        intake.collect(),
-                        new WaitCommand(1400),
+                        new WaitCommand(1300),
                         shooter.turretOff(true),
                         intake.close(),
 
+                        new FollowPathCommand(follower, Goto4Part1, false).withTimeout(1300),
 
->>>>>>> Stashed changes
-                        new FollowPathCommand(follower, Goto4, false).withTimeout(1700),
+                        new FollowPathCommand(follower, Goto4, false).withTimeout(1000),
                         shooter.turretOff(false),
-                        new FollowPathCommand(follower, Shoot4P1, false, 1),
+                        new FollowPathCommand(follower, Shoot4P1, false, 0.8),
                         new FollowPathCommand(follower, Shoot4P2, true),
-                        intake.stop(),
-                        intake.open(),
                         new WaitCommand(50),
-                        intake.collect(),
-<<<<<<< Updated upstream
-                        new WaitCommand(1500),
-=======
-                        new WaitCommand(1400),
->>>>>>> Stashed changes
+                        intake.open(),
+                        new WaitCommand(1300),
                         intake.close(),
 
                         shooter.turretOff(true),
                         new FollowPathCommand(follower, tatawireless, true),
-                        new WaitCommand(500),
+                        new WaitCommand(1000),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
         );
