@@ -6,6 +6,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.seattlesolvers.solverslib.command.Command;
@@ -27,6 +28,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
+import java.util.List;
+
 @Config
 @TeleOp
 public class TeleopMoving extends CommandOpMode {
@@ -40,6 +43,7 @@ public class TeleopMoving extends CommandOpMode {
     private double multiplier = 1;
     private Path Park, Stay;
     private Pose end, start, relocalize;
+    List<LynxModule> allHubs;
 
     @Override
     public void initialize() {
@@ -182,11 +186,20 @@ public class TeleopMoving extends CommandOpMode {
         gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
                 limelight.nofixTurret()
         );
+
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
     }
 
     @Override
     public void run() {
         super.run();
+
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
         follower.update();
