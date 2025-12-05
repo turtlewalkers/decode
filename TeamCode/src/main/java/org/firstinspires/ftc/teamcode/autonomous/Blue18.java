@@ -19,13 +19,13 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 @Autonomous
 public class Blue18 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
-    private ShooterMove shooter;
+    private Shooter shooter;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     // Poses:
     private final Pose Start = new Pose(28.5-5.5, 135-4, Math.toRadians(135));
@@ -176,7 +176,7 @@ public class Blue18 extends CommandOpMode {
         Memory.autoRan = true;
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 6, 138, true);
+        shooter = new Shooter(hardwareMap, () -> follower, 6, 138, true);
         intake = new Intake(hardwareMap, () -> follower, 6, 138);
 
         buildpaths();

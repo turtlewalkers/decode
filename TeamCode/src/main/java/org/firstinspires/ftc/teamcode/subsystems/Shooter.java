@@ -37,7 +37,7 @@ public class Shooter extends SubsystemBase {
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 1.68, iT = 0, dT = 0.035;
+    public static double pT = 1.68, iT = 0, dT = 0.025;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0212;
     public static double kS = 0.84;
@@ -77,12 +77,12 @@ public class Shooter extends SubsystemBase {
 
         angle.add(0, 0.65);
         angle.add(39.5, 0.65);
-        angle.add(48, 0.45);
-        angle.add(61, 0.2);
-        angle.add(90, 0.2);
-        angle.add(119.5, 0.15);
+        angle.add(48, 0.5);
+        angle.add(61, 0.35);
+        angle.add(90, 0.23);
+        angle.add(119.5, 0.2);
         angle.add(136, 0.15);
-        angle.add(145, 0.1);
+        angle.add(145, 0.12);
         angle.add(3000, 0.1);
         angle.createLUT();
     }
@@ -135,13 +135,10 @@ public class Shooter extends SubsystemBase {
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 240);
+        targetAngleDeg = Math.min(targetAngleDeg, 260);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
-        if (Math.abs(turretPower) <= 0.03) {
-            turretPower = 0;
-        }
         turret.set(turretPower / presentVoltage);
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;
