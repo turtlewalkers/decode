@@ -25,6 +25,8 @@ public class Shooter extends SubsystemBase {
     private final MotorEx shootert, shooterb, turret;
     private final ServoEx hood;
     private VoltageSensor volt;
+    private final double TURRET_FWD_OFFSET  = -1.63; // in
+    private final double TURRET_LEFT_OFFSET =  0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = false;
     private static double vel = 0, target = 0;
@@ -67,19 +69,19 @@ public class Shooter extends SubsystemBase {
         RPM.add(0, 310);
         RPM.add(39.5, 310);
         RPM.add(48, 330);
-        RPM.add(61, 350);
-        RPM.add(90, 380);
+        RPM.add(61, 340);
+        RPM.add(90, 360);
         RPM.add(119.5, 400);
         RPM.add(136, 420);
         RPM.add(145, 440);
         RPM.add(3000, 485);
         RPM.createLUT();
 
-        angle.add(0, 0.65);
-        angle.add(39.5, 0.65);
-        angle.add(48, 0.5);
-        angle.add(61, 0.35);
-        angle.add(90, 0.23);
+        angle.add(0, 0.6);
+        angle.add(39.5, 0.6);
+        angle.add(48, 0.45);
+        angle.add(61, 0.3);
+        angle.add(90, 0.2);
         angle.add(119.5, 0.2);
         angle.add(136, 0.15);
         angle.add(145, 0.12);
@@ -125,6 +127,10 @@ public class Shooter extends SubsystemBase {
         double robotX = robot.getX();
         double robotY = robot.getY();
         double robotHeading = robot.getHeading();
+        double cosH = Math.cos(robotHeading);
+        double sinH = Math.sin(robotHeading);
+        double turretX = TURRET_FWD_OFFSET * cosH - TURRET_LEFT_OFFSET * sinH;
+        double turretY = TURRET_FWD_OFFSET * sinH + TURRET_LEFT_OFFSET * cosH;
 
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
@@ -135,7 +141,7 @@ public class Shooter extends SubsystemBase {
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
-        targetAngleDeg = Math.min(targetAngleDeg, 260);
+        targetAngleDeg = Math.min(targetAngleDeg, 315);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);

@@ -69,33 +69,33 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(0, 310);
         RPM.add(39.5, 310);
         RPM.add(48, 330);
-        RPM.add(61, 350);
-        RPM.add(90, 380);
+        RPM.add(61, 340);
+        RPM.add(90, 360);
         RPM.add(119.5, 400);
         RPM.add(136, 420);
         RPM.add(145, 440);
         RPM.add(3000, 485);
         RPM.createLUT();
 
-        angle.add(0, 0.65);
-        angle.add(39.5, 0.65);
-        angle.add(48, 0.5);
-        angle.add(61, 0.35);
-        angle.add(90, 0.23);
+        angle.add(0, 0.6);
+        angle.add(39.5, 0.6);
+        angle.add(48, 0.45);
+        angle.add(61, 0.3);
+        angle.add(90, 0.2);
         angle.add(119.5, 0.2);
         angle.add(136, 0.15);
         angle.add(145, 0.12);
         angle.add(3000, 0.1);
         angle.createLUT();
 
-        shottime.add(0, 0.6);
-        shottime.add(41.1, 0.6);
-        shottime.add(51.8, 0.61);
-        shottime.add(74.8, 0.72);
-        shottime.add(93.3, 0.72);
-        shottime.add(111, 0.85);
-        shottime.add(122, 0.86);
-        shottime.add(3000, 0.86);
+        shottime.add(0, 0.5);
+        shottime.add(41.1, 0.5);
+        shottime.add(51.8, 0.51);
+        shottime.add(74.8, 0.62);
+        shottime.add(93.3, 0.62);
+        shottime.add(111, 0.75);
+        shottime.add(122, 0.76);
+        shottime.add(3000, 0.76);
         shottime.createLUT();
     }
 
@@ -139,23 +139,21 @@ public class ShooterMove extends SubsystemBase {
         double robotHeading = robot.getHeading();
         double cosH = Math.cos(robotHeading);
         double sinH = Math.sin(robotHeading);
-        double turretX = robotX + TURRET_FWD_OFFSET * cosH - TURRET_LEFT_OFFSET * sinH;
-        double turretY = robotY + TURRET_FWD_OFFSET * sinH + TURRET_LEFT_OFFSET * cosH;
+        double turretX = TURRET_FWD_OFFSET * cosH - TURRET_LEFT_OFFSET * sinH;
+        double turretY = TURRET_FWD_OFFSET * sinH + TURRET_LEFT_OFFSET * cosH;
 
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-        for (int i = 0; i < 7; ++i) {
-            double shotTime = shottime.get(distance);
+        double shotTime = shottime.get(distance);
 
-            double vX = followerSupplier.get().getVelocity().getXComponent();
-            double vY = followerSupplier.get().getVelocity().getYComponent();
+        double vX = followerSupplier.get().getVelocity().getXComponent();
+        double vY = followerSupplier.get().getVelocity().getYComponent();
 
-            dx = shooterX - robotX - vX * shotTime - turretX;
-            dy = shooterY - robotY - vY * shotTime - turretY;
-            distance = Math.sqrt(dx * dx + dy * dy);
-        }
+        dx = shooterX - robotX - vX * shotTime - turretX;
+        dy = shooterY - robotY - vY * shotTime - turretY;
+        distance = Math.sqrt(dx * dx + dy * dy);
 
         Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);

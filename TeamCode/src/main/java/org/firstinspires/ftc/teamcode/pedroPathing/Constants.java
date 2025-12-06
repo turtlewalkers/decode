@@ -36,10 +36,10 @@ public class Constants {
             .lateralZeroPowerAcceleration(-62)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.116, 0, 0.009, 0.01))
             .headingPIDFCoefficients(new PIDFCoefficients(0.96, 0, 0.03, 0.01))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.019,0.0,0.00002,0.6,0.025))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.023,0.0,0.000015,0.6,0.025))
             .centripetalScaling(0.00037);
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(2.25)
+            .forwardPodY(-2.25)
             .strafePodX(-6)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
