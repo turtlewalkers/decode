@@ -160,6 +160,8 @@ public class Red15Friendly extends CommandOpMode {
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect4.getHeading())
                 .build();
 
+        Shoot4P1 = follower.pathBuilder()
+                .addPath(new BezierLine(Collect4, ScorePosition))
                 .setLinearHeadingInterpolation(Collect4.getHeading(), ScorePosition.getHeading())
                 .build();
 //
