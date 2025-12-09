@@ -4,7 +4,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -21,10 +20,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class Blue18 extends CommandOpMode {
+public class Blue15NoGate extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private Shooter shooter;
@@ -36,7 +34,7 @@ public class Blue18 extends CommandOpMode {
 
     private final Pose Paneer2 = new Pose(144-115+2-1, 121.5, Math.toRadians(135));
     private final Pose ScorePositiona = new Pose(144-85, 84, Math.toRadians(160));
-    private final Pose ScorePosition = new Pose(144-88, 86, Math.toRadians(225));
+    private final Pose ScorePosition = new Pose(144-88, 86, Math.toRadians(230));
     private final Pose Collect1 = new Pose(144-122, 84, Math.toRadians(180));
     private final Pose CollectGate = new Pose(18, 64, Math.toRadians(180-28));
     private final Pose LeaveGate = new Pose(8, 54, Math.toRadians(180-30));
@@ -59,8 +57,8 @@ public class Blue18 extends CommandOpMode {
         Paneer = new Path(new BezierLine(Start, Paneer2));
         Paneer.setLinearHeadingInterpolation(Start.getHeading(), Paneer2.getHeading());
 
-        PreloadShoot = new Path(new BezierLine(Paneer2, ScorePositiona));
-        PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePositiona.getHeading());
+        PreloadShoot = new Path(new BezierLine(Paneer2, ScorePosition));
+        PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePosition.getHeading());
 
 
         Goto1 = follower.pathBuilder()
@@ -104,8 +102,8 @@ public class Blue18 extends CommandOpMode {
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
                 .build();
         ShootGate2 = follower.pathBuilder()
-                .addPath(new BezierLine(LeaveGate, ScorePosition))
-                .setLinearHeadingInterpolation(LeaveGate.getHeading(), ScorePosition.getHeading())
+                .addPath(new BezierLine(CollectGate, ScorePositiona))
+                .setLinearHeadingInterpolation(CollectGate.getHeading(), ScorePositiona.getHeading())
                 .build();
 
 //        Goto2 = follower.pathBuilder()
@@ -208,22 +206,12 @@ public class Blue18 extends CommandOpMode {
                         shooter.turretOff(true),
                         intake.close(),
 
-                        new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(false),
-
-
-                        new FollowPathCommand(follower, Shoot1, true),
-                        intake.open(),
-                        new WaitCommand(1300),
-                        shooter.turretOff(true),
-                        intake.close(),
-
-
                         new FollowPathCommand(follower, Pickup2, false),
                         shooter.turretOff(false),
 
 
                         new FollowPathCommand(follower, Shoot2, true),
+                        new WaitCommand(100),
                         intake.open(),
                         intake.collect(),
                         new WaitCommand(1300),
@@ -233,15 +221,23 @@ public class Blue18 extends CommandOpMode {
                         intake.close(),
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new FollowPathCommand(follower, ShootGate1).withTimeout(500),
-                        new WaitCommand(1300),
                         intake.stop(),
                         intake.open(),
                         new FollowPathCommand(follower, ShootGate2),
+                        new WaitCommand(100),
                         intake.collect(),
                         new WaitCommand(1300),
+                        intake.close(),
 
-//                        new FollowPathCommand(follower, Goto3, false),
+                        new FollowPathCommand(follower, Goto1, false),
+                        shooter.turretOff(false),
+
+
+                        new FollowPathCommand(follower, Shoot1, true),
+                        new WaitCommand(100),
+                        intake.open(),
+                        new WaitCommand(1300),
+                        shooter.turretOff(true),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
@@ -249,6 +245,7 @@ public class Blue18 extends CommandOpMode {
                         intake.stop(),
                         intake.open(),
                         new FollowPathCommand(follower, Shoot3, true),
+                        new WaitCommand(100),
                         intake.collect(),
                         new WaitCommand(1300),
                         shooter.turretOff(true),
@@ -258,6 +255,7 @@ public class Blue18 extends CommandOpMode {
                         new FollowPathCommand(follower, Goto4, false).withTimeout(2000),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot4P1, true),
+                        new WaitCommand(100),
                         intake.stop(),
                         intake.open(),
                         new WaitCommand(50),
