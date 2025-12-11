@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -39,11 +41,15 @@ public class TeleopMoving extends CommandOpMode {
     private Intake intake;
     private ShooterMove shooter;
     private Limelight limelight;
-    public static double shooterX, shooterY;
+    public static double shooterX, shooterY, gateX, gateY;
     private double multiplier = 1;
     private Path Park, Stay;
     private Pose end, start, relocalize;
     List<LynxModule> allHubs;
+    private long lastLoopTimeNanos = -1;
+    private double maxDecel = 60.0;    // inches/sec^2, TUNE this for your robot
+    private double reactionTime = 0.06; // seconds, approx controller/motor response
+    private double safeDistance = 20;
 
     @Override
     public void initialize() {
@@ -59,11 +65,15 @@ public class TeleopMoving extends CommandOpMode {
         if (Memory.allianceRed) {
             shooterX = 138;
             shooterY = 138;
+            gateX = 6;
+            gateY = 70;
             end = new Pose(36.5, 38, Math.toRadians(90));
             relocalize = new Pose(4.7, 11.04, Math.toRadians(90));
         } else {
             shooterX = 6;
             shooterY = 138;
+            gateX = 138;
+            gateY = 70;
             end = new Pose(105, 33, Math.toRadians(90));
             relocalize = new Pose(135.8, 9.4, Math.toRadians(90));
         }
@@ -201,10 +211,62 @@ public class TeleopMoving extends CommandOpMode {
             hub.clearBulkCache();
         }
 
-        follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
         follower.update();
         if (follower.getPose() != null) {
             start = follower.getPose();
+            double X = follower.getPose().getX();
+            double Y = follower.getPose().getY();
+            double heading = follower.getPose().getHeading();
+
+            double vx_r = -gamepad1.left_stick_y * multiplier;
+            double vy_r = -gamepad1.left_stick_x * multiplier;
+            double omega = -gamepad1.right_stick_x * multiplier;
+
+            double velocityX = follower.getVelocity().getXComponent();
+            double velocityY = follower.getVelocity().getYComponent();
+
+            double cosH = Math.cos(heading);
+            double sinH = Math.sin(heading);
+            double vx_f = vx_r * cosH - vy_r * sinH;
+            double vy_f = vx_r * sinH + vy_r * cosH;
+
+            double gx = gateX - X;
+            double gy = gateY - Y;
+            double distToGate = Math.hypot(gx, gy);
+            Log.d("Distance to Gate", String.valueOf(distToGate));
+
+            double gxHat = gx / distToGate;
+            double gyHat = gy / distToGate;
+
+            double currentProj = velocityX * gxHat + velocityY * gyHat; // in/sec
+            double commandedProj = vx_f * gxHat + vy_f * gyHat;
+
+            boolean blockTowards = false;
+            if (distToGate <= 25) {
+                blockTowards = proj > 0.0;
+            } else {
+                if (proj > 0.0 && proj >= (distToGate - 6.0)) {
+                    blockTowards = true;
+                }
+            }
+
+            if (blockTowards) {
+                double projToRemove = Math.max(0.0, proj);
+                double vx_f_safe = vx_f - projToRemove * gxHat;
+                double vy_f_safe = vy_f - projToRemove * gyHat;
+
+                double vx_r_safe =  vx_f_safe * cosH + vy_f_safe * sinH;
+                double vy_r_safe = -vx_f_safe * sinH + vy_f_safe * cosH;
+
+                Log.d("vx_r", String.valueOf(vx_r));
+                Log.d("vx_r_safe", String.valueOf(vx_r_safe));
+                Log.d("vy_r", String.valueOf(vy_r));
+                Log.d("vy_r_safe", String.valueOf(vy_r_safe));
+
+                follower.setTeleOpDrive(vx_r_safe, vy_r_safe, omega, true);
+            } else {
+                follower.setTeleOpDrive(vx_r, vy_r, omega, true);
+            }
         }
         Park = new Path(new BezierLine(start, end));
         Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());

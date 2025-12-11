@@ -10,7 +10,9 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
+import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
@@ -39,7 +41,7 @@ public class ShooterMove extends SubsystemBase {
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 1.68, iT = 0, dT = 0.025;
+    public static double pT = 1.68, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0212;
     public static double kS = 0.84;
@@ -146,16 +148,18 @@ public class ShooterMove extends SubsystemBase {
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-        double shotTime = shottime.get(distance);
+        for (int i = 0; i < 10; ++i) {
+            double shotTime = shottime.get(distance);
 
-        double vX = followerSupplier.get().getVelocity().getXComponent();
-        double vY = followerSupplier.get().getVelocity().getYComponent();
+            double vX = followerSupplier.get().getVelocity().getXComponent();
+            double vY = followerSupplier.get().getVelocity().getYComponent();
 
-        dx = shooterX - robotX - vX * shotTime - turretX;
-        dy = shooterY - robotY - vY * shotTime - turretY;
-        distance = Math.sqrt(dx * dx + dy * dy);
+            dx = shooterX - robotX - vX * shotTime - turretX;
+            dy = shooterY - robotY - vY * shotTime - turretY;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            Log.d("Distance" + i, String.valueOf(distance));
+        }
 
-        Log.d("Distance", String.valueOf(distance));
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg *= turretOff;
