@@ -78,6 +78,12 @@ public class TeleopNew extends CommandOpMode {
         gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
                 shooter.flywheel(false)
         );
+
+        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
+                new ParallelCommandGroup(
+                        shooter.airsort("PPG", "PGP")
+                )
+        );
     }
 
     @Override

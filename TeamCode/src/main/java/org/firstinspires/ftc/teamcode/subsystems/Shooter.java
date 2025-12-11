@@ -10,14 +10,17 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.RunCommand;
+import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
+import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 
-import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 import java.util.function.Supplier;
 
@@ -25,8 +28,9 @@ public class Shooter extends SubsystemBase {
     private final MotorEx shootert, shooterb, turret;
     private final ServoEx hood;
     private VoltageSensor volt;
-    private final double TURRET_FWD_OFFSET  = -1.63; // in
-    private final double TURRET_LEFT_OFFSET =  0.0;
+    private Intake intake;
+    private final double TURRET_FWD_OFFSET = -1.63; // in
+    private final double TURRET_LEFT_OFFSET = 0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = false;
     private static double vel = 0, target = 0;
@@ -35,20 +39,26 @@ public class Shooter extends SubsystemBase {
     InterpLUT shottime = new InterpLUT();
     private int turretOff = 0;
     public static double turretOffset = 0;
+    private static final double HOOD_UP = 0.5;
+    private static final double HOOD_STRAIGHT = 0.2;
+    private static final int STAGGER_TIME = 50;
+    private boolean manualHoodControl = false;
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 1.68, iT = 0, dT = 0.025;
+    public static double pT = 1.68, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0212;
     public static double kS = 0.84;
     public static double f = 0.0265;
-    public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+    public static double TICKS_PER_DEGREES = ((((1.0 + (46.0 / 17.0))) * (1.0 + (46.0 / 11.0))) * 28.0 * 3.0) / 360.0;
+
     public Shooter(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
         this.followerSupplier = followerSupplier;
+        intake = new Intake(hMap, followerSupplier, shooterX, shooterY);
         shootert = new MotorEx(hMap, "st");
         shooterb = new MotorEx(hMap, "sb");
         turret = new MotorEx(hMap, "turret");
@@ -56,7 +66,7 @@ public class Shooter extends SubsystemBase {
         volt = hMap.get(VoltageSensor.class, "Control Hub");
         shooterb.setRunMode(MotorEx.RunMode.RawPower);
         shootert.setRunMode(MotorEx.RunMode.RawPower);
-        Log.d("Initial Turret Pose", String.valueOf((double)turret.getCurrentPosition() / TICKS_PER_DEGREES));
+        Log.d("Initial Turret Pose", String.valueOf((double) turret.getCurrentPosition() / TICKS_PER_DEGREES));
         if (turretReset) {
             turret.stopAndResetEncoder();
         }
@@ -89,34 +99,141 @@ public class Shooter extends SubsystemBase {
         angle.createLUT();
     }
 
-    public Command flywheel (boolean on) {
+    public Command flywheel(boolean on) {
         return new InstantCommand(() -> flywheelOn = on);
     }
-    public Command turretOff (boolean off) {
+
+    public Command turretOff(boolean off) {
         return new InstantCommand(() -> turretOff = off ? 0 : 1);
     }
 
-    public Command increaseTurretOffset () {
+    public Command increaseTurretOffset() {
         return new InstantCommand(() -> turretOffset += 5);
     }
 
-    public Command decreaseTurretOffset () {
+    public Command decreaseTurretOffset() {
         return new InstantCommand(() -> turretOffset -= 5);
     }
 
-    public Command increaseHoodOffset () {
+    public Command increaseHoodOffset() {
         return new InstantCommand(() -> hoodOffset += 0.05);
     }
 
-    public Command decreaseHoodOffset () {
+    public Command decreaseHoodOffset() {
         return new InstantCommand(() -> hoodOffset -= 0.05);
     }
 
-    public Command OffsetZero () {
+    public Command OffsetZero() {
         return new ParallelCommandGroup(
                 new InstantCommand(() -> hoodOffset = 0),
                 new InstantCommand(() -> turretOffset = 0)
         );
+    }
+
+    public Command shootUp() {
+        return new InstantCommand(() -> {
+            manualHoodControl = true;
+            hood.set(HOOD_UP);
+        });
+    }
+
+    public Command shootStraight() {
+        return new InstantCommand(() -> {
+            manualHoodControl = true;
+            hood.set(HOOD_STRAIGHT);
+        });
+    }
+
+    public Command resumeAutoHood() {
+        return new InstantCommand(() -> manualHoodControl = false);
+    }
+
+    public Command stagger() {
+        return new WaitCommand(STAGGER_TIME);
+    }
+
+    // add this somewhere near your other commands (replaces the existing airsort method)
+    public Command airsort(String from, String to) {
+        from = from.toUpperCase();
+        to = to.toUpperCase();
+
+        Command seq;
+
+        if (from.equals("GPP") && to.equals("PPG")) {
+            // G up, P straight, P straight (kinda favorable)
+            seq = new SequentialCommandGroup(
+                    new WaitCommand(400),
+                    shootUp(),
+                    shootStraight(),
+                    shootStraight(),
+                    resumeAutoHood()
+            );
+        } else if (from.equals("GPP") && to.equals("PGP")) {
+            // Favorable: G up, P straight, stagger, P straight
+            seq = new SequentialCommandGroup(
+                    new WaitCommand(400),
+                    shootUp(),
+                    shootStraight(),
+                    stagger(),
+                    shootStraight(),
+                    resumeAutoHood()
+            );
+        } else if (from.equals("PGP") && to.equals("GPP")) {
+            // Favorable (stagger): P up, G straight, stagger, P straight
+            seq = new SequentialCommandGroup(
+                    new WaitCommand(400),
+                    shootUp(),
+                    shootStraight(),
+                    stagger(),
+                    shootStraight(),
+                    resumeAutoHood()
+            );
+        } else if (from.equals("PGP") && to.equals("PPG")) {
+            // Favorable (stagger): P up, stagger, G up, P straight
+            seq = new SequentialCommandGroup(
+                    new WaitCommand(400),
+                    shootUp(),
+                    stagger(),
+                    shootUp(),
+                    shootStraight(),
+                    resumeAutoHood()
+            );
+        } else if (from.equals("PPG") && to.equals("GPP")) {
+            // P up, P up, G straight (kinda favorable)
+            seq = new SequentialCommandGroup(
+                    new WaitCommand(400),
+                    shootUp(),
+                    shootUp(),
+                    shootStraight(),
+                    resumeAutoHood()
+            );
+        } else if (from.equals("PPG") && to.equals("PGP")) {
+            // Favorable variant: P up, stagger, P up, G straight
+            seq = new SequentialCommandGroup(
+                    new WaitCommand(0),
+                    shootUp(),
+                    stagger(),
+                    new WaitCommand(400),
+                    shootUp(),
+                    shootStraight(),
+                    resumeAutoHood()
+            );
+        } else {
+            String finalFrom = from;
+            String finalTo = to;
+            seq = new InstantCommand(() ->
+                    Log.e("AIRSORT", "Invalid airsort mapping: " + finalFrom + " -> " + finalTo)
+            );
+        }
+
+        // While the airsort sequence runs, keep intake open and collecting.
+        // RunCommand will be interrupted automatically when the seq finishes.
+        Command intakeRun = new RunCommand(() -> {
+            intake.open();
+            intake.collect();
+        }, intake);
+
+        return new ParallelCommandGroup(intakeRun, seq);
     }
 
     @Override
@@ -150,7 +267,12 @@ public class Shooter extends SubsystemBase {
         double theta = angle.get(distance) + hoodOffset;
         theta = Math.max(theta, 0);
         theta = Math.min(theta, 1);
-        hood.set(theta);
+        if (!manualHoodControl) {
+            hood.set(theta);
+        } else {
+            intake.collect();
+            intake.open();
+        }
         double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double flywheelPID = controllerShooter.calculate(vel, target);
         flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));

@@ -1,156 +1,157 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
-import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.kV;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.seattlesolvers.solverslib.controller.PIDController;
-import com.seattlesolvers.solverslib.controller.PIDFController;
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.panels.Panels;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import com.seattlesolvers.solverslib.controller.PIDController;
 
 @Config
-@TeleOp
+@TeleOp(name = "AirSortTeleOp")
 public class AirSort extends OpMode {
-    private FtcDashboard dashboard;
-    private PIDController controller;
-    private TelemetryManager telemetryM;
-    public static double p = 0.6, i = 0.1, d = 0;
-    public static double f = 0.026;
-    public static double target = 0, target2 = 0;
-    private static double vel = 0;
-    public static double time = 200;
-    public static double alpha = 0.6;
-    private Servo hood, latch;
-    public static double theta = 0, theta2 = 0;
 
-    private DcMotorEx shooterb, shootert, intake;
+    // ---------- CONFIG ----------
+    public static double p = 1, i = 0.1, d = 0;
+    public static double kV = 0.0212;
+    public static double targetRPM = 400;
+
+    // hood positions for airsort
+    public static double HOOD_UP = 0.63;
+    public static double HOOD_STRAIGHT = 0.45;
+
+    public static double SHOT_DELAY = 400;   // ms between balls
+
+    // ---------- Devices ----------
+    private DcMotorEx shooterb, shootert, intakeMotor;
+    private Servo hood, intakeGate;
     private VoltageSensor volt;
 
-    ElapsedTime timer = new ElapsedTime();
-    boolean shootingSequenceActive = false;
-    int shootingStep = 0;
+    // ---------- PID ----------
+    private PIDController controller;
+    private double velocity;
+
+    // ---------- Airsort FSM ----------
+    private boolean sorting = false;
+    private int step = 0;
+    private ElapsedTime timer = new ElapsedTime();
+
+    // ---------- Dashboard ----------
+    private FtcDashboard dashboard;
 
     @Override
     public void init() {
-        dashboard = FtcDashboard.getInstance();
-        controller = new PIDController(p, i, d);
+
+        // Hardware
         shooterb = hardwareMap.get(DcMotorEx.class, "sb");
         shootert = hardwareMap.get(DcMotorEx.class, "st");
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intake");
         hood = hardwareMap.get(Servo.class, "hood");
-        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intakeGate = hardwareMap.get(Servo.class, "latch");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
-        latch = hardwareMap.servo.get("latch");
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        timer.reset();
+
+        // PID
+        controller = new PIDController(p, i, d);
+
+        dashboard = FtcDashboard.getInstance();
+
+        telemetry.addLine("AirSort TeleOp READY");
+        telemetry.update();
     }
 
     @Override
     public void loop() {
-        intake.setPower(gamepad1.right_trigger);
-        hood.setPosition(theta);
 
-        if (gamepad1.y && !shootingSequenceActive) {
-            // start sequence
-            shootingSequenceActive = true;
-            shootingStep = 0;
+        // ----------------------------------------------------------
+        //  ALWAYS RUN SHOOTER PID
+        // ----------------------------------------------------------
+
+        double presentVoltage = volt.getVoltage();
+        velocity = shooterb.getVelocity() * (2 * Math.PI / 28);
+
+        double pid = controller.calculate(velocity, targetRPM);
+        double ff = kV * targetRPM;
+
+        double volts = pid + ff;
+        volts = Math.max(-presentVoltage, Math.min(volts, presentVoltage));
+
+        shooterb.setPower((-volts) / presentVoltage);
+        shootert.setPower((-volts) / presentVoltage);
+
+
+        // ----------------------------------------------------------
+        // BUTTON STARTS AIRSORT SEQUENCE
+        // ----------------------------------------------------------
+
+        if (gamepad1.y && !sorting) {
+            sorting = true;
+            step = 0;
             timer.reset();
-            latch.setPosition(1);
-            intake.setPower(1);
+
+            intakeGate.setPosition(1); // open gate
+            intakeMotor.setPower(1);   // pull balls up
         }
 
-        if (shootingSequenceActive) {
-            double presentVoltage = volt.getVoltage();
-            vel = shooterb.getVelocity() * (2 * Math.PI / 28);
-            double pid;
+        // ----------------------------------------------------------
+        // AIRSORT STATE MACHINE
+        // ----------------------------------------------------------
 
-            switch (shootingStep) {
+        if (sorting) {
+            switch (step) {
                 case 0:
-                    // first shot
-                    pid = controller.calculate(vel, target);
-                    pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-                    double pidVolts = pid;
-                    double ffvolts = kV * target;
-//        ffvolts += kS * Math.signum(target);
-                    double flywheelVolts = pidVolts + ffvolts;
-                    flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
-                    shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
-                    shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
+                    // First: UP shot
+                    hood.setPosition(HOOD_UP);
 
-                    if (timer.milliseconds() > time) {
-                        hood.setPosition(theta2);
-                        shootingStep++;
+                    if (timer.milliseconds() > SHOT_DELAY) {
+                        step++;
                         timer.reset();
                     }
                     break;
 
                 case 1:
-                    // second shot
-                    pid = controller.calculate(vel, target2);
-                    pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-                    pidVolts = pid;
-                    ffvolts = kV * target;
-//        ffvolts += kS * Math.signum(target);
-                    flywheelVolts = pidVolts + ffvolts;
-                    flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
-                    shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
-                    shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
-                    if (timer.milliseconds() > time) {
-                        hood.setPosition(theta);
-                        shootingStep++;
+                    // Second: STRAIGHT shot
+                    hood.setPosition(HOOD_STRAIGHT);
+
+                    if (timer.milliseconds() > SHOT_DELAY) {
+                        step++;
                         timer.reset();
                     }
                     break;
 
                 case 2:
-                    // third shot
-                    pid = controller.calculate(vel, target);
-                    pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-                    pidVolts = pid;
-                    ffvolts = kV * target;
-//        ffvolts += kS * Math.signum(target);
-                    flywheelVolts = pidVolts + ffvolts;
-                    flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
-                    shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
-                    shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
+                    // Third: STRAIGHT shot
+                    hood.setPosition(HOOD_STRAIGHT);
 
-                    shootingSequenceActive = false; // done
-                    latch.setPosition(0);
+                    if (timer.milliseconds() > SHOT_DELAY) {
+                        sorting = false;
+                        intakeGate.setPosition(0);    // close gate
+                    }
                     break;
             }
+
+            // Intake automatically keeps running during sequence
+            intakeMotor.setPower(1);
+        }
+        else {
+            // Manual intake control if NOT sorting
+            intakeMotor.setPower(gamepad1.right_trigger);
         }
 
-        // telemetry
-        double presentVoltage = volt.getVoltage();
-        vel = shooterb.getVelocity() * (2 * Math.PI / 28);
-        double pid = controller.calculate(vel, target);
-        double pidVolts = pid;
-        double ffvolts = kV * target;
-//        ffvolts += kS * Math.signum(target);
-        double flywheelVolts = pidVolts + ffvolts;
-        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
-        shooterb.setPower((-1) * (flywheelVolts) / presentVoltage);
-        shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
+        // ----------------------------------------------------------
+        // DASHBOARD TELEMETRY
+        // ----------------------------------------------------------
 
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Velocity", vel);
-        packet.put("Target", target);
-        packet.put("Power", pid);
+        packet.put("Velocity", velocity);
+        packet.put("Target RPM", targetRPM);
+        packet.put("Sorting?", sorting);
+        packet.put("Step", step);
         dashboard.sendTelemetryPacket(packet);
     }
-
 }
