@@ -20,13 +20,13 @@ public class AirSort extends OpMode {
     // ---------- CONFIG ----------
     public static double p = 1, i = 0.1, d = 0;
     public static double kV = 0.0212;
-    public static double targetRPM = 400;
+    public static double targetRPM = 300;
 
     // hood positions for airsort
-    public static double HOOD_UP = 0.63;
-    public static double HOOD_STRAIGHT = 0.45;
+    public static double HOOD_UP = 0.3;
+    public static double HOOD_STRAIGHT = 0.95;
 
-    public static double SHOT_DELAY = 400;   // ms between balls
+    public static double SHOT_DELAY = 275;   // ms between balls
 
     // ---------- Devices ----------
     private DcMotorEx shooterb, shootert, intakeMotor;
@@ -71,19 +71,17 @@ public class AirSort extends OpMode {
         // ----------------------------------------------------------
         //  ALWAYS RUN SHOOTER PID
         // ----------------------------------------------------------
-
         double presentVoltage = volt.getVoltage();
-        velocity = shooterb.getVelocity() * (2 * Math.PI / 28);
-
-        double pid = controller.calculate(velocity, targetRPM);
-        double ff = kV * targetRPM;
-
-        double volts = pid + ff;
-        volts = Math.max(-presentVoltage, Math.min(volts, presentVoltage));
-
-        shooterb.setPower((-volts) / presentVoltage);
-        shootert.setPower((-volts) / presentVoltage);
-
+        double vel = shooterb.getVelocity() * (2 * Math.PI / 28);
+        double flywheelPID = controller.calculate(vel, targetRPM);
+        flywheelPID = Math.max(-presentVoltage, Math.min(flywheelPID, presentVoltage));
+        double pidVolts = flywheelPID;
+        double ffvolts = kV * targetRPM;
+//        ffvolts += kS * Math.signum(target);
+        double flywheelVolts = pidVolts + ffvolts;
+        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+        shootert.setPower((-1) * flywheelVolts / presentVoltage);
+        shooterb.setPower(flywheelVolts / presentVoltage);
 
         // ----------------------------------------------------------
         // BUTTON STARTS AIRSORT SEQUENCE
@@ -93,8 +91,8 @@ public class AirSort extends OpMode {
             sorting = true;
             step = 0;
             timer.reset();
+            hood.setPosition(HOOD_UP);
 
-            intakeGate.setPosition(1); // open gate
             intakeMotor.setPower(1);   // pull balls up
         }
 
@@ -105,6 +103,7 @@ public class AirSort extends OpMode {
         if (sorting) {
             switch (step) {
                 case 0:
+                    intakeGate.setPosition(1);
                     // First: UP shot
                     hood.setPosition(HOOD_UP);
 
@@ -148,7 +147,7 @@ public class AirSort extends OpMode {
         // ----------------------------------------------------------
 
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Velocity", velocity);
+        packet.put("Velocity", vel);
         packet.put("Target RPM", targetRPM);
         packet.put("Sorting?", sorting);
         packet.put("Step", step);
