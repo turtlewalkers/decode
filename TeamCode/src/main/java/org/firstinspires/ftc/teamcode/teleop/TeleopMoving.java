@@ -211,63 +211,127 @@ public class TeleopMoving extends CommandOpMode {
             hub.clearBulkCache();
         }
 
-        follower.update();
-        if (follower.getPose() != null) {
-            start = follower.getPose();
-            double X = follower.getPose().getX();
-            double Y = follower.getPose().getY();
-            double heading = follower.getPose().getHeading();
+        Pose pose = follower.getPose();
+        if (pose != null) {
+            start = pose;
+            double X = pose.getX();
+            double Y = pose.getY();
+            double heading = pose.getHeading();
 
+            // robot-centric joystick inputs
             double vx_r = -gamepad1.left_stick_y * multiplier;
             double vy_r = -gamepad1.left_stick_x * multiplier;
             double omega = -gamepad1.right_stick_x * multiplier;
 
-            double velocityX = follower.getVelocity().getXComponent();
-            double velocityY = follower.getVelocity().getYComponent();
+            // current field-frame velocity from follower
+            double velocityX = follower.getVelocity().getXComponent(); // in/sec
+            double velocityY = follower.getVelocity().getYComponent(); // in/sec
 
+            // convert commanded robot-frame => field-frame
             double cosH = Math.cos(heading);
             double sinH = Math.sin(heading);
             double vx_f = vx_r * cosH - vy_r * sinH;
             double vy_f = vx_r * sinH + vy_r * cosH;
 
+            // vector to gate (field frame)
             double gx = gateX - X;
             double gy = gateY - Y;
             double distToGate = Math.hypot(gx, gy);
             Log.d("Distance to Gate", String.valueOf(distToGate));
 
-            double gxHat = gx / distToGate;
-            double gyHat = gy / distToGate;
+            // unit direction toward gate (guard against zero distance)
+            double gxHat = 0.0, gyHat = 0.0;
+            if (distToGate > 1e-6) {
+                gxHat = gx / distToGate;
+                gyHat = gy / distToGate;
+            }
 
+            // projections (positive = moving toward gate)
             double currentProj = velocityX * gxHat + velocityY * gyHat; // in/sec
-            double commandedProj = vx_f * gxHat + vy_f * gyHat;
+            double commandedProj = vx_f * gxHat + vy_f * gyHat;         // in/sec
 
-            boolean blockTowards = false;
-            if (distToGate <= 25) {
-                blockTowards = proj > 0.0;
+            // estimate loop dt (for debug / optional use)
+            long now = System.nanoTime();
+            double dt;
+            if (lastLoopTimeNanos < 0) {
+                dt = 0.02; // assume 20 ms for first iteration
             } else {
-                if (proj > 0.0 && proj >= (distToGate - 6.0)) {
-                    blockTowards = true;
+                dt = (now - lastLoopTimeNanos) / 1e9;
+                if (dt <= 0) dt = 0.02;
+            }
+            lastLoopTimeNanos = now;
+
+            // clearance we want to preserve (distance we can travel before hitting safeDistance)
+            double distClearance = distToGate - safeDistance;
+
+            // default: allow whole commanded vector
+            double vx_f_safe = vx_f;
+            double vy_f_safe = vy_f;
+
+            if (distToGate <= safeDistance) {
+                // already inside safe margin: remove any commanded toward-gate motion
+                if (commandedProj > 0.0) {
+                    double remove = commandedProj;
+                    vx_f_safe = vx_f - remove * gxHat;
+                    vy_f_safe = vy_f - remove * gyHat;
+                }
+            } else {
+                // Predict whether current + commanded motion may cross the safe boundary.
+                // Compute allowed net closing speed that would permit stopping before the clearance:
+                // stopping_distance = v_net * reactionTime + v_net^2 / (2 * maxDecel)
+                // Solve for v_net given stopping_distance = distClearance
+                double allowedNetSpeed = 0.0;
+                if (distClearance <= 0.0) {
+                    allowedNetSpeed = 0.0;
+                } else {
+                    // quadratic: a*v^2 + b*v - distClearance = 0
+                    double a = 1.0 / (2.0 * maxDecel);
+                    double b = reactionTime;
+                    double c = -distClearance;
+                    double disc = b * b - 4.0 * a * c; // should be >= 0
+                    if (disc < 0) disc = 0.0;
+                    // positive root
+                    allowedNetSpeed = (-b + Math.sqrt(disc)) / (2.0 * a);
+                    if (allowedNetSpeed < 0.0) allowedNetSpeed = 0.0;
+                }
+
+                // compute how much commanded projection is allowed:
+                // allowed_commanded_proj = allowedNetSpeed - currentProj
+                double allowedCommandedProj = allowedNetSpeed - currentProj;
+
+                // clamp allowedCommandedProj to >= 0 (we don't grant negative commanded allowance)
+                if (allowedCommandedProj < 0.0) allowedCommandedProj = 0.0;
+
+                if (commandedProj > allowedCommandedProj) {
+                    // need to reduce the commanded toward-gate component
+                    double allowedProj = allowedCommandedProj;                // what we may still command
+                    double removeProj = commandedProj - allowedProj;         // what to remove from commanded vector
+                    if (removeProj < 0) removeProj = 0;
+
+                    vx_f_safe = vx_f - removeProj * gxHat;
+                    vy_f_safe = vy_f - removeProj * gyHat;
+
+                    // If currentProj > allowedNetSpeed (we're already too fast toward gate),
+                    // the removal above only prevents adding more toward speed. For aggressive braking,
+                    // you could command negative projection here (i.e., request reverse) — left to you.
+                    if (currentProj > (allowedNetSpeed + 1e-3)) {
+                        Log.w("GateSafety", "Already closing faster than safe; consider active braking.");
+                        // Optionally: force translational commands to zero so you stop accelerating tangentially:
+                        // vx_f_safe = 0.0; vy_f_safe = 0.0;
+                    }
                 }
             }
 
-            if (blockTowards) {
-                double projToRemove = Math.max(0.0, proj);
-                double vx_f_safe = vx_f - projToRemove * gxHat;
-                double vy_f_safe = vy_f - projToRemove * gyHat;
 
-                double vx_r_safe =  vx_f_safe * cosH + vy_f_safe * sinH;
-                double vy_r_safe = -vx_f_safe * sinH + vy_f_safe * cosH;
+            // convert safe field-frame back to robot-frame
+            double vx_r_safe = vx_f_safe * cosH + vy_f_safe * sinH;
+            double vy_r_safe = -vx_f_safe * sinH + vy_f_safe * cosH;
 
-                Log.d("vx_r", String.valueOf(vx_r));
-                Log.d("vx_r_safe", String.valueOf(vx_r_safe));
-                Log.d("vy_r", String.valueOf(vy_r));
-                Log.d("vy_r_safe", String.valueOf(vy_r_safe));
-
-                follower.setTeleOpDrive(vx_r_safe, vy_r_safe, omega, true);
-            } else {
-                follower.setTeleOpDrive(vx_r, vy_r, omega, true);
-            }
+            // apply final teleop drive (allow rotation unchanged)
+            follower.setTeleOpDrive(vx_r_safe, vy_r_safe, omega, true);
         }
+        follower.update();
+
         Park = new Path(new BezierLine(start, end));
         Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());
 
