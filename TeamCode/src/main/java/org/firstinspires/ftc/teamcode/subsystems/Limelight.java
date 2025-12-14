@@ -5,6 +5,7 @@ import android.util.Log;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -12,23 +13,41 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.seattlesolvers.solverslib.controller.PIDController;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class Limelight extends SubsystemBase {
     private Limelight3A limelight;
     private static final double METERS_TO_INCHES = 39.37;
     private final Supplier<Follower> followerSupplier;
-    private boolean fix = false, turret = false;
+    public boolean fix = false;
+    public static boolean turretOn = false;
+    public static double power = 0;
+
+    public static double TICKS_PER_DEG =
+            ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+
+    public static double TURRET_MIN = -90;
+    public static double TURRET_MAX =  240;
+
+    public static double kP = 0.03;
+    public static double kI = 0.00000001;
+    public static double kD = 0.00004;
+    private PIDController turretPID;
+
 
     public Limelight(final HardwareMap hMap, Supplier<Follower> followerSupplier) {
         this.followerSupplier = followerSupplier;
         limelight = hMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(6);
         limelight.start();
+        turretPID = new PIDController(kP, kI, kD);
     }
 
     private double normalizeAngle(double angle) {
@@ -47,23 +66,25 @@ public class Limelight extends SubsystemBase {
 
     public Command fixTurret() {
         return new ParallelCommandGroup(
-                new InstantCommand(() -> turret = true)
+                new InstantCommand(() -> turretOn = true)
         );
     }
 
     public Command nofixTurret() {
         return new ParallelCommandGroup(
                 new InstantCommand(() -> fix = false),
-                new InstantCommand(() -> turret = false)
+                new InstantCommand(() -> turretOn = false)
         );
     }
 
     @Override
     public void periodic() {
-        if (fix || turret) {
+        boolean hasTarget = false;
+        if (fix || turretOn) {
             LLResult result = limelight.getLatestResult();
 
-            if (result.isValid()) {
+            if (result != null && result.isValid()) {
+                hasTarget = true;
 
                 Pose3D botpose = result.getBotpose();
 
@@ -82,13 +103,33 @@ public class Limelight extends SubsystemBase {
                     follower.setPose(new Pose(decodeX, decodeY, robotHeading));
                 }
 
-                for (LLResultTypes.FiducialResult fr : result.getFiducialResults()) {
+                if (turretOn) {
                     int targetId = 20;
                     if (Memory.allianceRed) targetId = 24;
-                    if (targetId == fr.getFiducialId() && turret) {
-                        double angle = fr.getTargetXDegrees();
-                        Log.d("tX", String.valueOf(fr.getTargetXDegrees()));
-                        ShooterMove.turretOffset += angle*0.1;
+                    int tagId = -1;
+
+                    double tx = result.getTx();
+                    List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
+                    if (tags != null && !tags.isEmpty()) {
+                        LLResultTypes.FiducialResult tag = tags.get(0);
+                        tagId = tag.getFiducialId();
+                    } else {
+                        hasTarget = false;
+                    }
+
+                    boolean goodtag = (tagId == targetId);
+
+                    double turretPosDeg = ShooterMove.turretPos;
+
+                    double turretTargetDeg = turretPosDeg - tx;
+                    turretTargetDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, turretTargetDeg));
+
+                    turretPID.setPID(kP, kI, kD);
+
+                    double pidOut = turretPID.calculate(turretPosDeg, turretTargetDeg);
+
+                    if (hasTarget && goodtag) {
+                        power = pidOut;
                     }
                 }
             }
