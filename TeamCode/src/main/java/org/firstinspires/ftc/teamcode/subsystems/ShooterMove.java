@@ -24,7 +24,9 @@ import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
 import java.util.function.Supplier;
 
 public class ShooterMove extends SubsystemBase {
-    private final MotorEx shootert, shooterb, turret;
+    public final MotorEx shootert;
+    public final MotorEx shooterb;
+    public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
     private final double TURRET_FWD_OFFSET  = -1.63; // in
@@ -46,6 +48,7 @@ public class ShooterMove extends SubsystemBase {
     public static double kV = 0.0212;
     public static double kS = 0.84;
     public static double f = 0.0265;
+    public static double turretPos = 0;
     public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
@@ -166,10 +169,14 @@ public class ShooterMove extends SubsystemBase {
         targetAngleDeg += turretOffset;
         targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 260);
-        double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
-        turret.set(turretPower / presentVoltage);
+        if (!Limelight.turretOn) {
+            turret.set(turretPower / presentVoltage);
+        } else {
+            turret.set(Limelight.power);
+        }
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;
         theta = Math.max(theta, 0);
