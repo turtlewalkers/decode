@@ -50,7 +50,6 @@ public class TeleopMoving extends CommandOpMode {
     private double maxDecel = 60.0;
     private double reactionTime = 0.06;
     private double safeDistance = 20;
-
     @Override
     public void initialize() {
         follower = Constants.createFollower(hardwareMap);
@@ -94,7 +93,9 @@ public class TeleopMoving extends CommandOpMode {
                 new InstantCommand(() -> Memory.allianceRed = false)
         );
 
-        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(intake.collect());
+        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(
+                intake.collect()
+        );
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5).whenActive(intake.stop());
         gamepad.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 intake.reverse()
@@ -114,15 +115,27 @@ public class TeleopMoving extends CommandOpMode {
                         )
                 )
         );
-
-        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5).whenActive(
+        new Trigger(() ->
+                gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5 &&
+                        gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5
+        ).whenActive(
                 new ParallelCommandGroup(
                         intake.stop(),
                         intake.close(),
                         intake.LEDoff()
-//                        new InstantCommand(() -> multiplier = 1)
                 )
         );
+        new Trigger(() ->
+                gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5 &&
+                        gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5
+        ).whenActive(
+                new ParallelCommandGroup(
+                        intake.collect(),
+                        intake.close(),
+                        intake.LEDoff()
+                )
+        );
+
 
         gamepad.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
                 shooter.turretOff(true)
