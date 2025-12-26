@@ -60,6 +60,7 @@ public class Tuning extends SelectableOpMode {
                 a.add("Lateral Velocity Tuner", LateralVelocityTuner::new);
                 a.add("Forward Zero Power Acceleration Tuner", ForwardZeroPowerAccelerationTuner::new);
                 a.add("Lateral Zero Power Acceleration Tuner", LateralZeroPowerAccelerationTuner::new);
+                a.add("Quadratic Damping Tuner", QuadraticDampingTuner::new);
             });
             s.folder("Manual", p -> {
                 p.add("Translational Tuner", TranslationalTuner::new);
