@@ -27,7 +27,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.ModifiedPedro.QuadraticRegression;
+import com.pedropathing.math.MathFunctions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +65,7 @@ public class Tuning extends SelectableOpMode {
                 a.add("Lateral Velocity Tuner", LateralVelocityTuner::new);
                 a.add("Forward Zero Power Acceleration Tuner", ForwardZeroPowerAccelerationTuner::new);
                 a.add("Lateral Zero Power Acceleration Tuner", LateralZeroPowerAccelerationTuner::new);
-                a.add("Quadratic Damping Tuner", QuadraticDampingTuner::new);
+                a.add("Predictive Braking Tuner", PredictiveBrakingTuner::new);
             });
             s.folder("Manual", p -> {
                 p.add("Translational Tuner", TranslationalTuner::new);
@@ -722,8 +722,19 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
     }
 }
 
-class QuadraticDampingTuner extends OpMode {
-    public static int DISTANCE = 72;
+/**
+ * This is the Predictive Braking Tuner. It runs the robot forward and backward at various power
+ * levels, recording the robot’s velocity and position immediately before braking. The motors are
+ * then set to zero-power brake mode, which represents the fastest theoretical braking the robot
+ * can achieve. Once the robot comes to a complete stop, the tuner measures the stopping distance.
+ * Using the collected data, it generates a velocity-vs-stopping-distance graph and fits a
+ * quadratic curve to model the braking behavior.
+ *
+ * @author Ashay Sarda - 19745 Turtle Walkers
+ * @author Jacob Ophoven - 18535 Frozen Code
+ * @version 1.0, 12/26/2025
+ */
+class PredictiveBrakingTuner extends OpMode {
     private static final double[] TEST_POWERS =
             {1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2};
 
@@ -741,7 +752,6 @@ class QuadraticDampingTuner extends OpMode {
 
     private State state = State.START_MOVE;
 
-    private Follower follower;
     private ElapsedTime timer = new ElapsedTime();
 
     private int iteration = 0;
@@ -751,8 +761,6 @@ class QuadraticDampingTuner extends OpMode {
     private double measuredVelocity;
 
     private final List<double[]> data = new ArrayList<>();
-
-    Path forwards, backwards;
 
     @Override
     public void init() {}
@@ -774,10 +782,7 @@ class QuadraticDampingTuner extends OpMode {
         timer.reset();
 //        follower.usePredictiveBraking();
         follower.update();
-        forwards = new Path(new BezierLine(new Pose(0, 0), new Pose(0, DISTANCE)));
-        forwards.setConstantHeadingInterpolation(0);
-        backwards = new Path(new BezierLine(new Pose(0, DISTANCE), new Pose(0, 0)));
-        backwards.setConstantHeadingInterpolation(0);
+        follower.startTeleOpDrive(true);
     }
 
     @Override
@@ -800,11 +805,9 @@ class QuadraticDampingTuner extends OpMode {
                 currentPower = TEST_POWERS[iteration];
                 follower.setMaxPower(currentPower);
                 if (iteration % 2 != 0) {
-                    follower.followPath(backwards);
-                    backwards = new Path(new BezierPoint(0, 0));
+                    follower.setTeleOpDrive(-1, 0, 0, true);
                 } else {
-                    follower.followPath(forwards);
-                    forwards = new Path(new BezierPoint(0, 0));
+                    follower.setTeleOpDrive(1, 0, 0, true);
                 }
 
                 timer.reset();
@@ -822,7 +825,7 @@ class QuadraticDampingTuner extends OpMode {
             }
 
             case APPLY_BRAKE: {
-                follower.breakFollowing();
+                stopRobot();
 
                 timer.reset();
                 state = State.WAIT_BRAKE_TIME;
@@ -842,29 +845,24 @@ class QuadraticDampingTuner extends OpMode {
 
                 data.add(new double[]{measuredVelocity, brakingDistance});
 
-                telemetry.addData(
-                        "Test " + iteration,
+                telemetryM.debug("Test " + iteration,
                         stringify(measuredVelocity, brakingDistance));
+                telemetryM.update(telemetry);
 
                 iteration++;
                 state = State.START_MOVE;
 
-                forwards = new Path(new BezierLine(new Pose(0, 0), new Pose(0, DISTANCE)));
-                forwards.setConstantHeadingInterpolation(0);
-                backwards = new Path(new BezierLine(new Pose(0, DISTANCE), new Pose(0, 0)));
-                backwards.setConstantHeadingInterpolation(0);
                 break;
             }
 
             case DONE: {
-                double[] coeffs = QuadraticRegression.quadraticFit(data);
+                double[] coeffs = MathFunctions.quadraticFit(data);
 
-                telemetry.addLine("Tuning Complete");
-                telemetry.addData("kFriction (kQ)", coeffs[1]);
-                telemetry.addData("kBraking (kD)", coeffs[0]);
-                telemetry.update();
+                telemetryM.debug("Tuning Complete");
+                telemetryM.debug("kFriction (kQ)", coeffs[1]);
+                telemetryM.debug("kBraking (kD)", coeffs[0]);
+                telemetryM.update(telemetry);
 
-                requestOpModeStop();
                 break;
             }
         }

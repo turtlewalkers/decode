@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PredictiveBrakingCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -36,8 +37,9 @@ public class Constants {
             .lateralZeroPowerAcceleration(-60)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.022, 0.006))
             .headingPIDFCoefficients(new PIDFCoefficients(0.96, 0, 0.03, 0.01))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.023,0.0,0.000015,0.6,0.025))
-            .centripetalScaling(0.00037);
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.0,0.00000000,0.00000,0.6,0.007))
+            .centripetalScaling(0.00034)
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.15, 0.11135, 0.00145, 0.2));
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(-2.25)
             .strafePodX(-6)
@@ -46,7 +48,7 @@ public class Constants {
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-    public static PathConstraints pathConstraints2 = new PathConstraints(0.995, 100, 1, 1.1);
+    public static PathConstraints pathConstraints2 = new PathConstraints(0.995, 100, 4, 4);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

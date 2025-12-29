@@ -85,11 +85,13 @@ dependencies {
     }
 
     // Pedro Pathing
-    implementation 'com.pedropathing:ftc:2.0.4'
-    implementation 'com.pedropathing:telemetry:1.0.0'
+//    implementation project(':PedroPathing:core:LOCAL')
+//    implementation project(':PedroPathing:ftc:LOCAL')
+//    implementation 'com.pedropathing:ftc:2.0.4'
+//    implementation 'com.pedropathing:telemetry:1.0.0'
 
     // Panels Dashboard
-    implementation "com.bylazar:fullpanels:1.0.9"
+//    implementation "com.bylazar:fullpanels:1.0.9"
 
     // sloth
     implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
