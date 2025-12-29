@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import android.util.Log;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -58,43 +60,34 @@ public class Blue18 extends CommandOpMode {
 
         Paneer = new Path(new BezierLine(Start, Paneer2));
         Paneer.setLinearHeadingInterpolation(Start.getHeading(), Paneer2.getHeading());
+        Paneer.setTimeoutConstraint(50);
 
         PreloadShoot = new Path(new BezierLine(Paneer2, ScorePositiona));
         PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePositiona.getHeading());
-
+        PreloadShoot.setTimeoutConstraint(50);
 
         Goto1 = follower.pathBuilder()
                 .addPath(new BezierLine(ScorePositiona, Collect1))
                 .setLinearHeadingInterpolation(ScorePositiona.getHeading(), Collect1.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
-//        Pickup1 = follower.pathBuilder()
-//                .addPath(new BezierLine(Grab1, Collect1))
-//                .setLinearHeadingInterpolation(Grab1.getHeading(), Collect1.getHeading())
-//                .build();
-
-        /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         Shoot1 = follower.pathBuilder()
                 .addPath(new BezierLine(Collect1, ScorePosition))
                 .setLinearHeadingInterpolation(Collect1.getHeading(), ScorePosition.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
-//        ToGate = follower.pathBuilder()
-//                .addPath(new BezierLine(ScorePosition, GotoGate))
-//                .setLinearHeadingInterpolation(ScorePosition.getHeading(), GotoGate.getHeading())
-//                .build();
         GotoIntakeGate = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(44, 64), // Control point
+                        new Pose(44, 64),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), CollectGate.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
-//        GateIntake = follower.pathBuilder()
-//                .addPath(new BezierLine(IntakeGate, CollectGate))
-//                .setLinearHeadingInterpolation(IntakeGate.getHeading(), CollectGate.getHeading   ())
-//                .build();
+
         ShootGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         CollectGate,
@@ -102,16 +95,14 @@ public class Blue18 extends CommandOpMode {
                         LeaveGate)
                 )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
+
         ShootGate2 = follower.pathBuilder()
                 .addPath(new BezierLine(LeaveGate, ScorePosition))
                 .setLinearHeadingInterpolation(LeaveGate.getHeading(), ScorePosition.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
-
-//        Goto2 = follower.pathBuilder()
-//                .addPath(new BezierLine(ScorePosition, Grab2))
-//                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Grab2.getHeading())
-//                .build();
 
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
@@ -120,11 +111,13 @@ public class Blue18 extends CommandOpMode {
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect2.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Shoot2 = follower.pathBuilder()
                 .addPath(new BezierLine(Collect2, ScorePosition))
                 .setLinearHeadingInterpolation(Collect2.getHeading(), ScorePosition.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Pickup3 = follower.pathBuilder()
@@ -134,46 +127,47 @@ public class Blue18 extends CommandOpMode {
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect3.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Shoot3 = follower.pathBuilder()
                 .addPath(new BezierLine(Collect3, ScorePosition))
                 .setLinearHeadingInterpolation(Collect3.getHeading(), ScorePosition.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Goto4Part1 = follower.pathBuilder()
-                .addPath(new BezierCurve(ScorePosition, Grab4))
+                .addPath(new BezierLine(ScorePosition, Grab4))
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Grab4.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Goto4Part2 = follower.pathBuilder()
-                .addPath(new BezierCurve(Grab4Setup, Grab4))
+                .addPath(new BezierLine(Grab4Setup, Grab4))
                 .setLinearHeadingInterpolation(Grab4Setup.getHeading(), Grab4.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Goto4 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePosition,
-                        new Pose(12, 70), // Control point
+                        new Pose(12, 70),
                         Collect4)
                 )
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect4.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
 
         Shoot4P1 = follower.pathBuilder()
                 .addPath(new BezierLine(Collect4, ScorePosition))
                 .setLinearHeadingInterpolation(Collect4.getHeading(), ScorePosition.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
-//
-//        Shoot4P2 = follower.pathBuilder()
-//                .addPath(new BezierLine(GotoS4, ScorePosition))
-//                .setLinearHeadingInterpolation(GotoS4.getHeading(), ScorePosition.getHeading())
-//                .build();
-
 
         tatawireless = follower.pathBuilder()
                 .addPath(new BezierLine(ScorePosition, byebye))
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), byebye.getHeading())
+                .setTimeoutConstraint(50)
                 .build();
     }
 
@@ -287,6 +281,8 @@ public class Blue18 extends CommandOpMode {
         Memory.robotAutoX = follower.getPose().getX();
         Memory.robotAutoY = follower.getPose().getY();
         Memory.robotPose = follower.getPose();
+
+//        Log.d("Drive power")
     }
 
     @Override

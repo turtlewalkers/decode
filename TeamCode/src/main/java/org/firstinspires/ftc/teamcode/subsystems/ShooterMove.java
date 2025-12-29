@@ -76,9 +76,10 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(48, 330);
         RPM.add(61, 340);
         RPM.add(90, 360);
-        RPM.add(119.5, 400);
-        RPM.add(136, 420);
-        RPM.add(145, 440);
+        RPM.add(119.5, 410);
+        RPM.add(136, 470);
+        RPM.add(145, 490);
+        RPM.add(153, 510);
         RPM.add(3000, 485);
         RPM.createLUT();
 

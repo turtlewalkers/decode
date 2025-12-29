@@ -27,7 +27,7 @@ public class Shooter extends OpMode {
     private FtcDashboard dashboard;
     private PIDController controller;
     private TelemetryManager telemetryM;
-    public static double p = 1, i = 0.1, d = 0;
+    public static double p = 1.1, i = 0.1, d = 0;
     public static double f = 0.026;
     public static double target = 0;
     private static double vel = 0;

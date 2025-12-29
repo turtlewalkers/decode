@@ -37,9 +37,9 @@ public class Constants {
             .lateralZeroPowerAcceleration(-60)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.022, 0.006))
             .headingPIDFCoefficients(new PIDFCoefficients(0.96, 0, 0.03, 0.01))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.0,0.00000000,0.00000,0.6,0.007))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.027,0.00000000,0.0000027,0.6,0.007))
             .centripetalScaling(0.00034)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.15, 0.11135, 0.00145, 0.2));
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.15, 0.1109861721, 0.0013217399, 0.2));
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(-2.25)
             .strafePodX(-6)

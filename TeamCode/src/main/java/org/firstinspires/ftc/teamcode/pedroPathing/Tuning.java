@@ -22,6 +22,7 @@ import com.pedropathing.math.*;
 import com.pedropathing.paths.*;
 import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.*;
+import static com.pedropathing.math.MathFunctions.quadraticFit;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -739,7 +740,7 @@ class PredictiveBrakingTuner extends OpMode {
             {1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2};
 
     private static final int DRIVE_TIME_MS = 1000;
-    private static final int BRAKE_WAIT_MS = 2000;
+    private static final int BRAKE_WAIT_MS = 500;
 
     private enum State {
         START_MOVE,
@@ -856,7 +857,7 @@ class PredictiveBrakingTuner extends OpMode {
             }
 
             case DONE: {
-                double[] coeffs = MathFunctions.quadraticFit(data);
+                double[] coeffs = quadraticFit(data);
 
                 telemetryM.debug("Tuning Complete");
                 telemetryM.debug("kFriction (kQ)", coeffs[1]);
@@ -1121,8 +1122,10 @@ class Line extends OpMode {
         follower.activateAllPIDFs();
         forwards = new Path(new BezierLine(new Pose(0,0), new Pose(DISTANCE,0)));
         forwards.setConstantHeadingInterpolation(0);
+        forwards.setTimeoutConstraint(50);
         backwards = new Path(new BezierLine(new Pose(DISTANCE,0), new Pose(0,0)));
         backwards.setConstantHeadingInterpolation(0);
+        backwards.setTimeoutConstraint(50);
         follower.followPath(forwards);
     }
 
