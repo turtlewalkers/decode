@@ -37,9 +37,9 @@ public class Constants {
             .lateralZeroPowerAcceleration(-60)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.022, 0.006))
             .headingPIDFCoefficients(new PIDFCoefficients(0.96, 0, 0.03, 0.01))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.027,0.00000000,0.0000027,0.6,0.007))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.028,0.00000000,0.0000027,0.6,0.007))
             .centripetalScaling(0.00034)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.15, 0.1109861721, 0.0013217399, 0.2));
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.05, 0.089, 0.001701411, 0.2));
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(-2.25)
             .strafePodX(-6)
@@ -48,7 +48,7 @@ public class Constants {
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-    public static PathConstraints pathConstraints2 = new PathConstraints(0.995, 100, 4, 4);
+    public static PathConstraints pathConstraints2 = new PathConstraints(0.995, 0, 1.4, 1.2);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)

@@ -257,7 +257,7 @@ public class Shooter extends SubsystemBase {
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
-        targetAngleDeg = Math.max(targetAngleDeg, -100);
+        targetAngleDeg = Math.max(targetAngleDeg, -110);
         targetAngleDeg = Math.min(targetAngleDeg, 315);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));

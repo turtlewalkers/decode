@@ -38,12 +38,12 @@ public class Blue18 extends CommandOpMode {
 
     private final Pose Paneer2 = new Pose(144-115+2-1, 121.5, Math.toRadians(135));
     private final Pose ScorePositiona = new Pose(144-85, 84, Math.toRadians(160));
-    private final Pose ScorePosition = new Pose(144-88, 86, Math.toRadians(225));
-    private final Pose Collect1 = new Pose(144-122, 84, Math.toRadians(180));
+    private final Pose ScorePosition = new Pose(144-88, 86, Math.toRadians(240));
+    private final Pose Collect1 = new Pose(144-118, 84, Math.toRadians(180));
     private final Pose CollectGate = new Pose(18, 64, Math.toRadians(180-28));
     private final Pose LeaveGate = new Pose(8, 54, Math.toRadians(180-30));
-    private final Pose Collect2 = new Pose(144-126, 60, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(144-126, 36, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(144-118, 60, Math.toRadians(180));
+    private final Pose Collect3 = new Pose(144-118, 36, Math.toRadians(180));
     private final Pose Grab4Setup = new Pose(144-(126+2-1), 48-4-3, Math.toRadians(240));
     private final Pose Grab4 = new Pose(144-(130+2-1), 25-4-3, Math.toRadians(260));
     private final Pose GotoS4 = new Pose(144-(120-1), 28-3, Math.toRadians(260));
@@ -196,19 +196,22 @@ public class Blue18 extends CommandOpMode {
                         ),
 
                         intake.open(),
-                        new WaitCommand(70),
                         intake.collect(),
-                        new WaitCommand(1300),
+                        new WaitCommand(600),
                         shooter.turretOff(true),
                         intake.close(),
 
                         new FollowPathCommand(follower, Goto1, false),
                         shooter.turretOff(false),
-
-
-                        new FollowPathCommand(follower, Shoot1, true),
-                        intake.open(),
-                        new WaitCommand(1300),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot1, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(750),
+                                        new WaitCommand(200),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(600),
                         shooter.turretOff(true),
                         intake.close(),
 
@@ -217,10 +220,14 @@ public class Blue18 extends CommandOpMode {
                         shooter.turretOff(false),
 
 
-                        new FollowPathCommand(follower, Shoot2, true),
-                        intake.open(),
-                        intake.collect(),
-                        new WaitCommand(1300),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot2, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1050),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(600),
                         shooter.turretOff(true),
                         intake.close(),
 
@@ -228,23 +235,31 @@ public class Blue18 extends CommandOpMode {
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, ShootGate1).withTimeout(500),
-                        new WaitCommand(1300),
-                        intake.stop(),
-                        intake.open(),
-                        new FollowPathCommand(follower, ShootGate2),
-                        intake.collect(),
-                        new WaitCommand(1300),
+                        new WaitCommand(1000),
+
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, ShootGate2, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1550),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(600),
 
 //                        new FollowPathCommand(follower, Goto3, false),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
                         shooter.turretOff(false),
-                        intake.stop(),
-                        intake.open(),
-                        new FollowPathCommand(follower, Shoot3, true),
-                        intake.collect(),
-                        new WaitCommand(1300),
+
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot3, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1750),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(600),
                         shooter.turretOff(true),
                         intake.close(),
 
@@ -252,11 +267,10 @@ public class Blue18 extends CommandOpMode {
                         new FollowPathCommand(follower, Goto4, false).withTimeout(2000),
                         shooter.turretOff(false),
                         new FollowPathCommand(follower, Shoot4P1, true),
-                        intake.stop(),
                         intake.open(),
                         new WaitCommand(50),
                         intake.collect(),
-                        new WaitCommand(1300),
+                        new WaitCommand(600),
                         intake.close(),
 
                         shooter.turretOff(true),
