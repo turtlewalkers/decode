@@ -80,8 +80,8 @@ public class Shooter extends SubsystemBase {
         RPM.add(39.5, 310);
         RPM.add(48, 330);
         RPM.add(61, 340);
-        RPM.add(90, 360);
-        RPM.add(119.5, 400);
+        RPM.add(90, 390);
+        RPM.add(119.5, 440);
         RPM.add(136, 420);
         RPM.add(145, 440);
         RPM.add(3000, 485);
@@ -91,8 +91,8 @@ public class Shooter extends SubsystemBase {
         angle.add(39.5, 0.6);
         angle.add(48, 0.45);
         angle.add(61, 0.3);
-        angle.add(90, 0.2);
-        angle.add(119.5, 0.2);
+        angle.add(90, 0.19);
+        angle.add(119.5, 0.19);
         angle.add(136, 0.15);
         angle.add(145, 0.12);
         angle.add(3000, 0.1);
@@ -257,8 +257,8 @@ public class Shooter extends SubsystemBase {
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
-        targetAngleDeg = Math.max(targetAngleDeg, -110);
-        targetAngleDeg = Math.min(targetAngleDeg, 315);
+        targetAngleDeg = Math.max(targetAngleDeg, -130);
+        targetAngleDeg = Math.min(targetAngleDeg, 260);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
         double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
