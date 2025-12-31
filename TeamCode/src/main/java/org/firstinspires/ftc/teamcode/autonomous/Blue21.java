@@ -16,6 +16,7 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
+import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
@@ -37,10 +38,12 @@ public class Blue21 extends CommandOpMode {
     private final Pose Start = new Pose(144-117, 128, Math.toRadians(135));
 
     private final Pose Paneer2 = new Pose(144-115+2-1, 121.5, Math.toRadians(135));
-    private final Pose ScorePositiona = new Pose(144-85, 84, Math.toRadians(160));
-    private final Pose ScorePosition = new Pose(144-88, 86, Math.toRadians(240));
+    private final Pose ScorePositionA = new Pose(144-85, 84, Math.toRadians(180));
+    private final Pose ScorePositionB = new Pose(144-88, 86, Math.toRadians(225));
+    private final Pose ScorePositionC = new Pose(144-85, 84, Math.toRadians(220));
+    private final Pose ScorePositionD = new Pose(144-88, 86, Math.toRadians(230));
     private final Pose Collect1 = new Pose(144-123, 84, Math.toRadians(180));
-    private final Pose CollectGate = new Pose(15.5, 61.5, Math.toRadians(180-24));
+    private final Pose CollectGate = new Pose(15.2, 61, Math.toRadians(180-30));
     private final Pose LeaveGate = new Pose(8, 54, Math.toRadians(180-30));
     private final Pose Collect2 = new Pose(144-123, 60, Math.toRadians(180));
     private final Pose Collect3 = new Pose(144-123, 36, Math.toRadians(180));
@@ -62,29 +65,29 @@ public class Blue21 extends CommandOpMode {
         Paneer.setLinearHeadingInterpolation(Start.getHeading(), Paneer2.getHeading());
         Paneer.setTimeoutConstraint(50);
 
-        PreloadShoot = new Path(new BezierLine(Paneer2, ScorePositiona));
-        PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePositiona.getHeading());
+        PreloadShoot = new Path(new BezierLine(Paneer2, ScorePositionA));
+        PreloadShoot.setLinearHeadingInterpolation(Paneer2.getHeading(), ScorePositionA.getHeading());
         PreloadShoot.setTimeoutConstraint(50);
 
         Goto1 = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePositiona, Collect1))
-                .setLinearHeadingInterpolation(ScorePositiona.getHeading(), Collect1.getHeading())
+                .addPath(new BezierLine(ScorePositionA, Collect1))
+                .setLinearHeadingInterpolation(ScorePositionA.getHeading(), Collect1.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Shoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect1, ScorePosition))
-                .setLinearHeadingInterpolation(Collect1.getHeading(), ScorePosition.getHeading())
+                .addPath(new BezierLine(Collect1, ScorePositionB))
+                .setLinearHeadingInterpolation(Collect1.getHeading(), ScorePositionB.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         GotoIntakeGate = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        ScorePosition,
+                        ScorePositionB,
                         new Pose(44, 67),
                         CollectGate)
                 )
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), CollectGate.getHeading())
+                .setLinearHeadingInterpolation(ScorePositionB.getHeading(), CollectGate.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -99,46 +102,46 @@ public class Blue21 extends CommandOpMode {
                 .build();
 
         ShootGate2 = follower.pathBuilder()
-                .addPath(new BezierLine(LeaveGate, ScorePosition))
-                .setLinearHeadingInterpolation(LeaveGate.getHeading(), ScorePosition.getHeading())
+                .addPath(new BezierLine(LeaveGate, ScorePositionC))
+                .setLinearHeadingInterpolation(LeaveGate.getHeading(), ScorePositionC.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        ScorePosition,
-                        new Pose(54, 57.5),
+                        ScorePositionC,
+                        new Pose(54, 59.5),
                         Collect2)
                 )
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect2.getHeading())
+                .setLinearHeadingInterpolation(ScorePositionC.getHeading(), Collect2.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Shoot2 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect2, ScorePosition))
-                .setLinearHeadingInterpolation(Collect2.getHeading(), ScorePosition.getHeading())
+                .addPath(new BezierLine(Collect2, ScorePositionD))
+                .setLinearHeadingInterpolation(Collect2.getHeading(), ScorePositionD.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        ScorePosition,
+                        ScorePositionD,
                         new Pose(54, 31),
                         Collect3)
                 )
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect3.getHeading())
+                .setLinearHeadingInterpolation(ScorePositionD.getHeading(), Collect3.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Shoot3 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect3, ScorePosition))
-                .setLinearHeadingInterpolation(Collect3.getHeading(), ScorePosition.getHeading())
+                .addPath(new BezierLine(Collect3, ScorePositionD))
+                .setLinearHeadingInterpolation(Collect3.getHeading(), ScorePositionD.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Goto4Part1 = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePosition, Grab4))
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Grab4.getHeading())
+                .addPath(new BezierLine(ScorePositionA, Grab4))
+                .setLinearHeadingInterpolation(ScorePositionD.getHeading(), Grab4.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -150,23 +153,23 @@ public class Blue21 extends CommandOpMode {
 
         Goto4 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        ScorePosition,
+                        ScorePositionA,
                         new Pose(12, 70),
                         Collect4)
                 )
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), Collect4.getHeading())
+                .setLinearHeadingInterpolation(ScorePositionA.getHeading(), Collect4.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Shoot4P1 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect4, ScorePosition))
-                .setLinearHeadingInterpolation(Collect4.getHeading(), ScorePosition.getHeading())
+                .addPath(new BezierLine(Collect4, ScorePositionA))
+                .setLinearHeadingInterpolation(Collect4.getHeading(), ScorePositionA.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         tatawireless = follower.pathBuilder()
-                .addPath(new BezierLine(ScorePosition, byebye))
-                .setLinearHeadingInterpolation(ScorePosition.getHeading(), byebye.getHeading())
+                .addPath(new BezierLine(ScorePositionA, byebye))
+                .setLinearHeadingInterpolation(ScorePositionD.getHeading(), byebye.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
     }
@@ -187,34 +190,20 @@ public class Blue21 extends CommandOpMode {
         schedule(
                 new RunCommand(() -> follower.update()),
                 new SequentialCommandGroup(
+                        intake.close(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, PreloadShoot),
-                                intake.close(),
                                 shooter.flywheel(true),
-                                shooter.turretOff(false)
-
-                        ),
-
-                        intake.open(),
-                        intake.collect(),
-                        new WaitCommand(550),
-                        shooter.turretOff(true),
-                        intake.close(),
-
-                        new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(false),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, Shoot1, true),
+                                shooter.turretOff(false),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(750),
-                                        new WaitCommand(210),
-                                        intake.open()
+                                        new WaitCommand(1300),
+                                        intake.open(),
+                                        intake.collect()
                                 )
                         ),
                         new WaitCommand(550),
-                        shooter.turretOff(true),
+//                        shooter.turretOff(true),
                         intake.close(),
-
 
                         new FollowPathCommand(follower, Pickup2, false),
                         shooter.turretOff(false),
@@ -223,21 +212,21 @@ public class Blue21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot2, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1250),
+                                        new WaitCommand(1100),
                                         intake.open()
                                 )
                         ),
                         new WaitCommand(550),
-                        shooter.turretOff(true),
+//                        shooter.turretOff(true),
                         intake.close(),
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2000),
+                        new WaitCommand(1800),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1550),
+                                        new WaitCommand(1400),
                                         intake.open()
                                 )
                         ),
@@ -247,12 +236,12 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2000),
+                        new WaitCommand(1800),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1550),
+                                        new WaitCommand(1400),
                                         intake.open()
                                 )
                         ),
@@ -261,16 +250,30 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2000),
+                        new WaitCommand(1800),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1550),
+                                        new WaitCommand(1400),
                                         intake.open()
                                 )
                         ),
                         new WaitCommand(550),
+                        intake.close(),
+
+                        new FollowPathCommand(follower, Goto1, false),
+                        shooter.turretOff(false),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot1, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(750),
+                                        new WaitCommand(100),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(550),
+//                        shooter.turretOff(true),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup3, true),
@@ -279,12 +282,12 @@ public class Blue21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot3, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1750),
+                                        new WaitCommand(1600),
                                         intake.open()
                                 )
                         ),
                         new WaitCommand(550),
-                        shooter.turretOff(true),
+//                        shooter.turretOff(true),
                         intake.close(),
 
 
