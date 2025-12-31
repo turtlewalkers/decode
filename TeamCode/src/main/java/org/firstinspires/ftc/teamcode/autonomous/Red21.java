@@ -38,7 +38,7 @@ public class Red21 extends CommandOpMode {
     private final Pose ScorePositionC = new Pose(85, 84, Math.toRadians(540-220));
     private final Pose ScorePositionD = new Pose(88, 86, Math.toRadians(540-230));
     private final Pose Collect1 = new Pose(123, 84, Math.toRadians(0));
-    private final Pose CollectGate = new Pose(144-15.2, 61.5, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(144-15.2, 62, Math.toRadians(30));
     private final Pose LeaveGate = new Pose(144-8, 54, Math.toRadians(30));
     private final Pose Collect2 = new Pose(123, 60, Math.toRadians(0));
     private final Pose Collect3 = new Pose(123, 36, Math.toRadians(0));
@@ -80,7 +80,7 @@ public class Red21 extends CommandOpMode {
         GotoIntakeGate = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionB,
-                        new Pose(44, 67),
+                        new Pose(100, 67),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(ScorePositionB.getHeading(), CollectGate.getHeading())
@@ -90,7 +90,7 @@ public class Red21 extends CommandOpMode {
         ShootGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         CollectGate,
-                        new Pose(14, 63),
+                        new Pose(144-14, 63),
                         LeaveGate)
                 )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
@@ -106,7 +106,7 @@ public class Red21 extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionC,
-                        new Pose(54, 59.5),
+                        new Pose(90, 59.5),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(ScorePositionC.getHeading(), Collect2.getHeading())
@@ -122,7 +122,7 @@ public class Red21 extends CommandOpMode {
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionD,
-                        new Pose(54, 31),
+                        new Pose(90, 31),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(ScorePositionD.getHeading(), Collect3.getHeading())
@@ -150,7 +150,7 @@ public class Red21 extends CommandOpMode {
         Goto4 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionA,
-                        new Pose(12, 70),
+                        new Pose(132, 70),
                         Collect4)
                 )
                 .setLinearHeadingInterpolation(ScorePositionA.getHeading(), Collect4.getHeading())

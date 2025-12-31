@@ -172,6 +172,8 @@ public class ShooterMove extends SubsystemBase {
 
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        targetAngleDeg *= turretOff;
+        targetAngleDeg += turretOffset;
         double[] cands = new double[] {
                 targetAngleDeg,
                 targetAngleDeg + 360.0,

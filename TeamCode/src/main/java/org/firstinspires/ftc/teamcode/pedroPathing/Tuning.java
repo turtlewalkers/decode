@@ -1472,7 +1472,9 @@ class Circle extends OpMode {
     }
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.useCentripetal = false;
+    }
 
     /**
      * This runs the OpMode, updating the Follower as well as printing out the debug statements to

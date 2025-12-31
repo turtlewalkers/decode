@@ -43,7 +43,7 @@ public class Blue21 extends CommandOpMode {
     private final Pose ScorePositionC = new Pose(144-85, 84, Math.toRadians(220));
     private final Pose ScorePositionD = new Pose(144-88, 86, Math.toRadians(230));
     private final Pose Collect1 = new Pose(144-123, 84, Math.toRadians(180));
-    private final Pose CollectGate = new Pose(15.5, 63, Math.toRadians(180-32));
+    private final Pose CollectGate = new Pose(15.2, 61, Math.toRadians(180-32));
     private final Pose LeaveGate = new Pose(8, 54, Math.toRadians(180-30));
     private final Pose Collect2 = new Pose(144-126, 60, Math.toRadians(180));
     private final Pose Collect3 = new Pose(144-126, 36, Math.toRadians(180));
@@ -85,7 +85,7 @@ public class Blue21 extends CommandOpMode {
         GotoIntakeGate = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionB,
-                        new Pose(100, 67),
+                        new Pose(44, 67),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(ScorePositionB.getHeading(), CollectGate.getHeading())
@@ -95,7 +95,7 @@ public class Blue21 extends CommandOpMode {
         ShootGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         CollectGate,
-                        new Pose(144-14, 63),
+                        new Pose(14, 63),
                         LeaveGate)
                 )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
@@ -111,7 +111,7 @@ public class Blue21 extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionC,
-                        new Pose(90, 59.5),
+                        new Pose(54, 59.5),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(ScorePositionC.getHeading(), Collect2.getHeading())
@@ -127,7 +127,7 @@ public class Blue21 extends CommandOpMode {
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         ScorePositionD,
-                        new Pose(90, 31),
+                        new Pose(54, 31),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(ScorePositionD.getHeading(), Collect3.getHeading())
