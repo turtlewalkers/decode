@@ -41,10 +41,10 @@ public class Blue21 extends CommandOpMode {
     private final Pose ScorePositionA = new Pose(144-85, 84, Math.toRadians(180));
     private final Pose ScorePositionB = new Pose(144-88, 86, Math.toRadians(225));
     private final Pose ScorePositionC = new Pose(144-85, 84, Math.toRadians(220));
-    private final Pose ScorePositionD = new Pose(144-88, 86, Math.toRadians(230));
+    private final Pose ScorePositionD = new Pose(144-88, 86, Math.toRadians(245));
     private final Pose Collect1 = new Pose(144-123, 84, Math.toRadians(180));
-    private final Pose CollectGate = new Pose(15.2, 61, Math.toRadians(180-32));
-    private final Pose LeaveGate = new Pose(8, 54, Math.toRadians(180-30));
+    private final Pose CollectGate = new Pose(16.2, 62.5, Math.toRadians(180-21));
+    private final Pose LeaveGate = new Pose(16, 56, Math.toRadians(180-23));
     private final Pose Collect2 = new Pose(144-126, 60, Math.toRadians(180));
     private final Pose Collect3 = new Pose(144-126, 36, Math.toRadians(180));
     private final Pose Grab4Setup = new Pose(144-(126+2-1), 48-4-3, Math.toRadians(240));
@@ -95,7 +95,7 @@ public class Blue21 extends CommandOpMode {
         ShootGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         CollectGate,
-                        new Pose(14, 63),
+                        new Pose(17, 58),
                         LeaveGate)
                 )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
@@ -223,7 +223,9 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2250),
+                        new WaitCommand(150),
+                        new FollowPathCommand(follower, ShootGate1, true, 0.5),
+                        new WaitCommand(750),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(

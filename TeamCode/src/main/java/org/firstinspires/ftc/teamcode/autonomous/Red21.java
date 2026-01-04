@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import android.util.Log;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -13,12 +16,14 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
+import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
@@ -32,20 +37,20 @@ public class Red21 extends CommandOpMode {
     // Poses:
     private final Pose Start = new Pose(117, 128, Math.toRadians(45));
 
-    private final Pose Paneer2 = new Pose(114, 121.5, Math.toRadians(45));
+    private final Pose Paneer2 = new Pose(115-1, 121.5, Math.toRadians(45));
     private final Pose ScorePositionA = new Pose(85, 84, Math.toRadians(0));
-    private final Pose ScorePositionB = new Pose(88, 86, Math.toRadians(540-225));
+    private final Pose ScorePositionB = new Pose(88, 86, Math.toRadians(315));
     private final Pose ScorePositionC = new Pose(85, 84, Math.toRadians(540-220));
-    private final Pose ScorePositionD = new Pose(88, 86, Math.toRadians(540-230));
+    private final Pose ScorePositionD = new Pose(88, 86, Math.toRadians(540-245));
     private final Pose Collect1 = new Pose(123, 84, Math.toRadians(0));
-    private final Pose CollectGate = new Pose(144-15.2, 62, Math.toRadians(30));
-    private final Pose LeaveGate = new Pose(144-8, 54, Math.toRadians(30));
-    private final Pose Collect2 = new Pose(123, 60, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(123, 36, Math.toRadians(0));
+    private final Pose CollectGate = new Pose(144-16.2, 62.5, Math.toRadians(21));
+    private final Pose LeaveGate = new Pose(144-16, 56, Math.toRadians(23));
+    private final Pose Collect2 = new Pose(126, 60, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(126, 36, Math.toRadians(0));
     private final Pose Grab4Setup = new Pose((126+2-1), 48-4-3, Math.toRadians(540-240));
-    private final Pose Grab4 = new Pose((130+2-1), 25-4-3, Math.toRadians(540-260));
+    private final Pose Grab4 = new Pose((130+2-1), 25-4-3, Math.toRadians(280));
     private final Pose GotoS4 = new Pose((120-1), 28-3, Math.toRadians(540-260));
-    private final Pose Collect4 = new Pose(144-6, 9, Math.toRadians(540-270));
+    private final Pose Collect4 = new Pose(144-6, 9, Math.toRadians(270));
     private final Pose byebye = new Pose(144-52, 76, Math.toRadians(540-225));
     private Path PreloadShoot;
     private Path Paneer;
@@ -90,7 +95,7 @@ public class Red21 extends CommandOpMode {
         ShootGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         CollectGate,
-                        new Pose(144-14, 63),
+                        new Pose(144-17, 58),
                         LeaveGate)
                 )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
@@ -192,7 +197,7 @@ public class Red21 extends CommandOpMode {
                                 shooter.flywheel(true),
                                 shooter.turretOff(false),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1300),
+                                        new WaitCommand(1350),
                                         intake.open(),
                                         intake.collect()
                                 )
@@ -218,7 +223,9 @@ public class Red21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2100),
+                        new WaitCommand(150),
+                        new FollowPathCommand(follower, ShootGate1, true, 0.5),
+                        new WaitCommand(750),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(
@@ -232,12 +239,12 @@ public class Red21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2100),
+                        new WaitCommand(2250),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1400),
+                                        new WaitCommand(1500),
                                         intake.open()
                                 )
                         ),
@@ -246,12 +253,12 @@ public class Red21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2100),
+                        new WaitCommand(2250),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1400),
+                                        new WaitCommand(1500),
                                         intake.open()
                                 )
                         ),
@@ -264,7 +271,7 @@ public class Red21 extends CommandOpMode {
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(750),
-                                        new WaitCommand(100),
+                                        new WaitCommand(200),
                                         intake.open()
                                 )
                         ),
@@ -278,7 +285,7 @@ public class Red21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot3, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1600),
+                                        new WaitCommand(1650),
                                         intake.open()
                                 )
                         ),
