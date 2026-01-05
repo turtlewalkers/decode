@@ -239,7 +239,7 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2250),
+                        new WaitCommand(2050),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),
@@ -253,7 +253,7 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(2250),
+                        new WaitCommand(2050),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, ShootGate2, true),

@@ -46,11 +46,11 @@ public class ShooterMove extends SubsystemBase {
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
-    public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 1.68, iT = 0, dT = 0.015;
+    public static double p = 0.8, i = 0.05, d = 0;
+    public static double pT = 2, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.0212;
-    public static double kS = 0.84;
+    public static double kV = 0.002482948;
+    public static double kS = 4.940223544;
     public static double f = 0.0265;
     public static double turretPos = 0;
     public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
@@ -92,10 +92,10 @@ public class ShooterMove extends SubsystemBase {
         angle.add(0, 0.6);
         angle.add(39.5, 0.6);
         angle.add(48, 0.45);
-        angle.add(61, 0.15);
-        angle.add(80, 0.11);
-        angle.add(90, 0.09);
-        angle.add(119.5, 0.06);
+        angle.add(61, 0.16);
+        angle.add(80, 0.12);
+        angle.add(90, 0.1);
+        angle.add(119.5, 0.07);
         angle.add(136, 0.05);
         angle.add(145, 0.03);
         angle.add(3000, 0.01);
@@ -225,7 +225,7 @@ public class ShooterMove extends SubsystemBase {
 
         double pidVolts = flywheelPID;
         double ffvolts = kV * target;
-//        ffvolts += kS * Math.signum(target);
+        ffvolts += kS * Math.signum(target);
         double flywheelVolts = pidVolts + ffvolts;
         flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
 

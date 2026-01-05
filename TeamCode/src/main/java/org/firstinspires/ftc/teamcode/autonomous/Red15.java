@@ -27,7 +27,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class Red21 extends CommandOpMode {
+public class Red15 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -43,9 +43,9 @@ public class Red21 extends CommandOpMode {
     private final Pose ScorePositionC = new Pose(85, 84, Math.toRadians(540-220));
     private final Pose ScorePositionD = new Pose(88, 86, Math.toRadians(540-245));
     private final Pose Collect1 = new Pose(123, 84, Math.toRadians(0));
-    private final Pose CollectGate = new Pose(144-16.2, 63.5, Math.toRadians(21));
+    private final Pose OpenGate = new Pose(129, 70, Math.toRadians(0));
     private final Pose LeaveGate = new Pose(144-16, 56, Math.toRadians(23));
-    private final Pose Collect2 = new Pose(126, 60, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(129, 60, Math.toRadians(0));
     private final Pose Collect3 = new Pose(126, 36, Math.toRadians(0));
     private final Pose Grab4Setup = new Pose((126+2-1), 48-4-3, Math.toRadians(540-240));
     private final Pose Grab4 = new Pose((130+2-1), 25-4-3, Math.toRadians(280));
@@ -86,19 +86,19 @@ public class Red21 extends CommandOpMode {
                 .addPath(new BezierCurve(
                         ScorePositionB,
                         new Pose(100, 67),
-                        CollectGate)
+                        OpenGate)
                 )
-                .setLinearHeadingInterpolation(ScorePositionB.getHeading(), CollectGate.getHeading())
+                .setLinearHeadingInterpolation(ScorePositionB.getHeading(), OpenGate.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         ShootGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        CollectGate,
+                        OpenGate,
                         new Pose(144-17, 58),
                         LeaveGate)
                 )
-                .setLinearHeadingInterpolation(CollectGate.getHeading(), LeaveGate.getHeading())
+                .setLinearHeadingInterpolation(OpenGate.getHeading(), LeaveGate.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -178,7 +178,7 @@ public class Red21 extends CommandOpMode {
     @Override
     public void initialize() {
         super.reset();
-        Memory.allianceRed = true;
+        Memory.allianceRed = false;
         Memory.autoRan = true;
 
         follower = Constants.createFollower(hardwareMap);
@@ -206,6 +206,20 @@ public class Red21 extends CommandOpMode {
 //                        shooter.turretOff(true),
                         intake.close(),
 
+                        new FollowPathCommand(follower, Goto1, false),
+                        shooter.turretOff(false),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot1, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(750),
+                                        new WaitCommand(200),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(550),
+//                        shooter.turretOff(true),
+                        intake.close(),
+
                         new FollowPathCommand(follower, Pickup2, false),
                         shooter.turretOff(false),
 
@@ -214,64 +228,6 @@ public class Red21 extends CommandOpMode {
                                 new FollowPathCommand(follower, Shoot2, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(1200),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(550),
-//                        shooter.turretOff(true),
-                        intake.close(),
-
-                        new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
-                        shooter.turretOff(false),
-                        new WaitCommand(150),
-                        new FollowPathCommand(follower, ShootGate1, true, 0.5),
-                        new WaitCommand(750),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, ShootGate2, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(550),
-
-                        intake.close(),
-
-                        new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
-                        shooter.turretOff(false),
-                        new WaitCommand(2050),
-
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, ShootGate2, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(550),
-                        intake.close(),
-
-                        new FollowPathCommand(follower, GotoIntakeGate, true).withTimeout(1100),
-                        shooter.turretOff(false),
-                        new WaitCommand(2050),
-
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, ShootGate2, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(550),
-                        intake.close(),
-
-                        new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(false),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, Shoot1, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(750),
-                                        new WaitCommand(200),
                                         intake.open()
                                 )
                         ),
