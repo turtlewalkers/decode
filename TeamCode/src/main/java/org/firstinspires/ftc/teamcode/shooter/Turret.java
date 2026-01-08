@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.shooter;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.bylazar.telemetry.TelemetryManager;
@@ -24,8 +25,10 @@ public class Turret extends OpMode {
 
     private PIDController controller;
 
-    public static double p = 0.12, i = 0, d = 0;
+    public static double p = 1.68, i = 0, d = 0.03;
     public static double target = 0;
+    private VoltageSensor volt;
+
 
     private final double ticks = 537.7 / 3;
 
@@ -39,14 +42,16 @@ public class Turret extends OpMode {
         turret = hardwareMap.get(DcMotorEx.class, "turret");
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
     }
 
     @Override
     public void loop() {
+        double presentVoltage = volt.getVoltage();
         controller.setPID(p, i, d);
         double pos = turret.getCurrentPosition() / TICKS_PER_DEGREES;
         double pid = controller.calculate(pos, target);
-        turret.setPower(pid);
+        turret.setPower(pid / presentVoltage);
 
         telemetry.addData("Position", pos);
         telemetry.addData("Target", target);

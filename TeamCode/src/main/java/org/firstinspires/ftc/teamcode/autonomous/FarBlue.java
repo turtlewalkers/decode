@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
@@ -20,35 +21,49 @@ import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
-@Disabled
 @Autonomous
-public class TestPedro extends CommandOpMode {
+public class FarBlue extends CommandOpMode {
     private Follower follower;
+    private Intake intake;
+    private Shooter shooter;
     TelemetryData telemetryData = new TelemetryData(telemetry);
-
     // Poses:
-    private final Pose Start = new Pose(28.5, 128, Math.toRadians(135));
-    private final Pose ScorePosition = new Pose(60  , 85, Math.toRadians(135));
-    private Path PreloadShoot;
+    private final Pose Start = new Pose(48+6.5, 8.5, Math.toRadians(90));
+    private final Pose End = new Pose(48+6.5, 25, Math.toRadians(90));
+    private Path Leave;
 
     public void buildpaths() {
-        PreloadShoot = new Path(new BezierLine(Start, ScorePosition));
-        PreloadShoot.setLinearHeadingInterpolation(Start.getHeading(), ScorePosition.getHeading());
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(Start);
+
+        Leave = new Path(new BezierLine(Start, End));
+        Leave.setLinearHeadingInterpolation(Start.getHeading(), End.getHeading());
     }
 
     @Override
     public void initialize() {
         super.reset();
-
+        Memory.allianceRed = false;
+        Memory.autoRan = true;
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
+        intake = new Intake(hardwareMap, () -> follower, 6, 138);
+        shooter = new Shooter(hardwareMap, () -> follower, 6, 138, true);
 
         buildpaths();
 
         schedule(
                 new RunCommand(() -> follower.update()),
-                new InstantCommand(),
-                new FollowPathCommand(follower, PreloadShoot, true)
+                new SequentialCommandGroup(
+                        intake.close(),
+                        shooter.flywheel(true),
+                        shooter.turretOff(false),
+                        new WaitCommand(1000),
+                        intake.collect(),
+                        intake.open(),
+                        new WaitCommand(2000),
+                        new FollowPathCommand(follower, Leave)
+                )
         );
     }
 
@@ -61,6 +76,11 @@ public class TestPedro extends CommandOpMode {
         telemetryData.addData("Y", follower.getPose().getY());
         telemetryData.addData("Heading", follower.getPose().getHeading());
         telemetryData.update();
+
+        Memory.robotHeading = follower.getHeading();
+        Memory.robotAutoX = follower.getPose().getX();
+        Memory.robotAutoY = follower.getPose().getY();
+        Memory.robotPose = follower.getPose();
     }
 
     @Override
@@ -69,5 +89,8 @@ public class TestPedro extends CommandOpMode {
         Memory.robotAutoY = follower.getPose().getY();
         Memory.robotHeading = follower.getPose().getHeading();
         Memory.robotPose = follower.getPose();
+        Memory.autoRan = true;
+
+        schedule(new InstantCommand(() -> shooter.turretOff(true)));
     }
 }

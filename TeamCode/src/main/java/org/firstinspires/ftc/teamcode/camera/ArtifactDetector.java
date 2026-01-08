@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.camera;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -10,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
+@Disabled
 @TeleOp(name = "ArtifactDetector", group = "Vision")
 public class ArtifactDetector extends OpMode {
 

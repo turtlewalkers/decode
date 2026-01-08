@@ -1,2 +1,7 @@
-include ':FtcRobotController'
-include ':TeamCode'
+include(":FtcRobotController")
+include(":TeamCode")
+
+include(":PedroPathing")
+include(":PedroPathing:core")
+include(":PedroPathing:ftc")
+
