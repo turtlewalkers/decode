@@ -237,5 +237,7 @@ public class ShooterMove extends SubsystemBase {
             shootert.set(0);
         }
 
+        Log.d("Velocity of Shooter", String.valueOf(shooterb.getVelocity() * (2 * Math.PI / 28)));
+
     }
 }
