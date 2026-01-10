@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode.shooter;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -19,27 +20,29 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+@Disabled
 @Config
 @TeleOp
 public class Teleop extends OpMode {
     public static Follower follower;
     private PIDController controller, controllerTurret;
     private TelemetryManager telemetryM;
-    public static double p = 0.2, i = 0.05, d = 0;
-    public static double pT = 0.1, iT = 0, dT = 0;
+    public static double p = 0.6, i = 0.1, d = 0;
+    public static double pT = 0.3, iT = 0, dT = 0.00001;
     public static double f = 0.0265;
     private static double vel = 0;
     public static double target = 0;
     public static double alpha = 0.6;
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
+    InterpLUT shottime = new InterpLUT();
     private DcMotorEx shooterb, shootert, intake, turret;
     private Servo hood;
     private VoltageSensor volt;
     public static double tangle = 40;
     public static double theta = 0;
-    public static double shooterX = 135;
-    public static double shooterY = 135;
+    public static double shooterX = 138;
+    public static double shooterY = 138;
     Servo latch;
     private double turretOffset = 0;
     private static final int TICKS_MIN = -330;
@@ -58,24 +61,29 @@ public class Teleop extends OpMode {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         hood = hardwareMap.get(Servo.class, "hood");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
-        RPM.add(0, 330);
-        RPM.add(39, 330);
-        RPM.add(50, 355);
-        RPM.add(60, 380);
-        RPM.add(74, 395);
-        RPM.add(90, 430);
-        RPM.add(180, 430);
+        RPM.add(0, 315);
+        RPM.add(40.5, 315);
+        RPM.add(60.25, 330);
+        RPM.add(90, 380);
+        RPM.add(106.5, 410);
+        RPM.add(210, 450);
         RPM.createLUT();
 
         angle.add(0, 1);
-        angle.add(20, 1);
-        angle.add(39, 0.7);
-        angle.add(50, 0.6);
-        angle.add(60, 0.5);
-        angle.add(74, 0.4);
-        angle.add(90, 0.3);
-        angle.add(180, 0.3);
+        angle.add(40.5, 1);
+        angle.add(60.25, 0.4);
+        angle.add(90, 0.25);
+        angle.add(106.5, 0.15);
+        angle.add(210, 0.15);
         angle.createLUT();
+
+        shottime.add(0, 1);
+        shottime.add(40.8, 1);
+        shottime.add(61.6, 0.81);
+        shottime.add(87.8, 1);
+        shottime.add(106.6, 1);
+        shottime.add(210, 1);
+        shottime.createLUT();
 
         latch = hardwareMap.servo.get("latch");
     }
@@ -83,13 +91,8 @@ public class Teleop extends OpMode {
     @Override
     public void start() {
         follower = Constants.createFollower(hardwareMap);
-        if (Memory.autoRan) {
-            follower.setStartingPose(new Pose(Memory.robotAutoX, Memory.robotAutoY, 0));
-        } else {
-            follower.setStartingPose(new Pose(72, 72, 0));
-        }
-        follower.setStartingPose(new Pose(90, 72, 0));
-        follower.startTeleOpDrive();
+        follower.setStartingPose(Memory.robotPose);
+        follower.startTeleOpDrive(true);
         follower.update();
         controller = new PIDController(p, i, d);
         Memory.autoRan = false;
@@ -105,9 +108,9 @@ public class Teleop extends OpMode {
         telemetry.addData("Alliance", Memory.allianceRed ? "Red" : "Blue");
 
         if (Memory.allianceRed) {
-            shooterY = 10;
+            shooterY = 6;
         } else {
-            shooterY = 135;
+            shooterY = 138;
         }
     }
 
@@ -134,9 +137,26 @@ public class Teleop extends OpMode {
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
         double distance = Math.sqrt(dx*dx + dy*dy);
+
+        for (int i = 0; i < 5; ++i) {
+            double shotTime = shottime.get(distance);
+
+            double vX = follower.getVelocity().getXComponent();
+            double vY = follower.getVelocity().getYComponent();
+
+            dx = shooterX - robotX - vX * shotTime;
+            dy = shooterY - robotY - vY * shotTime;
+            distance = Math.sqrt(dx*dx + dy*dy);
+        }
+
+        telemetry.addData("vX", follower.getVelocity().getXComponent());
+        telemetry.addData("vY", follower.getVelocity().getYComponent());
+        telemetry.addData("Shot time", shottime.get(distance));
+        telemetry.addData("shooterX", shooterX - follower.getVelocity().getXComponent() * shottime.get(distance));
+        telemetry.addData("shooterY", shooterY - follower.getVelocity().getYComponent() * shottime.get(distance));
+
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
-
 
         if (turretOffset <= 45 && turretOffset >= -45) {
             if (gamepad1.dpad_right && turretOffset > -45) {
@@ -149,7 +169,7 @@ public class Teleop extends OpMode {
         telemetry.addData("Target Angle", targetAngleDeg);
         targetAngleDeg += turretOffset;
         telemetry.addData("TurretOffset", turretOffset);
-        targetAngleDeg = Math.max(targetAngleDeg, -30);
+        targetAngleDeg = Math.max(targetAngleDeg, -100);
         targetAngleDeg = Math.min(targetAngleDeg, 240);
         double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         telemetry.addData("Turret Pos", turretPos);
@@ -166,6 +186,7 @@ public class Teleop extends OpMode {
             turret.setPower(turretPower);
         }
         intake.setPower(gamepad1.right_trigger);
+
         if (distance >0 && distance < 180) {
             target = RPM.get(distance);
             hood.setPosition(angle.get(distance));
@@ -176,7 +197,7 @@ public class Teleop extends OpMode {
         double pid = controller.calculate(vel, target);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
         if (!gamepad1.a || robotX >= 40) {
-            shooterb.setPower((pid + f * target) / presentVoltage);
+            shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
             shootert.setPower((-1) * (pid + f * target) / presentVoltage);
         } else {
             shootert.setPower(0);

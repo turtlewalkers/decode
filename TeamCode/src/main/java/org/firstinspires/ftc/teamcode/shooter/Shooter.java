@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.shooter;
 
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.kV;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -25,14 +27,17 @@ public class Shooter extends OpMode {
     private FtcDashboard dashboard;
     private PIDController controller;
     private TelemetryManager telemetryM;
-    public static double p = 0.2, i = 0.05, d = 0;
-    public static double f = 0.0265;
+    public static double p = 0.8, i = 0.05, d = 0;
+    public static double f = 0.026;
     public static double target = 0;
     private static double vel = 0;
     public static double alpha = 0.6;
     private Servo hood, latch;
     public static double theta = 0;
-
+    public static boolean ENABLE_FF = true;
+    public static double kV = 0.002482948;
+    public static double kS = 4.940223544;
+    public static double multipler = 0.65;
     private DcMotorEx shooterb, shootert, intake;
     private VoltageSensor volt;
 
@@ -51,7 +56,7 @@ public class Shooter extends OpMode {
 
     @Override
     public void loop() {
-        intake.setPower(gamepad1.right_trigger);
+        intake.setPower(gamepad1.right_trigger * multipler);
         hood.setPosition(theta);
 
         if (gamepad1.y) {
@@ -66,8 +71,14 @@ public class Shooter extends OpMode {
         vel = shooterb.getVelocity() * (2 * Math.PI / 28);
         double pid = controller.calculate(vel, target);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
-        shooterb.setPower((pid + f * target) / presentVoltage);
-        shootert.setPower((-1) * (pid + f * target) / presentVoltage);
+        double pidVolts = pid;
+        double ffvolts = kV * target;
+        if (!ENABLE_FF) ffvolts = 0;
+        ffvolts += kS * Math.signum(target);
+        double flywheelVolts = pidVolts + ffvolts;
+        flywheelVolts = Math.max(-presentVoltage, Math.min(flywheelVolts, presentVoltage));
+        shooterb.setPower((flywheelVolts) / presentVoltage);
+        shootert.setPower((-1) * (flywheelVolts) / presentVoltage);
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("Velocity", vel);

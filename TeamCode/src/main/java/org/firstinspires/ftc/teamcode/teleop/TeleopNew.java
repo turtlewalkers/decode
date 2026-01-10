@@ -34,19 +34,20 @@ public class TeleopNew extends CommandOpMode {
         follower.setStartingPose(Memory.robotPose);
         super.reset();
 
-        follower.startTeleopDrive();
+        follower.startTeleopDrive(true);
         gamepad = new GamepadEx(gamepad1);
-        intake = new Intake(hardwareMap);
 
         if (Memory.allianceRed) {
-            shooterX = 144;
-            shooterY = 144;
+            shooterX = 138;
+            shooterY = 138;
         } else {
-            shooterX = 0;
-            shooterY = 144;
+            shooterX = 6;
+            shooterY = 138;
         }
 
-        shooter = new Shooter(hardwareMap, () -> follower.getPose(), shooterX, shooterY);
+        shooter = new Shooter(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
+        intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
+        Memory.autoRan = false;
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(intake.collect());
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5).whenActive(intake.stop());
@@ -57,14 +58,16 @@ public class TeleopNew extends CommandOpMode {
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5).whenActive(
                 new ParallelCommandGroup(
                         intake.collect(),
-                        intake.open()
+                        intake.open(),
+                        intake.LEDon()
                 )
         );
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5).whenActive(
                 new ParallelCommandGroup(
                         intake.stop(),
-                        intake.close()
+                        intake.close(),
+                        intake.LEDoff()
                 )
         );
 
@@ -74,6 +77,12 @@ public class TeleopNew extends CommandOpMode {
 
         gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
                 shooter.flywheel(false)
+        );
+
+        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
+                new ParallelCommandGroup(
+                        shooter.airsort("PPG", "PGP")
+                )
         );
     }
 
