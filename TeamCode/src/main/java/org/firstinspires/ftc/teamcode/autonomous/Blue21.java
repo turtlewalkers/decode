@@ -10,6 +10,7 @@ import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
@@ -28,6 +29,8 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
 public class Blue21 extends CommandOpMode {
+    private ElapsedTime loop = new ElapsedTime();
+
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -307,6 +310,8 @@ public class Blue21 extends CommandOpMode {
     @Override
     public void run() {
         super.run();
+
+        loop.reset();
 
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
