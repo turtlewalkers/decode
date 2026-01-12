@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.TURRET_MAX;
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.TURRET_MIN;
+
 import android.util.Log;
 
 import com.pedropathing.follower.Follower;
@@ -26,15 +29,12 @@ public class Limelight extends SubsystemBase {
     private Limelight3A limelight;
     private static final double METERS_TO_INCHES = 39.37;
     private final Supplier<Follower> followerSupplier;
-    public boolean fix = false;
+    public static boolean fix = false;
     public static boolean turretOn = false;
     public static double power = 0;
 
     public static double TICKS_PER_DEG =
             ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
-
-    public static double TURRET_MIN = -90;
-    public static double TURRET_MAX =  240;
 
     public static double kP = 0.03;
     public static double kI = 0.00000001;
@@ -131,6 +131,8 @@ public class Limelight extends SubsystemBase {
                     if (hasTarget && goodtag) {
                         power = pidOut;
                     }
+                } else {
+                    power = 0;
                 }
             }
         }

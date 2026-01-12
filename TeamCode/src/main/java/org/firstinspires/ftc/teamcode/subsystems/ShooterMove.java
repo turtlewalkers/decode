@@ -26,14 +26,14 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ShooterMove extends SubsystemBase {
-    final double TURRET_MIN = -130;  // Actual mechanical limit
-    final double TURRET_MAX = 260;   // Actual mechanical limit
+    public static final double TURRET_MIN = -130;  // Actual mechanical limit
+    public static final double TURRET_MAX = 260;   // Actual mechanical limit
     public final MotorEx shootert;
     public final MotorEx shooterb;
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
-    private final double TURRET_FWD_OFFSET  = -1.63; // in
+    private final double TURRET_FWD_OFFSET  = 1.63; // in
     private final double TURRET_LEFT_OFFSET =  0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = true;
@@ -49,7 +49,7 @@ public class ShooterMove extends SubsystemBase {
     public static double p = 0.8, i = 0.05, d = 0;
     public static double pT = 2, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.002482948;
+    public static double kV = 0.020645108;
     public static double kS = 4.940223544;
     public static double f = 0.0265;
     public static double turretPos = 0;
@@ -78,36 +78,40 @@ public class ShooterMove extends SubsystemBase {
         controllerTurret = new PIDController(pT, iT, dT);
 
         RPM.add(0, 310);
-        RPM.add(39.5, 310);
-        RPM.add(48, 330);
-        RPM.add(61, 340);
-        RPM.add(90, 380);
-        RPM.add(119.5, 440);
-        RPM.add(136, 470);
-        RPM.add(145, 490);
-        RPM.add(153, 510);
+        RPM.add(42.5, 280);
+        RPM.add(49.5, 300);
+        RPM.add(56.5, 320);
+        RPM.add(67.25, 340);
+        RPM.add(77.25, 350);
+        RPM.add(91.75, 370);
+        RPM.add(102.75, 390);
+        RPM.add(114, 415);
+        RPM.add(130.75, 445);
+        RPM.add(148, 484);
         RPM.add(3000, 485);
         RPM.createLUT();
 
         angle.add(0, 0.6);
-        angle.add(39.5, 0.6);
-        angle.add(48, 0.45);
-        angle.add(61, 0.16);
-        angle.add(80, 0.12);
-        angle.add(90, 0.1);
-        angle.add(119.5, 0.07);
-        angle.add(136, 0.05);
-        angle.add(145, 0.03);
+        angle.add(42.5, 0.8);
+        angle.add(49.5, 0.8);
+        angle.add(56.5, 0.45);
+        angle.add(67.25, 0.25);
+        angle.add(77.25, 0.22);
+        angle.add(91.75, 0.15);
+        angle.add(102.75, 0.12);
+        angle.add(114, 0.10);
+        angle.add(130.75, 0.03);
+        angle.add(148, 0.04);
         angle.add(3000, 0.01);
         angle.createLUT();
 
         shottime.add(0, 0.5);
-        shottime.add(41.1, 0.5);
-        shottime.add(51.8, 0.51);
-        shottime.add(74.8, 0.62);
-        shottime.add(93.3, 0.62);
-        shottime.add(111, 0.75);
-        shottime.add(122, 0.76);
+        shottime.add(55.48460957523871, 0.59);
+        shottime.add(66.36741529360351, 0.6);
+        shottime.add(85.67127682322594, 0.7);
+        shottime.add( 94.59729859662454, 0.72);
+        shottime.add(103.13934006550497, 0.88);
+        shottime.add( 116.29104823105146, 5.28-4.48);
         shottime.add(3000, 0.76);
         shottime.createLUT();
     }
@@ -209,7 +213,7 @@ public class ShooterMove extends SubsystemBase {
 
         double turretPower = controllerTurret.calculate(turretPos, chosen);
 
-        if (!Limelight.turretOn) {
+        if (!Limelight.turretOn && !Limelight.fix) {
             turret.set(turretPower / presentVoltage);
         } else {
             turret.set(Limelight.power);
