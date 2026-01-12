@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.Teleop;
 
 
 import android.util.Log;
@@ -179,7 +179,7 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
-            shooter.increaseHoodOffset()
+                shooter.increaseHoodOffset()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
@@ -187,7 +187,7 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
-            shooter.increaseTurretOffset()
+                shooter.increaseTurretOffset()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(

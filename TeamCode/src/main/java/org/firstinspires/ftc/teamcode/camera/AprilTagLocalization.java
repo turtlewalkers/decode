@@ -1,222 +1,122 @@
 package org.firstinspires.ftc.teamcode.camera;
 
-import android.annotation.SuppressLint;
-
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.controller.PIDController;
+import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import java.util.List;
+@Config
+@TeleOp
+public class AprilTagLocalization extends OpMode {
+    private FtcDashboard dashboard;
+    private PIDController controller;
+    private TelemetryManager telemetryM;
+    TelemetryData telemetryData = new TelemetryData(telemetry);
 
-/*
- * This OpMode illustrates the basics of AprilTag based localization.
- *
- * For an introduction to AprilTags, see the FTC-DOCS link below:
- * https://ftc-docs.firstinspires.org/en/latest/apriltag/vision_portal/apriltag_intro/apriltag-intro.html
- *
- * In this sample, any visible tag ID will be detected and displayed, but only tags that are included in the default
- * "TagLibrary" will be used to compute the robot's location and orientation.  This default TagLibrary contains
- * the current Season's AprilTags and a small set of "test Tags" in the high number range.
- *
- * When an AprilTag in the TagLibrary is detected, the SDK provides location and orientation of the robot, relative to the field origin.
- * This information is provided in the "robotPose" member of the returned "detection".
- *
- * To learn about the Field Coordinate System that is defined for FTC (and used by this OpMode), see the FTC-DOCS link below:
- * https://ftc-docs.firstinspires.org/en/latest/game_specific_resources/field_coordinate_system/field-coordinate-system.html
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
- */
-@TeleOp(name = "Concept: AprilTag Localization", group = "Concept")
-@Disabled
-public class AprilTagLocalization extends LinearOpMode {
+    private DcMotorEx turret;
 
-    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+    public static double TICKS_PER_DEG =
+            ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
-    /**
-     * Variables to store the position and orientation of the camera on the robot. Setting these
-     * values requires a definition of the axes of the camera and robot:
-     *
-     * Camera axes:
-     * Origin location: Center of the lens
-     * Axes orientation: +x right, +y down, +z forward (from camera's perspective)
-     *
-     * Robot axes (this is typical, but you can define this however you want):
-     * Origin location: Center of the robot at field height
-     * Axes orientation: +x right, +y forward, +z upward
-     *
-     * Position:
-     * If all values are zero (no translation), that implies the camera is at the center of the
-     * robot. Suppose your camera is positioned 5 inches to the left, 7 inches forward, and 12
-     * inches above the ground - you would need to set the position to (-5, 7, 12).
-     *
-     * Orientation:
-     * If all values are zero (no rotation), that implies the camera is pointing straight up. In
-     * most cases, you'll need to set the pitch to -90 degrees (rotation about the x-axis), meaning
-     * the camera is horizontal. Use a yaw of 0 if the camera is pointing forwards, +90 degrees if
-     * it's pointing straight left, -90 degrees for straight right, etc. You can also set the roll
-     * to +/-90 degrees if it's vertical, or 180 degrees if it's upside-down.
-     */
-    private Position cameraPosition = new Position(DistanceUnit.INCH,
-            0, 0, 0, 0);
-    private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
-            0, -90, 0, 0);
+    public static double TURRET_MIN = -90;
+    public static double TURRET_MAX =  240;
 
-    /**
-     * The variable to store our instance of the AprilTag processor.
-     */
-    private AprilTagProcessor aprilTag;
+    public static double kP = 0.03;
+    public static double kI = 0.00000001;
+    public static double kD = 0.00004;
 
-    /**
-     * The variable to store our instance of the vision portal.
-     */
-    private VisionPortal visionPortal;
+
+    private PIDController turretPID;
+    private Limelight3A limelight;
 
     @Override
-    public void runOpMode() {
+    public void init() {
 
-        initAprilTag();
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
+        turret.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        dashboard = FtcDashboard.getInstance();
+        telemetry = dashboard.getTelemetry();
+        turretPID = new PIDController(kP, kI, kD);
 
-        // Wait for the DS start button to be touched.
-        telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
-        telemetry.addData(">", "Touch START to start OpMode");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(6);
+        limelight.start();
+
+        telemetry.addLine("waiting for start");
         telemetry.update();
-        waitForStart();
+    }
 
-        while (opModeIsActive()) {
+    @Override
+    public void loop() {
 
-            telemetryAprilTag();
+        LLResult result = limelight.getLatestResult();
 
-            // Push telemetry to the Driver Station.
-            telemetry.update();
+        double tx = 0;
+        boolean hasTarget = false;
 
-            // Save CPU resources; can resume streaming when needed.
-            if (gamepad1.dpad_down) {
-                visionPortal.stopStreaming();
-            } else if (gamepad1.dpad_up) {
-                visionPortal.resumeStreaming();
-            }
 
-            // Share the CPU.
-            sleep(20);
+        if (result != null && result.isValid()) {
+            tx = result.getTx();
+            hasTarget = true;
+
         }
 
-        // Save more CPU resources when camera is no longer needed.
-        visionPortal.close();
+        int tagId = -1;
 
-    }   // end method runOpMode()
-
-    /**
-     * Initialize the AprilTag processor.
-     */
-    private void initAprilTag() {
-
-        // Create the AprilTag processor.
-        aprilTag = new AprilTagProcessor.Builder()
-
-                // The following default settings are available to un-comment and edit as needed.
-                //.setDrawAxes(false)
-                //.setDrawCubeProjection(false)
-                //.setDrawTagOutline(true)
-                //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
-                //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-                .setCameraPose(cameraPosition, cameraOrientation)
-
-                // == CAMERA CALIBRATION ==
-                // If you do not manually specify calibration parameters, the SDK will attempt
-                // to load a predefined calibration for your camera.
-                //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
-                // ... these parameters are fx, fy, cx, cy.
-
-                .build();
-
-        // Adjust Image Decimation to trade-off detection-range for detection-rate.
-        // eg: Some typical detection data using a Logitech C920 WebCam
-        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
-        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
-        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
-        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
-        // Note: Decimation can be changed on-the-fly to adapt during a match.
-        //aprilTag.setDecimation(3);
-
-        // Create the vision portal by using a builder.
-        VisionPortal.Builder builder = new VisionPortal.Builder();
-
-        // Set the camera (webcam vs. built-in RC phone camera).
-        if (USE_WEBCAM) {
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
+        if (tags != null && !tags.isEmpty()) {
+            LLResultTypes.FiducialResult tag = tags.get(0);
+            tagId = tag.getFiducialId();
         } else {
-            builder.setCamera(BuiltinCameraDirection.BACK);
+            hasTarget = false;
         }
 
-        // Choose a camera resolution. Not all cameras support all resolutions.
-        //builder.setCameraResolution(new Size(640, 480));
+        double turretPosDeg = turret.getCurrentPosition() / TICKS_PER_DEG;
 
-        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
-        builder.enableLiveView(true);
+        boolean goodtag = (tagId == 20 || tagId == 24);
+        // just adding it to existing degree
+        double turretTargetDeg = turretPosDeg - tx;
+        //restrictions
+        turretTargetDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, turretTargetDeg));
 
-        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+        turretPID.setPID(kP, kI, kD);
 
-        // Choose whether or not LiveView stops if no processors are enabled.
-        // If set "true", monitor shows solid orange screen if no processors enabled.
-        // If set "false", monitor shows camera view without annotations.
-        //builder.setAutoStopLiveView(false);
+        double pidOut = turretPID.calculate(turretPosDeg, turretTargetDeg);
 
-        // Set and enable the processor.
-        builder.addProcessor(aprilTag);
+        if (hasTarget && goodtag) {
+            turret.setPower(pidOut);
+        } else {
+            turret.setPower(0);
+        }
 
-        // Build the Vision Portal, using the above settings.
-        visionPortal = builder.build();
 
-        // Disable or re-enable the aprilTag processor at any time.
-        //visionPortal.setProcessorEnabled(aprilTag, true);
+        telemetry.addData("tx", tx);
+        telemetry.addData("Has Tag", hasTarget);
+        telemetry.addData("ID", tagId);
+        telemetry.addData("Turret Pos (deg)", turretPosDeg);
+        telemetry.addData("Target Deg", turretTargetDeg);
+        telemetry.addData("PID Out", pidOut);
+        telemetry.update();
 
-    }   // end method initAprilTag()
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Turret Position", turretPosDeg);
+        packet.put("Turret Power", turret.getPower());
+        packet.put("Target Position", turretTargetDeg);
 
-    /**
-     * Add telemetry about AprilTag detections.
-     */
-    @SuppressLint("DefaultLocale")
-    private void telemetryAprilTag() {
+        dashboard.sendTelemetryPacket(packet);
 
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        telemetry.addData("# AprilTags Detected", currentDetections.size());
-
-        // Step through the list of detections and display info for each one.
-        for (AprilTagDetection detection : currentDetections) {
-            if (detection.metadata != null) {
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)",
-                        detection.robotPose.getPosition().x,
-                        detection.robotPose.getPosition().y,
-                        detection.robotPose.getPosition().z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)",
-                        detection.robotPose.getOrientation().getPitch(AngleUnit.DEGREES),
-                        detection.robotPose.getOrientation().getRoll(AngleUnit.DEGREES),
-                        detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES)));
-            } else {
-                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
-            }
-        }   // end for() loop
-
-        // Add "key" information to telemetry
-        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-
-    }   // end method telemetryAprilTag()
-
-}   // end class
-
+    }
+}

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.Teleop;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import static org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity.TAG;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -9,7 +9,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -24,34 +23,32 @@ import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
+import org.firstinspires.ftc.teamcode.subsystems.LimeMoving;
 
 import java.util.List;
 
 @Config
 @TeleOp
-public class Teleop extends CommandOpMode {
+public class limetele extends CommandOpMode {
 
     Follower follower;
     TelemetryData telemetryData;
     private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
     private ShooterMove shooter;
-    private Limelight3A limelight;
-    private FtcDashboard dashboard;
-    private DcMotorEx turret;
-    private PIDController turretPID;
-    List<LynxModule> allHubs;
-
-    private Path Park, Stay;
-    private Pose end, start, relocalize;
-
+    private LimeMoving limeMoving;
     public static double shooterX, shooterY, gateX, gateY;
     private double multiplier = 1;
-
+    private Path Park, Stay;
+    private Pose end, start, relocalize;
+    List<LynxModule> allHubs;
+    private DcMotorEx turret;
+    private PIDController turretPID;
     public static double TICKS_PER_DEG = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public static double TURRET_MIN = -90;
     public static double TURRET_MAX = 240;
@@ -59,18 +56,15 @@ public class Teleop extends CommandOpMode {
     public static double kI = 0.00000001;
     public static double kD = 0.00004;
 
-    public static boolean turretOn = false;
-
     @Override
     public void initialize() {
-
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Memory.robotPose);
         start = Memory.robotPose;
         super.reset();
         telemetryData = new TelemetryData(telemetry);
-        follower.startTeleopDrive(true);
 
+        follower.startTeleopDrive(true);
         gamepad = new GamepadEx(gamepad1);
         gamepadOffset = new GamepadEx(gamepad2);
 
@@ -80,11 +74,8 @@ public class Teleop extends CommandOpMode {
 
         turretPID = new PIDController(kP, kI, kD);
 
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(6);
-        limelight.start();
-
-        dashboard = FtcDashboard.getInstance();
+        limeMoving = new LimeMoving(hardwareMap);
+        CommandScheduler.getInstance().registerSubsystem(limeMoving);
 
         if (Memory.allianceRed) {
             shooterX = 138; shooterY = 138;
@@ -130,11 +121,9 @@ public class Teleop extends CommandOpMode {
                         intake.open(),
                         new ParallelCommandGroup(intake.collect(), intake.LEDon())
                 ));
-
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5 &&
                 gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5)
                 .whenActive(new ParallelCommandGroup(intake.stop(), intake.close(), intake.LEDoff()));
-
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5 &&
                 gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5)
                 .whenActive(new ParallelCommandGroup(intake.collect(), intake.close(), intake.LEDoff()));
@@ -163,14 +152,16 @@ public class Teleop extends CommandOpMode {
                 new InstantCommand(() -> follower.setPose(relocalize))
         );
 
-        // Correct turret toggle on press
         new Trigger(() -> gamepad.getButton(GamepadKeys.Button.LEFT_BUMPER))
-                .whenActive(new InstantCommand(() -> turretOn = !turretOn));
+                .whenActive(() -> {
+                    LimeMoving.turretOn = !LimeMoving.turretOn;
+                    telemetry.addData("Turret", LimeMoving.turretOn ? "Enabled" : "Disabled");
+                    telemetry.update();
+                });
     }
 
     @Override
     public void run() {
-
         super.run();
         CommandScheduler.getInstance().run();
         for (LynxModule hub : allHubs) hub.clearBulkCache();
@@ -182,53 +173,18 @@ public class Teleop extends CommandOpMode {
         follower.setTeleOpDrive(vx_r, vy_r, omega, true);
         follower.update();
 
-        LLResult result = limelight.getLatestResult();
-        double tx = 0;
-        boolean hasTarget = false;
-        int tagId = -1;
-
+        LLResult result = limeMoving.getLimelight().getLatestResult();
         if (result != null && result.isValid()) {
-            tx = result.getTx();
-            hasTarget = true;
             List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
             if (tags != null && !tags.isEmpty()) {
                 LLResultTypes.FiducialResult tag = tags.get(0);
-                tagId = tag.getFiducialId();
-            } else {
-                hasTarget = false;
+                int tagId = tag.getFiducialId();
+                if (tagId == 20 || tagId == 24) {
+                    double tx = result.getTx();
+                    telemetry.addData("Target TX", tx);
+                    telemetry.update();
+                }
             }
         }
-
-        double turretPosDeg = turret.getCurrentPosition() / TICKS_PER_DEG;
-        boolean goodTag = (tagId == 20 || tagId == 24);
-        double turretTargetDeg = turretPosDeg - tx;
-        turretTargetDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, turretTargetDeg));
-
-        turretPID.setPID(kP, kI, kD);
-        double pidOut = turretPID.calculate(turretPosDeg, turretTargetDeg);
-
-        if (hasTarget && goodTag && turretOn) {
-            turret.setPower(pidOut);
-        } else {
-            turret.setPower(0);
-        }
-
-        // SolversLib telemetry
-        telemetry.addData("tx", tx);
-        telemetry.addData("Has Tag", hasTarget);
-        telemetry.addData("ID", tagId);
-        telemetry.addData("Turret Pos (deg)", turretPosDeg);
-        telemetry.addData("Target Deg", turretTargetDeg);
-        telemetry.addData("PID Out", pidOut);
-        telemetry.addData("Turret Enabled", turretOn);
-        telemetry.update();
-
-        // Dashboard telemetry
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Turret Position", turretPosDeg);
-        packet.put("Turret Power", turret.getPower());
-        packet.put("Target Position", turretTargetDeg);
-        packet.put("Turret Enabled", turretOn);
-        dashboard.sendTelemetryPacket(packet);
     }
 }
