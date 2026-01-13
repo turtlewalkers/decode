@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ShooterMove extends SubsystemBase {
-    final double TURRET_MIN = -130;  // Actual mechanical limit
-    final double TURRET_MAX = 260;   // Actual mechanical limit
+    public static final double TURRET_MIN = -90;
+    public static final double TURRET_MAX = 240;   // Actual mechanical limit
     public final MotorEx shootert;
     public final MotorEx shooterb;
     public final MotorEx turret;

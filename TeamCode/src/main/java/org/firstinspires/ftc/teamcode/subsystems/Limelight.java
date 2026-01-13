@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.TURRET_MAX;
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.TURRET_MIN;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -14,32 +17,29 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.seattlesolvers.solverslib.controller.PIDController;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 
 import java.util.List;
 import java.util.function.Supplier;
-
+@Config
 public class Limelight extends SubsystemBase {
+    public static double kP = 0.032;
+    public static double kI = 0.0000001;
+    public static double kD = 0.00004;
+    private PIDController turretPID;
     private Limelight3A limelight;
     private static final double METERS_TO_INCHES = 39.37;
     private final Supplier<Follower> followerSupplier;
-    public boolean fix = false;
+    public static boolean fix = false;
     public static boolean turretOn = false;
     public static double power = 0;
 
     public static double TICKS_PER_DEG =
             ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
-    public static double TURRET_MIN = -90;
-    public static double TURRET_MAX =  240;
 
-    public static double kP = 0.03;
-    public static double kI = 0.00000001;
-    public static double kD = 0.00004;
-    private PIDController turretPID;
 
 
     public Limelight(final HardwareMap hMap, Supplier<Follower> followerSupplier) {
@@ -128,8 +128,10 @@ public class Limelight extends SubsystemBase {
 
                     double pidOut = turretPID.calculate(turretPosDeg, turretTargetDeg);
 
-                    if (hasTarget && goodtag) {
+                    if (turretOn && hasTarget && goodtag) {
                         power = pidOut;
+                    } else {
+                        power = 0;
                     }
                 }
             }
