@@ -105,14 +105,15 @@ public class ShooterMove extends SubsystemBase {
         angle.add(3000, 0.01);
         angle.createLUT();
 
-        shottime.add(0, 0.5);
-        shottime.add(55.48460957523871, 0.59);
-        shottime.add(66.36741529360351, 0.6);
-        shottime.add(85.67127682322594, 0.7);
-        shottime.add( 94.59729859662454, 0.72);
-        shottime.add(103.13934006550497, 0.88);
-        shottime.add( 116.29104823105146, 5.28-4.48);
-        shottime.add(3000, 0.76);
+        shottime.add(0, 0.63);
+        shottime.add(42.5, 0.53);
+        shottime.add(55, 0.41);
+        shottime.add(66.7, 0.45);
+        shottime.add(81.9, 0.55);
+        shottime.add( 95.7, 0.67);
+        shottime.add(101.9, 0.7);
+        shottime.add( 116.6, 0.72);
+        shottime.add( 3000, 0.72);
         shottime.createLUT();
     }
 

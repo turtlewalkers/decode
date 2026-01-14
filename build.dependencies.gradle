@@ -6,7 +6,7 @@ repositories {
 }
 
 //configurations.configureEach {
-//    resolutionStrategy.cacheChangingModulesFor 5, 'minutes'
+//    resolutionStrategy.cacheChangingModulesFor 0, 'minutes'
 //}
 
 dependencies {
