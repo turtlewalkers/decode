@@ -36,17 +36,17 @@ public class Blue21 extends CommandOpMode {
 
     // Poses:
     private final Pose Start = new Pose(25, 126, Math.toRadians(135));
-    private final Pose PreloadScore = new Pose(64, 74, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(63, 73, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(15.5, 61, Math.toRadians(158));
-    private final Pose CollectGate = new Pose(15.5, 56, Math.toRadians(158));
+    private final Pose PreloadScore = new Pose(58, 74, Math.toRadians(200));
+    private final Pose Stack2Score = new Pose(58, 73, Math.toRadians(190));
+    private final Pose OpenGate = new Pose(15., 61, Math.toRadians(158));
+    private final Pose CollectGate = new Pose(15., 56, Math.toRadians(158));
     private final Pose Gate1Score = new Pose(63, 72.5, Math.toRadians(188));
-    private final Pose Stack1Score = new Pose(144-88, 78, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(144-88, 78, Math.toRadians(245));
+    private final Pose Stack1Score = new Pose(52, 80, Math.toRadians(245));
+    private final Pose Stack3Score = new Pose(52, 80, Math.toRadians(245));
     private final Pose Collect1 = new Pose(144-123, 82, Math.toRadians(180));
     private final Pose Collect2 = new Pose(144-126, 60, Math.toRadians(180));
     private final Pose Collect3 = new Pose(144-126, 36, Math.toRadians(180));
-    private final Pose LeaveZone = new Pose(144-88, 85, Math.toRadians(225));
+    private final Pose LeaveZone = new Pose(51, 72, Math.toRadians(245));
     private Path PreloadShoot;
     private Path Paneer;
     private PathChain Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
