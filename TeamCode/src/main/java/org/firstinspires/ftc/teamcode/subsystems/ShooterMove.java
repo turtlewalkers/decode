@@ -54,7 +54,7 @@ public class ShooterMove extends SubsystemBase {
     public static double f = 0.0265;
     public static double turretPos = 0;
     public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
-    private double lastTurretTargetDeg = Double.NaN;
+    public static double lastTurretPos;
 
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
@@ -146,13 +146,6 @@ public class ShooterMove extends SubsystemBase {
                 new InstantCommand(() -> turretOffset = 0)
         );
     }
-    public Command setTurretOffset(Limelight limelight) {
-        return new InstantCommand(() -> {
-            if (!limelight.hasTx()) return;
-
-            turretOffset = -limelight.getTx();
-        }, this);
-    }
 
     @Override
     public void periodic() {
@@ -193,7 +186,7 @@ public class ShooterMove extends SubsystemBase {
                 targetAngleDeg - 360.0
         };
 
-        double turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
 
         List<Double> inRange = new ArrayList<>();
@@ -223,6 +216,8 @@ public class ShooterMove extends SubsystemBase {
 
         if (!Limelight.turretOn && !Limelight.fix) {
             turret.set(turretPower / presentVoltage);
+            lastTurretPos = turretPos;
+            Log.d("lastTurretPos", String.valueOf(lastTurretPos));
         } else {
             turret.set(Limelight.power);
         }

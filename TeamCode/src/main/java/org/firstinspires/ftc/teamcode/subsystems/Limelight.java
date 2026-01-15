@@ -36,8 +36,8 @@ public class Limelight extends SubsystemBase {
     public static double TICKS_PER_DEG =
             ((((1.0 + (46.0 / 17.0))) * (1.0 + (46.0 / 11.0))) * 28.0 * 3.0) / 360.0;
 
-    public static double kP = 0.03;
-    public static double kI = 0.00000001;
+    public static double kP = 0.032;
+    public static double kI = 0;
     public static double kD = 0.00004;
     private PIDController turretPID;
     private double lastTx = 0;
@@ -136,14 +136,22 @@ public class Limelight extends SubsystemBase {
                     double turretPosDeg = ShooterMove.turretPos;
 
                     double turretTargetDeg = turretPosDeg - tx;
+
+                    Log.d("tX limelight", String.valueOf(tx));
                     turretTargetDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, turretTargetDeg));
+                    Log.d("turretTargetDeg", String.valueOf(turretTargetDeg));
 
                     turretPID.setPID(kP, kI, kD);
 
                     double pidOut = turretPID.calculate(turretPosDeg, turretTargetDeg);
+                    Log.d("Power", String.valueOf(pidOut));
 
                     if (hasTarget && goodtag) {
                         power = pidOut;
+                        if (Math.abs(tx) <= 3) {
+                            Log.d("update", String.valueOf(ShooterMove.turretPos - ShooterMove.lastTurretPos));
+                            ShooterMove.turretOffset = ShooterMove.turretPos - ShooterMove.lastTurretPos;
+                        }
                     }
                 } else {
                     power = 0;

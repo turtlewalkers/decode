@@ -67,14 +67,14 @@ public class TeleopMoving extends CommandOpMode {
             gateX = 6;
             gateY = 70;
             end = new Pose(36.5, 38, Math.toRadians(90));
-            relocalize = new Pose(4.7, 11.04, Math.toRadians(90));
+            relocalize = new Pose(12.315, 8.7159, Math.toRadians(174.392));
         } else {
             shooterX = 6;
             shooterY = 138;
             gateX = 138;
             gateY = 70;
             end = new Pose(105, 33, Math.toRadians(90));
-            relocalize = new Pose(135.8, 9.4, Math.toRadians(90));
+            relocalize = new Pose(132.8288, 8.3812, Math.toRadians(6.7524));
         }
         if (!Memory.autoRan) {
             Memory.robotPose = new Pose(72, 72, Math.toRadians(90));
@@ -207,10 +207,7 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                new SequentialCommandGroup(
-                        limelight.fixTurret(),
-                        shooter.setTurretOffset(limelight)
-                )
+                limelight.fixTurret()
         );
 
         gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
