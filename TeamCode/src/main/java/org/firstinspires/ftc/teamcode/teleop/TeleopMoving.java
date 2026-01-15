@@ -207,7 +207,10 @@ public class TeleopMoving extends CommandOpMode {
         );
 
         gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                limelight.fixTurret()
+                new SequentialCommandGroup(
+                        limelight.fixTurret(),
+                        shooter.setTurretOffset(limelight)
+                )
         );
 
         gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(

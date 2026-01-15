@@ -146,6 +146,13 @@ public class ShooterMove extends SubsystemBase {
                 new InstantCommand(() -> turretOffset = 0)
         );
     }
+    public Command setTurretOffset(Limelight limelight) {
+        return new InstantCommand(() -> {
+            if (!limelight.hasTx()) return;
+
+            turretOffset = -limelight.getTx();
+        }, this);
+    }
 
     @Override
     public void periodic() {
@@ -243,6 +250,7 @@ public class ShooterMove extends SubsystemBase {
         }
 
         Log.d("Velocity of Shooter", String.valueOf(shooterb.getVelocity() * (2 * Math.PI / 28)));
+        Log.d("TurretOffset", String.valueOf(turretOffset));
 
     }
 }

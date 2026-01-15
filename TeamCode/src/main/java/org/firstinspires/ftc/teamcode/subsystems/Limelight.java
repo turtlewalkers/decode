@@ -34,12 +34,14 @@ public class Limelight extends SubsystemBase {
     public static double power = 0;
 
     public static double TICKS_PER_DEG =
-            ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+            ((((1.0 + (46.0 / 17.0))) * (1.0 + (46.0 / 11.0))) * 28.0 * 3.0) / 360.0;
 
     public static double kP = 0.03;
     public static double kI = 0.00000001;
     public static double kD = 0.00004;
     private PIDController turretPID;
+    private double lastTx = 0;
+    private boolean hasValidTx = false;
 
 
     public Limelight(final HardwareMap hMap, Supplier<Follower> followerSupplier) {
@@ -54,6 +56,14 @@ public class Limelight extends SubsystemBase {
         angle %= 360;
         if (angle < 0) angle += 360;
         return angle;
+    }
+
+    public double getTx() {
+        return lastTx;
+    }
+
+    public boolean hasTx() {
+        return hasValidTx;
     }
 
     public Command relocalize() {
@@ -109,12 +119,16 @@ public class Limelight extends SubsystemBase {
                     int tagId = -1;
 
                     double tx = result.getTx();
+                    lastTx = tx;
+                    hasValidTx = true;
+
                     List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
                     if (tags != null && !tags.isEmpty()) {
                         LLResultTypes.FiducialResult tag = tags.get(0);
                         tagId = tag.getFiducialId();
                     } else {
                         hasTarget = false;
+                        hasValidTx = false;
                     }
 
                     boolean goodtag = (tagId == targetId);
@@ -133,6 +147,9 @@ public class Limelight extends SubsystemBase {
                     }
                 } else {
                     power = 0;
+                }
+                if (!hasTarget) {
+                    hasValidTx = false;
                 }
             }
         }
