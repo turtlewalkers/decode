@@ -37,16 +37,18 @@ public class Blue21 extends CommandOpMode {
     // Poses:
     private final Pose Start = new Pose(25, 126, Math.toRadians(135));
     private final Pose PreloadScore = new Pose(58, 74, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(58, 73, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(15., 61, Math.toRadians(158));
-    private final Pose CollectGate = new Pose(15., 56, Math.toRadians(158));
-    private final Pose Gate1Score = new Pose(63, 72.5, Math.toRadians(188));
-    private final Pose Stack1Score = new Pose(52, 80, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(52, 80, Math.toRadians(245));
-    private final Pose Collect1 = new Pose(144-123, 82, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(144-126, 60, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(144-126, 36, Math.toRadians(180));
+    private final Pose Stack2Score = new Pose(58.5, 73, Math.toRadians(190));
+    private final Pose OpenGate = new Pose(12.75, 60, Math.toRadians(152));
+    private final Pose CollectGate = new Pose(11, 57, Math.toRadians(150));
+    private final Pose Gate1Score = new Pose(60.5, 72, Math.toRadians(205));
+    private final Pose Stack1Score = new Pose(51, 79, Math.toRadians(245));
+    private final Pose Stack3Score = new Pose(60, 97, Math.toRadians(245));
+    private final Pose Collect1 = new Pose(144-125, 83, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(144-129, 59, Math.toRadians(180));
+    private final Pose Collect3 = new Pose(144-128, 36, Math.toRadians(180));
     private final Pose LeaveZone = new Pose(51, 72, Math.toRadians(245));
+
+    private double timer = 0;
     private Path PreloadShoot;
     private Path Paneer;
     private PathChain Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
@@ -66,7 +68,7 @@ public class Blue21 extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         PreloadScore,
-                        new Pose(54, 59.5),
+                        new Pose(54, 58.5),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(PreloadScore.getHeading(), Collect2.getHeading())
@@ -85,7 +87,7 @@ public class Blue21 extends CommandOpMode {
         IntakeGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack2Score,
-                        new Pose(36, 59.5),
+                        new Pose(36.5, 56.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Stack2Score.getHeading(), OpenGate.getHeading())
@@ -95,7 +97,7 @@ public class Blue21 extends CommandOpMode {
         FirstGateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(17, 58),
+                        new Pose(14.8, 58),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), CollectGate.getHeading())
@@ -103,7 +105,11 @@ public class Blue21 extends CommandOpMode {
                 .build();
 
         FirstGateShoot = follower.pathBuilder()
-                .addPath(new BezierLine(CollectGate, Gate1Score))
+                .addPath(new BezierCurve(
+                        CollectGate,
+                        new Pose(26.5, 50),
+                        Gate1Score)
+                )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), Gate1Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
@@ -111,7 +117,7 @@ public class Blue21 extends CommandOpMode {
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(36, 59.5),
+                        new Pose(36.5, 56.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -121,8 +127,7 @@ public class Blue21 extends CommandOpMode {
         GateShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(18.3, 60.31578947368421),
-                        new Pose(21.08947368421052, 62.013157894736835),
+                        new Pose(26, 56),
                         Gate1Score)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), Gate1Score.getHeading())
@@ -131,8 +136,12 @@ public class Blue21 extends CommandOpMode {
 
 
         Goto1 = follower.pathBuilder()
-                .addPath(new BezierLine(Gate1Score, Collect1))
-                .setLinearHeadingInterpolation(Gate1Score.getHeading(), Collect1.getHeading())
+                .addPath(new BezierCurve(
+                        Gate1Score,
+                        new Pose(45, 84),
+                        Collect1)
+                )
+                .setLinearHeadingInterpolation((Gate1Score.getHeading()-45), Collect1.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -193,7 +202,7 @@ public class Blue21 extends CommandOpMode {
                                         intake.collect()
                                 )
                         ),
-                        new WaitCommand(550),
+                        new WaitCommand(600),
 //                        shooter.turretOff(true),
                         intake.close(),
 
@@ -216,7 +225,7 @@ public class Blue21 extends CommandOpMode {
                         shooter.turretOff(false),
                         new WaitCommand(150),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
-                        new WaitCommand(750),
+                        new WaitCommand(500),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
@@ -230,7 +239,7 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(1750),
+                        new WaitCommand(1950),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateShoot, true),
@@ -244,12 +253,12 @@ public class Blue21 extends CommandOpMode {
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(1750),
+                        new WaitCommand(1950),
 
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateShoot, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1500),
+                                        new WaitCommand(1600),
                                         intake.open()
                                 )
                         ),
@@ -262,7 +271,7 @@ public class Blue21 extends CommandOpMode {
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(750),
-                                        new WaitCommand(200),
+                                        new WaitCommand(350),
                                         intake.open()
                                 )
                         ),
@@ -276,7 +285,7 @@ public class Blue21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot3, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1650),
+                                        new WaitCommand(1750),
                                         intake.open()
                                 )
                         ),
@@ -287,8 +296,8 @@ public class Blue21 extends CommandOpMode {
 
 
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, tatawireless, true),
-                        new WaitCommand(500),
+//                        new FollowPathCommand(follower, tatawireless, true),
+                        new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
         );
@@ -296,7 +305,12 @@ public class Blue21 extends CommandOpMode {
 
 
     @Override
+
     public void run() {
+        if (timer == 0) {
+            this.resetRuntime();
+            timer = 1;
+        }
         super.run();
 
         telemetryData.addData("X", follower.getPose().getX());

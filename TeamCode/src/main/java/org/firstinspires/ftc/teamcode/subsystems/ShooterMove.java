@@ -94,11 +94,11 @@ public class ShooterMove extends SubsystemBase {
         angle.add(0, 0.6);
         angle.add(42.5, 0.8);
         angle.add(49.5, 0.8);
-        angle.add(56.5, 0.45);
-        angle.add(67.25, 0.25);
-        angle.add(77.25, 0.22);
-        angle.add(91.75, 0.15);
-        angle.add(102.75, 0.12);
+        angle.add(56.5, 0.43);
+        angle.add(67.25, 0.22);
+        angle.add(77.25, 0.20);
+        angle.add(91.75, 0.135);
+        angle.add(102.75, 0.11);
         angle.add(114, 0.10);
         angle.add(130.75, 0.03);
         angle.add(148, 0.04);
