@@ -33,8 +33,8 @@ public class ShooterMove extends SubsystemBase {
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
-    private final double TURRET_FWD_OFFSET  = 1.63; // in
-    private final double TURRET_LEFT_OFFSET =  0.0;
+    public static double TURRET_FWD_OFFSET  = -1.63; // in
+    public static double TURRET_LEFT_OFFSET = 0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = true;
     private static double vel = 0, target = 0;
@@ -47,7 +47,7 @@ public class ShooterMove extends SubsystemBase {
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
-    public static double pT = 2, iT = 0, dT = 0.015;
+    public static double pT = 1.68, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.020645108;
     public static double kS = 4.940223544;
@@ -176,10 +176,13 @@ public class ShooterMove extends SubsystemBase {
             Log.d("Distance" + i, String.valueOf(distance));
         }
 
+
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
+
+        Log.d("target", String.valueOf(targetAngleDeg));
         double[] cands = new double[] {
                 targetAngleDeg,
                 targetAngleDeg + 360.0,
@@ -190,9 +193,10 @@ public class ShooterMove extends SubsystemBase {
         Log.d("turretPos", String.valueOf(turretPos));
 
         List<Double> inRange = new ArrayList<>();
-        for (double c : cands) {
-            if (c >= TURRET_MIN && c <= TURRET_MAX) {
-                inRange.add(c);
+        for (int i = 0; i < 3; ++i) {
+            if (cands[i] >= TURRET_MIN && cands[i] <= TURRET_MAX) {
+                inRange.add(cands[i]);
+                Log.d("c" + i, String.valueOf(cands[i]));
             }
         }
 
@@ -202,6 +206,9 @@ public class ShooterMove extends SubsystemBase {
         } else if (inRange.size() == 2) {
             double d0 = Math.abs(inRange.get(0) - turretPos);
             double d1 = Math.abs(inRange.get(1) - turretPos);
+            Log.d("pos 0", String.valueOf(inRange.get(0)));
+            Log.d("pos 1", String.valueOf(inRange.get(1)));
+
             chosen = (d0 <= d1) ? inRange.get(0) : inRange.get(1);
         } else {
             double c = targetAngleDeg;
@@ -210,17 +217,18 @@ public class ShooterMove extends SubsystemBase {
             chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, c));
         }
 
-        chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
+//        chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
+        Log.d("chosen", String.valueOf(chosen));
 
         double turretPower = controllerTurret.calculate(turretPos, chosen);
 
-        if (!Limelight.turretOn && !Limelight.fix) {
+//        if (!Limelight.turretOn && !Limelight.fix) {
             turret.set(turretPower / presentVoltage);
             lastTurretPos = turretPos;
             Log.d("lastTurretPos", String.valueOf(lastTurretPos));
-        } else {
-            turret.set(Limelight.power);
-        }
+//        } else {
+//            turret.set(Limelight.power);
+//        }
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;
         theta = Math.max(theta, 0);

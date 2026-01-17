@@ -8,6 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -50,14 +51,25 @@ public class TeleopMoving extends CommandOpMode {
     private double maxDecel = 60.0;
     private double reactionTime = 0.06;
     private double safeDistance = 20;
+    private GoBildaPinpointDriver pinpoint;
+
+    @Override
+    public void reset() {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.recalibrateIMU();
+    }
+
     @Override
     public void initialize() {
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(Memory.robotPose);
-        start = Memory.robotPose;
         super.reset();
 
+        start = Memory.robotPose;
+
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(start);
         follower.startTeleopDrive(true);
+
         gamepad = new GamepadEx(gamepad1);
         gamepadOffset = new GamepadEx(gamepad2);
 
