@@ -33,7 +33,7 @@ public class ShooterMove extends SubsystemBase {
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
-    public static double TURRET_FWD_OFFSET  = 1.63; // in
+    public static double TURRET_FWD_OFFSET  = -1.63; // in
     public static double TURRET_LEFT_OFFSET = 0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = true;
