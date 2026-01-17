@@ -33,7 +33,7 @@ public class ShooterMove extends SubsystemBase {
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
-    public static double TURRET_FWD_OFFSET  = -1.63; // in
+    public static double TURRET_FWD_OFFSET  = 1.63; // in
     public static double TURRET_LEFT_OFFSET = 0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = true;
@@ -41,7 +41,7 @@ public class ShooterMove extends SubsystemBase {
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
-    private int turretOff = 0;
+    private double turretOff = 0;
     public static double turretOffset = 0;
     private double hoodOffset = 0;
     private double shooterX, shooterY;
@@ -157,8 +157,8 @@ public class ShooterMove extends SubsystemBase {
         double robotHeading = robot.getHeading();
         double cosH = Math.cos(robotHeading);
         double sinH = Math.sin(robotHeading);
-        double turretX = TURRET_FWD_OFFSET * cosH - TURRET_LEFT_OFFSET * sinH;
-        double turretY = TURRET_FWD_OFFSET * sinH + TURRET_LEFT_OFFSET * cosH;
+        double turretX = TURRET_FWD_OFFSET * cosH;
+        double turretY = TURRET_FWD_OFFSET * sinH;
 
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
@@ -175,7 +175,6 @@ public class ShooterMove extends SubsystemBase {
             distance = Math.sqrt(dx * dx + dy * dy);
             Log.d("Distance" + i, String.valueOf(distance));
         }
-
 
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
@@ -217,7 +216,7 @@ public class ShooterMove extends SubsystemBase {
             chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, c));
         }
 
-//        chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
+        chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
         Log.d("chosen", String.valueOf(chosen));
 
         double turretPower = controllerTurret.calculate(turretPos, chosen);

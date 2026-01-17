@@ -29,9 +29,6 @@ public class Turret extends OpMode {
     public static double target = 0;
     private VoltageSensor volt;
 
-
-    private final double ticks = 537.7 / 3;
-
     private DcMotorEx turret;
     public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
 
