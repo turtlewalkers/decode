@@ -9,6 +9,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -32,6 +33,7 @@ public class Blue21 extends CommandOpMode {
     private Intake intake;
     private ShooterMove shooter;
     private double StartTime;
+    private GoBildaPinpointDriver pinpoint;
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
@@ -164,6 +166,13 @@ public class Blue21 extends CommandOpMode {
                 .setLinearHeadingInterpolation(Stack3Score.getHeading(), LeaveZone.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
+    }
+
+    @Override
+    public void reset() {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.recalibrateIMU();
     }
 
     @Override
