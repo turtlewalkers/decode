@@ -14,6 +14,7 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
@@ -23,7 +24,76 @@ android {
     }
 }
 
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
+}
+
+repositories {
+    maven {
+        url = 'https://maven.brott.dev/'
+    }
+
+    maven {
+        url = 'https://maven.pedropathing.com'
+    }
+    maven {
+        url = 'https://mymaven.bylazar.com/releases'
+    }
+
+    maven {
+        url "https://repo.dairy.foundation/releases"
+    }
+
+    // Fpr Snapshot/Beta Versions of SolversLib
+    maven {
+        url "https://repo.dairy.foundation/snapshots"
+    }
+
+    maven {
+        url = "https://repo.dairy.foundation/releases"
+    }
+
+}
+
 dependencies {
-    implementation 'org.ftclib.ftclib:core:2.1.1'
     implementation project(':FtcRobotController')
+    annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+
+    // SolversLib
+    implementation "org.solverslib:core:0.3.3" // core
+    implementation("org.solverslib:pedroPathing:0.3.3") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
+
+    //implementation "com.acmerobotics.dashboard:dashboard:0.5.0" // FTC Dashboard
+    implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
+
+
+    implementation("com.acmerobotics.roadrunner:ftc:0.1.21") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
+    implementation ("com.acmerobotics.roadrunner:actions:1.0.1"){
+        exclude group: "com.acmerobotics.dashboard"
+    }
+
+    // Pedro Pathing
+//    implementation project(':PedroPathing:core:LOCAL')
+//    implementation project(':PedroPathing:ftc:LOCAL')
+//    implementation 'com.pedropathing:ftc:2.0.4'
+//    implementation 'com.pedropathing:telemetry:1.0.0'
+
+    // Panels Dashboard
+//    implementation "com.bylazar:fullpanels:1.0.9"
+
+    // sloth
+    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+
 }
