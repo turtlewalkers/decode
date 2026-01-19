@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.TURRET_MAX;
 import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.TURRET_MIN;
+import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.turretOffset;
 
 import android.util.Log;
 
@@ -35,6 +36,11 @@ public class Limelight extends SubsystemBase {
     public static boolean fix = false;
     public static boolean turretOn = false;
     public static double power = 0;
+
+    private double frozenTx = 0;
+    private boolean txFrozen = false;
+
+
 
     public static double TICKS_PER_DEG =
             ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
@@ -109,6 +115,14 @@ public class Limelight extends SubsystemBase {
                     int tagId = -1;
 
                     double tx = result.getTx();
+
+                    if (!txFrozen) {
+                        frozenTx = tx;
+                        txFrozen = true;
+                        Log.d("frozenTx", String.valueOf(frozenTx));
+                    }
+
+
                     List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
                     if (tags != null && !tags.isEmpty()) {
                         LLResultTypes.FiducialResult tag = tags.get(0);
@@ -128,10 +142,20 @@ public class Limelight extends SubsystemBase {
 
                     double pidOut = turretPID.calculate(turretPosDeg, turretTargetDeg);
 
+
+
                     if (turretOn && hasTarget && goodtag) {
                         power = pidOut;
-                    } else {
-                        power = 0;
+                        if (turretTargetDeg - turretPosDeg <= 3) {
+                            frozenTx = turretOffset;
+                            Log.d("turretOffset",String.valueOf(turretOffset));
+                        }
+                        else {
+                            power = 0;
+                            txFrozen = false;
+                        }
+
+
                     }
                 }
             }
