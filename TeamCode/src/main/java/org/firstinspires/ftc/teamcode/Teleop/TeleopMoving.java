@@ -35,13 +35,11 @@ import java.util.List;
 
 @Config
 @TeleOp
-public class limetele extends CommandOpMode {
+public class TeleopMoving extends CommandOpMode {
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
-
-
     private ShooterMove shooter;
     private Limelight limelight;
     public static double shooterX, shooterY, gateX, gateY;
@@ -193,7 +191,7 @@ public class limetele extends CommandOpMode {
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
-                shooter.increaseHoodOffset()
+            shooter.increaseHoodOffset()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
@@ -201,7 +199,7 @@ public class limetele extends CommandOpMode {
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
-                shooter.increaseTurretOffset()
+            shooter.increaseTurretOffset()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(

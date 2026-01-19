@@ -1,332 +1,220 @@
-package org.firstinspires.ftc.teamcode.Teleop;
+package org.firstinspires.ftc.teamcode.teleop;
 
-
-import android.util.Log;
-
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.seattlesolvers.solverslib.controller.PIDController;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
-import com.qualcomm.hardware.lynx.LynxModule;
+import org.firstinspires.ftc.teamcode.robot.Memory;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.seattlesolvers.solverslib.command.Command;
-import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.CommandScheduler;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
-import com.seattlesolvers.solverslib.command.button.GamepadButton;
-import com.seattlesolvers.solverslib.command.button.Trigger;
-import com.seattlesolvers.solverslib.gamepad.GamepadEx;
-import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
-import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
-import com.seattlesolvers.solverslib.util.TelemetryData;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.seattlesolvers.solverslib.util.InterpLUT;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.robot.Memory;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Limelight;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
-import java.util.List;
-
+@Disabled
 @Config
 @TeleOp
-public class Teleop extends CommandOpMode {
-    Follower follower; 
-    TelemetryData telemetryData = new TelemetryData(telemetry);
-    private GamepadEx gamepad, gamepadOffset;
-    private Intake intake;
-    private ShooterMove shooter;
-    private Limelight limelight;
-    public static double shooterX, shooterY, gateX, gateY;
-    private double multiplier = 1;
-    private Path Park, Stay;
-    private Pose end, start, relocalize;
-    List<LynxModule> allHubs;
-    private long lastLoopTimeNanos = -1;
-    private double maxDecel = 60.0;
-    private double reactionTime = 0.06;
-    private double safeDistance = 20;
+public class Teleop extends OpMode {
+    public static Follower follower;
+    private PIDController controller, controllerTurret;
+    private TelemetryManager telemetryM;
+    public static double p = 0.6, i = 0.1, d = 0;
+    public static double pT = 0.3, iT = 0, dT = 0.00001;
+    public static double f = 0.0265;
+    private static double vel = 0;
+    public static double target = 0;
+    public static double alpha = 0.6;
+    InterpLUT RPM = new InterpLUT();
+    InterpLUT angle = new InterpLUT();
+    InterpLUT shottime = new InterpLUT();
+    private DcMotorEx shooterb, shootert, intake, turret;
+    private Servo hood;
+    private VoltageSensor volt;
+    public static double tangle = 40;
+    public static double theta = 0;
+    public static double shooterX = 138;
+    public static double shooterY = 138;
+    Servo latch;
+    private double turretOffset = 0;
+    private static final int TICKS_MIN = -330;
+    private static final int TICKS_MAX = 990;
+    public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+    public boolean stopAutoTurret = false;
     @Override
-    public void initialize() {
+    public void init() {
+        controller = new PIDController(p, i, d);
+        controllerTurret = new PIDController(pT, iT, dT);
+        shooterb = hardwareMap.get(DcMotorEx.class, "sb");
+        turret = hardwareMap.get(DcMotorEx.class, "turret");
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shootert = hardwareMap.get(DcMotorEx.class, "st");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        hood = hardwareMap.get(Servo.class, "hood");
+        volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
+        RPM.add(0, 315);
+        RPM.add(40.5, 315);
+        RPM.add(60.25, 330);
+        RPM.add(90, 380);
+        RPM.add(106.5, 410);
+        RPM.add(210, 450);
+        RPM.createLUT();
+
+        angle.add(0, 1);
+        angle.add(40.5, 1);
+        angle.add(60.25, 0.4);
+        angle.add(90, 0.25);
+        angle.add(106.5, 0.15);
+        angle.add(210, 0.15);
+        angle.createLUT();
+
+        shottime.add(0, 1);
+        shottime.add(40.8, 1);
+        shottime.add(61.6, 0.81);
+        shottime.add(87.8, 1);
+        shottime.add(106.6, 1);
+        shottime.add(210, 1);
+        shottime.createLUT();
+
+        latch = hardwareMap.servo.get("latch");
+    }
+
+    @Override
+    public void start() {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Memory.robotPose);
-        start = Memory.robotPose;
-        super.reset();
+        follower.startTeleOpDrive(true);
+        follower.update();
+        controller = new PIDController(p, i, d);
+        Memory.autoRan = false;
+    }
 
-        follower.startTeleopDrive(true);
-        gamepad = new GamepadEx(gamepad1);
-        gamepadOffset = new GamepadEx(gamepad2);
+    @Override
+    public void init_loop() {
+        if (gamepad1.a) {
+            Memory.allianceRed = true;
+        } else if (gamepad1.b) {
+            Memory.allianceRed = false;
+        }
+        telemetry.addData("Alliance", Memory.allianceRed ? "Red" : "Blue");
 
         if (Memory.allianceRed) {
-            shooterX = 138;
-            shooterY = 138;
-            gateX = 6;
-            gateY = 70;
-            end = new Pose(36.5, 38, Math.toRadians(90));
-            relocalize = new Pose(4.7, 11.04, Math.toRadians(90));
+            shooterY = 6;
         } else {
-            shooterX = 6;
             shooterY = 138;
-            gateX = 138;
-            gateY = 70;
-            end = new Pose(105, 33, Math.toRadians(90));
-            relocalize = new Pose(135.8, 9.4, Math.toRadians(90));
-        }
-        if (!Memory.autoRan) {
-            Memory.robotPose = new Pose(72, 72, Math.toRadians(90));
-        }
-        Park = new Path(new BezierLine(start, end));
-        Stay = new Path(new BezierLine(start, start));
-        Park.setConstantHeadingInterpolation(Math.toRadians(90));
-        shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
-        intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
-        limelight = new Limelight(hardwareMap, () -> follower);
-        shooter.turretOff(false);
-        shooter.flywheel(true);
-        Memory.autoRan = false;
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> Memory.allianceRed = false)
-        );
-
-        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(
-                intake.collect()
-        );
-        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5).whenActive(intake.stop());
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                intake.reverse()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenReleased(
-                intake.stop()
-        );
-
-        new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5).whenActive(
-                new SequentialCommandGroup(
-                        intake.open(),
-                        new ParallelCommandGroup(
-                                intake.collect(),
-                                intake.LEDon()
-//                        new InstantCommand(() -> multiplier = 0.1)
-                        )
-                )
-        );
-        new Trigger(() ->
-                gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5 &&
-                        gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5
-        ).whenActive(
-                new ParallelCommandGroup(
-                        intake.stop(),
-                        intake.close(),
-                        intake.LEDoff()
-                )
-        );
-        new Trigger(() ->
-                gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) < 0.5 &&
-                        gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5
-        ).whenActive(
-                new ParallelCommandGroup(
-                        intake.collect(),
-                        intake.close(),
-                        intake.LEDoff()
-                )
-        );
-
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                shooter.turretOff(true)
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
-                shooter.turretOff(false)
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
-                new SequentialCommandGroup(
-                        new InstantCommand(() -> start = follower.getPose()),
-                        new FollowPathCommand(follower, Park)
-                )
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.X).whenPressed(
-                new InstantCommand(() -> {
-                    CommandScheduler.getInstance().cancelAll();
-                    follower.startTeleopDrive(true);   // restart manual driving
-                })
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
-                new SequentialCommandGroup(
-                        new InstantCommand(() -> start = follower.getPose()),
-                        new FollowPathCommand(follower, Stay, true)
-                )
-        );
-        gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
-                shooter.flywheel(false)
-        );
-        gamepad.getGamepadButton(GamepadKeys.Button.A).whenPressed(
-                shooter.flywheel(true)
-        );
-
-
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                shooter.decreaseHoodOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
-                shooter.increaseHoodOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                shooter.decreaseTurretOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
-                shooter.increaseTurretOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(
-                shooter.OffsetZero()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.B).whenPressed(
-                new InstantCommand(() -> follower.setPose(relocalize))
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
-                limelight.relocalize()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenReleased(
-                limelight.norelocalize()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                limelight.fixTurret()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
-                limelight.nofixTurret()
-        );
-
-        allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
     }
 
     @Override
-    public void run() {
-        super.run();
-
-        for (LynxModule hub : allHubs) {
-            hub.clearBulkCache();
-        }
-
-        Pose pose = follower.getPose();
-        if (pose != null) {
-            start = pose;
-            double X = pose.getX();
-            double Y = pose.getY();
-            double heading = pose.getHeading();
-
-            double vx_r = -gamepad1.left_stick_y * multiplier;
-            double vy_r = -gamepad1.left_stick_x * multiplier;
-            double omega = -gamepad1.right_stick_x * multiplier;
-
-            double velocityX = follower.getVelocity().getXComponent();
-            double velocityY = follower.getVelocity().getYComponent();
-
-            double cosH = Math.cos(heading);
-            double sinH = Math.sin(heading);
-            double vx_f = vx_r * cosH - vy_r * sinH;
-            double vy_f = vx_r * sinH + vy_r * cosH;
-
-            double gx = gateX - X;
-            double gy = gateY - Y;
-            double distToGate = Math.hypot(gx, gy);
-            Log.d("Distance to Gate", String.valueOf(distToGate));
-
-            double gxHat = 0.0, gyHat = 0.0;
-            if (distToGate > 1e-6) {
-                gxHat = gx / distToGate;
-                gyHat = gy / distToGate;
-            }
-
-            double currentProj = velocityX * gxHat + velocityY * gyHat;
-            double commandedProj = vx_f * gxHat + vy_f * gyHat;
-
-            long now = System.nanoTime();
-            double dt;
-            if (lastLoopTimeNanos < 0) {
-                dt = 0.02;
-            } else {
-                dt = (now - lastLoopTimeNanos) / 1e9;
-                if (dt <= 0) dt = 0.02;
-            }
-            lastLoopTimeNanos = now;
-
-            double distClearance = distToGate - safeDistance;
-
-            double vx_f_safe = vx_f;
-            double vy_f_safe = vy_f;
-
-            if (distToGate <= safeDistance) {
-                if (commandedProj > 0.0) {
-                    double remove = commandedProj;
-                    vx_f_safe = vx_f - remove * gxHat;
-                    vy_f_safe = vy_f - remove * gyHat;
-                }
-            } else {
-                double allowedNetSpeed = 0.0;
-                if (distClearance <= 0.0) {
-                    allowedNetSpeed = 0.0;
-                } else {
-                    double a = 1.0 / (2.0 * maxDecel);
-                    double b = reactionTime;
-                    double c = -distClearance;
-                    double disc = b * b - 4.0 * a * c;
-                    if (disc < 0) disc = 0.0;
-                    allowedNetSpeed = (-b + Math.sqrt(disc)) / (2.0 * a);
-                    if (allowedNetSpeed < 0.0) allowedNetSpeed = 0.0;
-                }
-
-                double allowedCommandedProj = allowedNetSpeed - currentProj;
-
-                if (allowedCommandedProj < 0.0) allowedCommandedProj = 0.0;
-
-                if (commandedProj > allowedCommandedProj) {
-                    double allowedProj = allowedCommandedProj;
-                    double removeProj = commandedProj - allowedProj;
-                    if (removeProj < 0) removeProj = 0;
-
-                    vx_f_safe = vx_f - removeProj * gxHat;
-                    vy_f_safe = vy_f - removeProj * gyHat;
-
-                    if (currentProj > (allowedNetSpeed + 1e-3)) {
-                        Log.w("GateSafety", "Already closing faster than safe; consider active braking.");
-                    }
-                }
-            }
-
-            double vx_r_safe = vx_f_safe * cosH + vy_f_safe * sinH;
-            double vy_r_safe = -vx_f_safe * sinH + vy_f_safe * cosH;
-
-            follower.setTeleOpDrive(vx_r_safe, vy_r_safe, omega, true);
-        }
+    public void loop() {
+        double multiplier = 1;
+        if (gamepad1.left_trigger != 0) multiplier = 0.3;
+        follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
         follower.update();
 
-        Park = new Path(new BezierLine(start, end));
-        Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());
+        if (gamepad1.dpad_up) {
+            follower.setStartingPose(new Pose(72, 72, 0));
+        }
 
-        telemetryData.addData("X", follower.getPose().getX());
-        telemetryData.addData("Y", follower.getPose().getY());
-        telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
-        telemetryData.update();
+        if (gamepad1.xWasPressed()) {
+            stopAutoTurret = !stopAutoTurret;
+        }
+        latch.setPosition(gamepad1.y ? 1 : 0);
+
+        double robotX = follower.getPose().getX();
+        double robotY = follower.getPose().getY();
+        double robotHeading = follower.getPose().getHeading();
+
+        double dx = shooterX - robotX;
+        double dy = shooterY - robotY;
+        double distance = Math.sqrt(dx*dx + dy*dy);
+
+        for (int i = 0; i < 5; ++i) {
+            double shotTime = shottime.get(distance);
+
+            double vX = follower.getVelocity().getXComponent();
+            double vY = follower.getVelocity().getYComponent();
+
+            dx = shooterX - robotX - vX * shotTime;
+            dy = shooterY - robotY - vY * shotTime;
+            distance = Math.sqrt(dx*dx + dy*dy);
+        }
+
+        telemetry.addData("vX", follower.getVelocity().getXComponent());
+        telemetry.addData("vY", follower.getVelocity().getYComponent());
+        telemetry.addData("Shot time", shottime.get(distance));
+        telemetry.addData("shooterX", shooterX - follower.getVelocity().getXComponent() * shottime.get(distance));
+        telemetry.addData("shooterY", shooterY - follower.getVelocity().getYComponent() * shottime.get(distance));
+
+        double targetAngleRad = Math.atan2(dy, dx);
+        double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+
+        if (turretOffset <= 45 && turretOffset >= -45) {
+            if (gamepad1.dpad_right && turretOffset > -45) {
+                turretOffset -= 1;
+            }
+            if (gamepad1.dpad_left && turretOffset < 45) {
+                turretOffset += 1;
+            }
+        }
+        telemetry.addData("Target Angle", targetAngleDeg);
+        targetAngleDeg += turretOffset;
+        telemetry.addData("TurretOffset", turretOffset);
+        targetAngleDeg = Math.max(targetAngleDeg, -100);
+        targetAngleDeg = Math.min(targetAngleDeg, 240);
+        double turretPos = ((double)turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        telemetry.addData("Turret Pos", turretPos);
+
+//        targetTicks = Math.max(TICKS_MIN, Math.min(TICKS_MAX, targetTicks));
+//        turretOffset += (gamepad2.right_trigger - gamepad2.left_trigger) * 5;
+//        int offsetTicks = (int)(turretOffset * TICKS_PER_DEGREE);
+//        int finalTargetTicks = targetTicks + offsetTicks;
+        double turretPower = controllerTurret.calculate(turretPos, targetAngleDeg);
+        telemetry.addData("TurretPower", turretPower);
+        telemetry.addData("stopAutoTurret", stopAutoTurret);
+
+        if (!stopAutoTurret) {
+            turret.setPower(turretPower);
+        }
+        intake.setPower(gamepad1.right_trigger);
+
+        if (distance >0 && distance < 180) {
+            target = RPM.get(distance);
+            hood.setPosition(angle.get(distance));
+        }
+        controller.setPID(p, i, d);
+        double presentVoltage = volt.getVoltage();
+        vel = shooterb.getVelocity() * (2 * Math.PI / 28);
+        double pid = controller.calculate(vel, target);
+        pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
+        if (!gamepad1.a || robotX >= 40) {
+            shooterb.setPower((-1) * (pid + f * target) / presentVoltage);
+            shootert.setPower((-1) * (pid + f * target) / presentVoltage);
+        } else {
+            shootert.setPower(0);
+            shooterb.setPower(0);
+        }
+        if (gamepad1.dpad_down) {
+            intake.setPower(-1);
+        }
+
+//        if (gamepad1.dpad_left)
+//        telemetry.addData("Turret angle: ", Math.toDegrees(turretAngle));
+        telemetry.addData("Distance: ", distance);
+        telemetry.addData("x: ", robotX);
+        telemetry.addData("y: ", robotY);
+        telemetry.addData("Heading", Math.toDegrees(robotHeading));
+        telemetry.addData("RPM: ", RPM.get(distance));
+        telemetry.addData("Angle: ", angle.get(distance));
+        telemetry.update();
     }
 }
