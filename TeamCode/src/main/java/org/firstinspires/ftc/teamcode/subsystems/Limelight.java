@@ -115,6 +115,7 @@ public class Limelight extends SubsystemBase {
                     int tagId = -1;
 
                     double tx = result.getTx();
+                    Log.d("tx", String.valueOf(tx));
 
                     if (!txFrozen) {
                         frozenTx = tx;
@@ -137,6 +138,9 @@ public class Limelight extends SubsystemBase {
 
                     double turretTargetDeg = turretPosDeg - tx;
                     turretTargetDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, turretTargetDeg));
+                    Log.d("turretTargetDeg", String.valueOf(turretTargetDeg));
+                    Log.d("turretPosDeg", String.valueOf(turretPosDeg));
+
 
                     turretPID.setPID(kP, kI, kD);
 
