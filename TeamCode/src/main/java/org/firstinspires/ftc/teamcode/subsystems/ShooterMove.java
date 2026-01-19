@@ -26,35 +26,35 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ShooterMove extends SubsystemBase {
-    public static final double TURRET_MIN = -90;
-    public static final double TURRET_MAX = 240;   // Actual mechanical limit
+    public static final double TURRET_MIN = -130;  // Actual mechanical limit
+    public static final double TURRET_MAX = 260;   // Actual mechanical limit
     public final MotorEx shootert;
     public final MotorEx shooterb;
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
-    private final double TURRET_FWD_OFFSET  = -1.63; // in
-    private final double TURRET_LEFT_OFFSET =  0.0;
+    public static double TURRET_FWD_OFFSET  = -1.63; // in
+    public static double TURRET_LEFT_OFFSET = 0.0;
     private final Supplier<Follower> followerSupplier;
     private boolean flywheelOn = true;
     private static double vel = 0, target = 0;
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
-    private int turretOff = 0;
+    private double turretOff = 0;
     public static double turretOffset = 0;
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
-    public static double pT = 2, iT = 0, dT = 0.015;
+    public static double pT = 1.68, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.020645108; //0.002482948;
+    public static double kV = 0.020645108;
     public static double kS = 4.940223544;
     public static double f = 0.0265;
     public static double turretPos = 0;
     public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
-    private double lastTurretTargetDeg = Double.NaN;
+    public static double lastTurretPos;
 
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
@@ -105,14 +105,15 @@ public class ShooterMove extends SubsystemBase {
         angle.add(3000, 0.01);
         angle.createLUT();
 
-        shottime.add(0, 0.5);
-        shottime.add(55.48460957523871, 0.59);
-        shottime.add(66.36741529360351, 0.6);
-        shottime.add(85.67127682322594, 0.7);
-        shottime.add( 94.59729859662454, 0.72);
-        shottime.add(103.13934006550497, 0.88);
-        shottime.add( 116.29104823105146, 5.28-4.48);
-        shottime.add(3000, 0.76);
+        shottime.add(0, 0.63);
+        shottime.add(42.5, 0.53);
+        shottime.add(55, 0.41);
+        shottime.add(66.7, 0.45);
+        shottime.add(81.9, 0.55);
+        shottime.add( 95.7, 0.67);
+        shottime.add(101.9, 0.7);
+        shottime.add( 116.6, 0.72);
+        shottime.add( 3000, 0.72);
         shottime.createLUT();
     }
 
@@ -156,8 +157,8 @@ public class ShooterMove extends SubsystemBase {
         double robotHeading = robot.getHeading();
         double cosH = Math.cos(robotHeading);
         double sinH = Math.sin(robotHeading);
-        double turretX = TURRET_FWD_OFFSET * cosH - TURRET_LEFT_OFFSET * sinH;
-        double turretY = TURRET_FWD_OFFSET * sinH + TURRET_LEFT_OFFSET * cosH;
+        double turretX = TURRET_FWD_OFFSET * cosH;
+        double turretY = TURRET_FWD_OFFSET * sinH;
 
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
@@ -179,19 +180,22 @@ public class ShooterMove extends SubsystemBase {
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
+
+        Log.d("target", String.valueOf(targetAngleDeg));
         double[] cands = new double[] {
                 targetAngleDeg,
                 targetAngleDeg + 360.0,
                 targetAngleDeg - 360.0
         };
 
-        double turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
 
         List<Double> inRange = new ArrayList<>();
-        for (double c : cands) {
-            if (c >= TURRET_MIN && c <= TURRET_MAX) {
-                inRange.add(c);
+        for (int i = 0; i < 3; ++i) {
+            if (cands[i] >= TURRET_MIN && cands[i] <= TURRET_MAX) {
+                inRange.add(cands[i]);
+                Log.d("c" + i, String.valueOf(cands[i]));
             }
         }
 
@@ -201,6 +205,9 @@ public class ShooterMove extends SubsystemBase {
         } else if (inRange.size() == 2) {
             double d0 = Math.abs(inRange.get(0) - turretPos);
             double d1 = Math.abs(inRange.get(1) - turretPos);
+            Log.d("pos 0", String.valueOf(inRange.get(0)));
+            Log.d("pos 1", String.valueOf(inRange.get(1)));
+
             chosen = (d0 <= d1) ? inRange.get(0) : inRange.get(1);
         } else {
             double c = targetAngleDeg;
@@ -210,14 +217,17 @@ public class ShooterMove extends SubsystemBase {
         }
 
         chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
+        Log.d("chosen", String.valueOf(chosen));
 
         double turretPower = controllerTurret.calculate(turretPos, chosen);
 
-        if (!Limelight.turretOn) {
+//        if (!Limelight.turretOn && !Limelight.fix) {
             turret.set(turretPower / presentVoltage);
-        } else {
-            turret.set(Limelight.power);
-        }
+            lastTurretPos = turretPos;
+            Log.d("lastTurretPos", String.valueOf(lastTurretPos));
+//        } else {
+//            turret.set(Limelight.power);
+//        }
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;
         theta = Math.max(theta, 0);
@@ -240,6 +250,9 @@ public class ShooterMove extends SubsystemBase {
             shooterb.set(0);
             shootert.set(0);
         }
+
+        Log.d("Velocity of Shooter", String.valueOf(shooterb.getVelocity() * (2 * Math.PI / 28)));
+        Log.d("TurretOffset", String.valueOf(turretOffset));
 
     }
 }

@@ -39,7 +39,7 @@ public class Constants {
             .headingPIDFCoefficients(new PIDFCoefficients(0.96, 0, 0.03, 0.01))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.28,0.114,0.0000027,0.6,0.007))
             .centripetalScaling(0.00034)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.05, 0, 0.001387411));
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.09, 0.0012));
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(-2.25)
             .strafePodX(-6)

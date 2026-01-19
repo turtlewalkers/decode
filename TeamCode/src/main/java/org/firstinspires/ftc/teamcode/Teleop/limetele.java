@@ -8,6 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -52,14 +53,25 @@ public class limetele extends CommandOpMode {
     private double maxDecel = 60.0;
     private double reactionTime = 0.06;
     private double safeDistance = 20;
+    private GoBildaPinpointDriver pinpoint;
+
+    @Override
+    public void reset() {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.recalibrateIMU();
+    }
+
     @Override
     public void initialize() {
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(Memory.robotPose);
-        start = Memory.robotPose;
         super.reset();
 
+        start = Memory.robotPose;
+
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(start);
         follower.startTeleopDrive(true);
+
         gamepad = new GamepadEx(gamepad1);
         gamepadOffset = new GamepadEx(gamepad2);
 
@@ -69,14 +81,14 @@ public class limetele extends CommandOpMode {
             gateX = 6;
             gateY = 70;
             end = new Pose(36.5, 38, Math.toRadians(90));
-            relocalize = new Pose(4.7, 11.04, Math.toRadians(90));
+            relocalize = new Pose(12.315, 8.7159, Math.toRadians(174.392));
         } else {
             shooterX = 6;
             shooterY = 138;
             gateX = 138;
             gateY = 70;
             end = new Pose(105, 33, Math.toRadians(90));
-            relocalize = new Pose(135.8, 9.4, Math.toRadians(90));
+            relocalize = new Pose(132.8288, 8.3812, Math.toRadians(6.7524));
         }
         if (!Memory.autoRan) {
             Memory.robotPose = new Pose(72, 72, Math.toRadians(90));

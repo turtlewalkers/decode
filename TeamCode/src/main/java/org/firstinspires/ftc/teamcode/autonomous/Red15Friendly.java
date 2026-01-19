@@ -7,6 +7,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -50,6 +51,7 @@ public class Red15Friendly extends CommandOpMode {
     private Path PreloadShoot;
     private Path Paneer;
     private PathChain Goto1, Pickup1, Shoot1, ToGate, GotoIntakeGate, GateIntake, ShootGate1, ShootGate2, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private GoBildaPinpointDriver pinpoint;
 
 
     public void buildpaths() {
@@ -175,6 +177,13 @@ public class Red15Friendly extends CommandOpMode {
                 .addPath(new BezierLine(ScorePosition, byebye))
                 .setLinearHeadingInterpolation(ScorePosition.getHeading(), byebye.getHeading())
                 .build();
+    }
+
+    @Override
+    public void reset() {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.recalibrateIMU();
     }
 
     @Override
