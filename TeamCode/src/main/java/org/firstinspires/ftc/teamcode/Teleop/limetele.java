@@ -104,7 +104,7 @@ public class limetele extends CommandOpMode {
         Memory.autoRan = false;
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> Memory.allianceRed = false)
+                new InstantCommand(() -> Memory.allianceRed = !Memory.allianceRed)
         );
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(
