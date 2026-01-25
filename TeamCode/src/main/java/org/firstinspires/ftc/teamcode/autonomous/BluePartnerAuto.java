@@ -1,14 +1,11 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
-import android.util.Log;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -16,42 +13,40 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
-import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class Blue21 extends CommandOpMode {
+public class BluePartnerAuto extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
     private double StartTime;
+    private GoBildaPinpointDriver pinpoint;
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
-    private final Pose Start = new Pose(25, 126, Math.toRadians(135));
-    private final Pose PreloadScore = new Pose(58, 74, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(58.5, 73, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(12.75, 60, Math.toRadians(152));
-    private final Pose CollectGate = new Pose(11, 57, Math.toRadians(150));
-    private final Pose Gate1Score = new Pose(60.5, 72, Math.toRadians(205));
-    private final Pose Stack1Score = new Pose(51, 79, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(60, 97, Math.toRadians(245));
-    private final Pose Collect1 = new Pose(144-125, 83, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(144-129, 59, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(144-128, 36, Math.toRadians(180));
-    private final Pose LeaveZone = new Pose(51, 72, Math.toRadians(245));
+    private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
+    private final Pose PreloadScore = new Pose(62.5, 71.4, Math.toRadians(200));
+    private final Pose Stack2Score = new Pose(56, 77, Math.toRadians(190));
+    private final Pose OpenGate = new Pose(16.84, 61.4, Math.toRadians(156));
+    private final Pose CollectGate = new Pose(13, 57, Math.toRadians(155.5));
+    private final Pose Gate1Score = new Pose(58, 78, Math.toRadians(205));
+    private final Pose Stack1Score = new Pose(55, 81, Math.toRadians(245));
+    private final Pose Stack3Score = new Pose(55, 81, Math.toRadians(245));
+    private final Pose Collect1 = new Pose(144-125, 84, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(144-127, 60, Math.toRadians(180));
+    private final Pose Collect3 = new Pose(144-127, 36, Math.toRadians(180));
+    private final Pose LeaveZone = new Pose(52, 74.5, Math.toRadians(245));
+    private final Pose farshoot = new Pose(144-81.3, 9, Math.toRadians(245));
 
     private double timer = 0;
-    private Path PreloadShoot;
-    private Path Paneer;
-    private PathChain Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private PathChain PreloadShoot, Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
 
     public void buildpaths() {
@@ -59,10 +54,11 @@ public class Blue21 extends CommandOpMode {
         follower.setStartingPose(Start);
         follower.setMaxPower(1);
 
-        PreloadShoot = new Path(new BezierLine(Start, PreloadScore));
-        PreloadShoot.setLinearHeadingInterpolation(Start.getHeading(), PreloadScore.getHeading());
-        PreloadShoot.setTimeoutConstraint(50);
-
+        PreloadShoot = follower.pathBuilder()
+                .addPath(new BezierLine(Start, PreloadScore))
+                .setLinearHeadingInterpolation(Start.getHeading(), PreloadScore.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
 
 
         Pickup2 = follower.pathBuilder()
@@ -87,7 +83,7 @@ public class Blue21 extends CommandOpMode {
         IntakeGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack2Score,
-                        new Pose(36.5, 56.5),
+                        new Pose(36.5, 60),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Stack2Score.getHeading(), OpenGate.getHeading())
@@ -117,7 +113,7 @@ public class Blue21 extends CommandOpMode {
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(36.5, 56.5),
+                        new Pose(36.5, 59),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -162,7 +158,11 @@ public class Blue21 extends CommandOpMode {
                 .build();
 
         Shoot3 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect3, Stack3Score))
+                .addPath(new BezierCurve(
+                        Collect3,
+                        new Pose(44, 50),
+                        Stack3Score)
+                )
                 .setLinearHeadingInterpolation(Collect3.getHeading(), Stack3Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
@@ -174,7 +174,12 @@ public class Blue21 extends CommandOpMode {
                 .setTimeoutConstraint(50)
                 .build();
     }
-
+    @Override
+    public void reset() {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.recalibrateIMU();
+    }
     @Override
     public void initialize() {
         super.reset();
@@ -193,16 +198,16 @@ public class Blue21 extends CommandOpMode {
                 new SequentialCommandGroup(
                         intake.close(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, PreloadShoot),
+                                new FollowPathCommand(follower, PreloadShoot, 1),
                                 shooter.flywheel(true),
                                 shooter.turretOff(false),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1350),
+                                        new WaitCommand(1650),
                                         intake.open(),
                                         intake.collect()
                                 )
                         ),
-                        new WaitCommand(600),
+                        new WaitCommand(800),
 //                        shooter.turretOff(true),
                         intake.close(),
 
@@ -217,53 +222,59 @@ public class Blue21 extends CommandOpMode {
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(550),
+                        new WaitCommand(800),
 //                        shooter.turretOff(true),
                         intake.close(),
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
                         shooter.turretOff(false),
                         new WaitCommand(150),
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
-                        new WaitCommand(500),
+                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
+                        new WaitCommand(950),
+                        intake.stop(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(1500),
+                                        intake.collect(),
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(550),
-
+                        new WaitCommand(800),
                         intake.close(),
-
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
+                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
+                        new WaitCommand(150),
                         shooter.turretOff(false),
-                        new WaitCommand(1950),
-
+                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
+                        new WaitCommand(950),
+                        intake.stop(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, GateShoot, true),
+                                new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(1500),
+                                        intake.collect(),
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(550),
+                        new WaitCommand(800),
                         intake.close(),
-
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
+                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
+                        new WaitCommand(150),
                         shooter.turretOff(false),
-                        new WaitCommand(1950),
-
+                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
+                        new WaitCommand(950),
+                        intake.stop(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, GateShoot, true),
+                                new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1600),
+                                        new WaitCommand(1500),
+                                        intake.collect(),
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(550),
+                        new WaitCommand(800),
                         intake.close(),
+
 
                         new FollowPathCommand(follower, Goto1, false),
                         shooter.turretOff(false),
@@ -275,28 +286,14 @@ public class Blue21 extends CommandOpMode {
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(550),
-//                        shooter.turretOff(true),
-                        intake.close(),
-
-                        new FollowPathCommand(follower, Pickup3, true),
-                        shooter.turretOff(false),
-
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, Shoot3, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1750),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(550),
+                        new WaitCommand(800),
 //                        shooter.turretOff(true),
                         intake.close(),
 
 
 
                         shooter.turretOff(true),
-//                        new FollowPathCommand(follower, tatawireless, true),
+                        new FollowPathCommand(follower, tatawireless, true),
                         new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )

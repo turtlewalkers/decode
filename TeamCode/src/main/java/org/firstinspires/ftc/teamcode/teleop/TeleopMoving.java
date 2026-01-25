@@ -74,7 +74,7 @@ public class TeleopMoving extends CommandOpMode {
             gateX = 138;
             gateY = 70;
             end = new Pose(105, 33, Math.toRadians(90));
-            relocalize = new Pose(135.8, 9.4, Math.toRadians(90));
+            relocalize = new Pose(133.22, 8.813, Math.toRadians(5.91));
         }
         if (!Memory.autoRan) {
             Memory.robotPose = new Pose(72, 72, Math.toRadians(90));
