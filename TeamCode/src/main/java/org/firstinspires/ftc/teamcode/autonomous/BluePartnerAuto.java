@@ -31,22 +31,22 @@ public class BluePartnerAuto extends CommandOpMode {
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
-    private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
-    private final Pose PreloadScore = new Pose(62.5, 71.4, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(56, 77, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(16.84, 61.4, Math.toRadians(156));
-    private final Pose CollectGate = new Pose(13, 57, Math.toRadians(155.5));
-    private final Pose Gate1Score = new Pose(58, 78, Math.toRadians(205));
-    private final Pose Stack1Score = new Pose(55, 81, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(55, 81, Math.toRadians(245));
-    private final Pose Collect1 = new Pose(144-125, 84, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(144-127, 60, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(144-127, 36, Math.toRadians(180));
-    private final Pose LeaveZone = new Pose(52, 74.5, Math.toRadians(245));
-    private final Pose farshoot = new Pose(144-81.3, 9, Math.toRadians(245));
+    private final Pose Start = new Pose(25, 126, Math.toRadians(135));
+    private final Pose PreloadScore = new Pose(58, 74, Math.toRadians(200));
+    private final Pose Stack2Score = new Pose(58.5, 73.5, Math.toRadians(190));
+    private final Pose OpenGate = new Pose(15, 60, Math.toRadians(160));
+    private final Pose CollectGate = new Pose(15, 57, Math.toRadians(162));
+    private final Pose Gate1Score = new Pose(60.5, 72, Math.toRadians(205));
+    private final Pose Stack1Score = new Pose(51.5, 79, Math.toRadians(245));
+    private final Pose Stack3Score = new Pose(51.5, 79, Math.toRadians(245));
+    private final Pose Collect1 = new Pose(144-125, 83, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(15, 59, Math.toRadians(180));
+    private final Pose Collect3 = new Pose(144-128, 36, Math.toRadians(180));
+    private final Pose LeaveZone = new Pose(51, 72, Math.toRadians(245));
+    private final Pose OpenGateAfter2 = new Pose(18, 70, Math.toRadians(180));
 
     private double timer = 0;
-    private PathChain PreloadShoot, Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private PathChain OpenGateFor2, PreloadShoot, Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
 
     public void buildpaths() {
@@ -72,8 +72,8 @@ public class BluePartnerAuto extends CommandOpMode {
                 .build();
 
         Shoot2 = follower.pathBuilder()
-                .addPath(new BezierLine(Collect2, Stack2Score))
-                .setLinearHeadingInterpolation(Collect2.getHeading(), Stack2Score.getHeading())
+                .addPath(new BezierLine(OpenGateAfter2, Stack2Score))
+                .setLinearHeadingInterpolation(OpenGateAfter2.getHeading(), Stack2Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -113,7 +113,7 @@ public class BluePartnerAuto extends CommandOpMode {
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(36.5, 59),
+                        new Pose(36.5, 59.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -130,6 +130,15 @@ public class BluePartnerAuto extends CommandOpMode {
                 .setTimeoutConstraint(50)
                 .build();
 
+        OpenGateFor2 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        Collect2,
+                        new Pose(30, 65),
+                        OpenGateAfter2)
+                )
+                .setLinearHeadingInterpolation(Collect2.getHeading(), OpenGateAfter2.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
 
         Goto1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
@@ -158,11 +167,7 @@ public class BluePartnerAuto extends CommandOpMode {
                 .build();
 
         Shoot3 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        Collect3,
-                        new Pose(44, 50),
-                        Stack3Score)
-                )
+                .addPath(new BezierLine(Collect3, Stack3Score))
                 .setLinearHeadingInterpolation(Collect3.getHeading(), Stack3Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
@@ -198,11 +203,11 @@ public class BluePartnerAuto extends CommandOpMode {
                 new SequentialCommandGroup(
                         intake.close(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, PreloadShoot, 1),
+                                new FollowPathCommand(follower, PreloadShoot),
                                 shooter.flywheel(true),
                                 shooter.turretOff(false),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1650),
+                                        new WaitCommand(1750),
                                         intake.open(),
                                         intake.collect()
                                 )
@@ -212,7 +217,10 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
+                        new FollowPathCommand(follower, OpenGateFor2, false, 0.5).withTimeout(1500),
+                        new WaitCommand(200),
                         shooter.turretOff(false),
+
 
 
                         new ParallelCommandGroup(
@@ -229,52 +237,33 @@ public class BluePartnerAuto extends CommandOpMode {
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
                         shooter.turretOff(false),
                         new WaitCommand(150),
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
-                        new WaitCommand(950),
-                        intake.stop(),
+                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
+                        new WaitCommand(1000),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(1500),
-                                        intake.collect(),
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(800),
-                        intake.close(),
-                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new WaitCommand(150),
-                        shooter.turretOff(false),
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
-                        new WaitCommand(950),
-                        intake.stop(),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.collect(),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(800),
-                        intake.close(),
-                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new WaitCommand(150),
-                        shooter.turretOff(false),
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
-                        new WaitCommand(950),
-                        intake.stop(),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.collect(),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(800),
-                        intake.close(),
+                        new WaitCommand(850),
 
+                        intake.close(),
+                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
+                        shooter.turretOff(false),
+                        new WaitCommand(150),
+                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
+                        new WaitCommand(1000),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, FirstGateShoot, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1500),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(850),
+
+                        intake.close(),
 
                         new FollowPathCommand(follower, Goto1, false),
                         shooter.turretOff(false),
@@ -286,7 +275,21 @@ public class BluePartnerAuto extends CommandOpMode {
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(800),
+                        new WaitCommand(850),
+//                        shooter.turretOff(true),
+                        intake.close(),
+
+                        new FollowPathCommand(follower, Pickup3, true),
+                        shooter.turretOff(false),
+
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot3, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1750),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(850),
 //                        shooter.turretOff(true),
                         intake.close(),
 
