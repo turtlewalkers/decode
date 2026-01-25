@@ -4,22 +4,19 @@ import android.util.Log;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
-import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 import com.seattlesolvers.solverslib.util.InterpLUT;
-
-import org.firstinspires.ftc.teamcode.robot.TurtleRobot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +30,7 @@ public class ShooterMove extends SubsystemBase {
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
+    private AnalogInput abs;
     public static double TURRET_FWD_OFFSET  = -1.63; // in
     public static double TURRET_LEFT_OFFSET = 0.0;
     private final Supplier<Follower> followerSupplier;
@@ -45,15 +43,17 @@ public class ShooterMove extends SubsystemBase {
     public static double turretOffset = 0;
     private double hoodOffset = 0;
     private double shooterX, shooterY;
-    private PIDController controllerShooter, controllerTurret;
+    private PIDController controllerShooter;
+    private PIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
+    public static double maxV = 530, maxA = 3750;
     public static double pT = 1.68, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.020645108;
-    public static double kS = 4.940223544;
+    public static double kV = 0.0211771178235103;
+    public static double kS = 0.461428918657443;
     public static double f = 0.0265;
     public static double turretPos = 0;
-    public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+    public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public static double lastTurretPos;
 
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
@@ -65,6 +65,7 @@ public class ShooterMove extends SubsystemBase {
         turret = new MotorEx(hMap, "turret");
         hood = new ServoEx(hMap, "hood");
         volt = hMap.get(VoltageSensor.class, "Control Hub");
+        abs = hMap.get(AnalogInput.class, "abs");
         shooterb.setRunMode(MotorEx.RunMode.RawPower);
         shootert.setRunMode(MotorEx.RunMode.RawPower);
         Log.d("Initial Turret Pose", String.valueOf((double)turret.getCurrentPosition() / TICKS_PER_DEGREES));
@@ -74,6 +75,7 @@ public class ShooterMove extends SubsystemBase {
         turret.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         turret.setRunMode(MotorEx.RunMode.RawPower);
 
+//        controllerShooter = new ProfiledPIDController(p, i, d, new TrapezoidProfile.Constraints(maxV, maxA));
         controllerShooter = new PIDController(p, i, d);
         controllerTurret = new PIDController(pT, iT, dT);
 
@@ -92,8 +94,8 @@ public class ShooterMove extends SubsystemBase {
         RPM.createLUT();
 
         angle.add(0, 0.6);
-        angle.add(42.5, 0.8);
-        angle.add(49.5, 0.8);
+        angle.add(42.5, 0.7);
+        angle.add(49.5, 0.7);
         angle.add(56.5, 0.45);
         angle.add(67.25, 0.25);
         angle.add(77.25, 0.22);
@@ -147,6 +149,10 @@ public class ShooterMove extends SubsystemBase {
         );
     }
 
+    public double getAbsAngle() {
+        return Range.scale(abs.getVoltage(), 0, abs.getMaxVoltage(), TURRET_MIN, 270);
+    }
+
     @Override
     public void periodic() {
         Pose robot = followerSupplier.get().getPose();
@@ -190,6 +196,7 @@ public class ShooterMove extends SubsystemBase {
 
         turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
         Log.d("turretPos", String.valueOf(turretPos));
+        Log.d("turretPosAbs", String.valueOf(getAbsAngle()));
 
         List<Double> inRange = new ArrayList<>();
         for (int i = 0; i < 3; ++i) {
@@ -253,6 +260,5 @@ public class ShooterMove extends SubsystemBase {
 
         Log.d("Velocity of Shooter", String.valueOf(shooterb.getVelocity() * (2 * Math.PI / 28)));
         Log.d("TurretOffset", String.valueOf(turretOffset));
-
     }
 }
