@@ -44,7 +44,7 @@ public class ShooterMove extends SubsystemBase {
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter;
-    private PIDController controllerTurret;
+    public PIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
     public static double pT = 1.68, iT = 0, dT = 0.015;
@@ -151,6 +151,11 @@ public class ShooterMove extends SubsystemBase {
 
     public double getAbsAngle() {
         return Range.scale(abs.getVoltage(), 0, abs.getMaxVoltage(), TURRET_MIN, 270);
+    }
+
+    public void SetTurretOffset(double turrOffset){
+        turretOffset = turrOffset;
+        Log.d("turretOffset", String.valueOf(turretOffset));
     }
 
     @Override

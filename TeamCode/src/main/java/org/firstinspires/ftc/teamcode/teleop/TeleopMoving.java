@@ -96,7 +96,7 @@ public class TeleopMoving extends CommandOpMode {
         Park.setConstantHeadingInterpolation(Math.toRadians(90));
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
         intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
-        limelight = new Limelight(hardwareMap, () -> follower);
+        limelight = new Limelight(hardwareMap, () -> follower, shooter);
         shooter.turretOff(false);
         shooter.flywheel(true);
         Memory.autoRan = false;

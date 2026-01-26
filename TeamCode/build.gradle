@@ -61,20 +61,31 @@ repositories {
         url = "https://repo.dairy.foundation/releases"
     }
 
+    maven {
+        url "https://repo.dairy.foundation/releases"
+    }
+
+    maven {
+        url "https://repo.dairy.foundation/snapshots"
+    }
+
 }
 
 dependencies {
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    implementation "dev.frozenmilk.sinister:Sloth:0.2.4"
+
+    implementation "dev.frozenmilk.dairy:Core:2.2.4"
 
     // SolversLib
     implementation "org.solverslib:core:0.3.3" // core
     implementation("org.solverslib:pedroPathing:0.3.3") {
         exclude group: "com.acmerobotics.dashboard"
     }
-
-    //implementation "com.acmerobotics.dashboard:dashboard:0.5.0" // FTC Dashboard
     implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
+    //implementation "com.acmerobotics.dashboard:dashboard:0.5.0" // FTC Dashboard
+
 
 
     implementation("com.acmerobotics.roadrunner:ftc:0.1.21") {
