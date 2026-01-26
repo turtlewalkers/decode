@@ -49,7 +49,7 @@ public class Intake extends SubsystemBase {
         return new InstantCommand(() -> intake.set(0));
     }
     public Command open() {
-        return new InstantCommand(() -> latch.set(1));
+        return new InstantCommand(() -> latch.set(ShooterMove.canShoot));
     }
 
     public Command close() {

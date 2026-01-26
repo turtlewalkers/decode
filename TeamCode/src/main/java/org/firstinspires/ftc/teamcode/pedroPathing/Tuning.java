@@ -852,9 +852,7 @@ class PredictiveBrakingTuner extends OpMode {
 
                 if (follower.getVelocity().dot(new Vector(direction,
                         follower.getHeading())) <= 0) {
-                    follower.setTeleOpDrive(0, 0, 0, true);
                     state = State.RECORD;
-                    timer.reset();
                 }
                 break;
             }
@@ -871,10 +869,6 @@ class PredictiveBrakingTuner extends OpMode {
                 telemetryM.update(telemetry);
 
                 iteration++;
-
-                while (timer.milliseconds() <= 500) {
-                    follower.setTeleOpDrive(0, 0, 0, true);
-                }
                 state = State.START_MOVE;
 
                 break;
