@@ -25,11 +25,10 @@ public class Turret extends OpMode {
     public static final double TURRET_MAX = 260;
     public static double m = -122.78, b = 277.49;
     public static double offset = 406, limit = 240;
-    private ProfiledPIDController controller;
+    private PIDController controller;
     private AnalogInput abs;
-    public static double p = 1.68, i = 0, d = 0.03;
+    public static double p = 0.8, i = 0, d = 0.03;
     public static double maxV = 530, maxA = 50000;
-    public static TrapezoidProfile.Constraints trapezoidProfileConstraints = new TrapezoidProfile.Constraints(530,0);
     public static double target = 0;
     public static double acceleration = 0;
     public static double currentVelocity = 0, previousVelocity = 0;
@@ -40,7 +39,7 @@ public class Turret extends OpMode {
 
     @Override
     public void init() {
-        controller = new ProfiledPIDController(p, i, d, new TrapezoidProfile.Constraints(maxV, maxA));
+        controller = new PIDController(p, i, d);
 //        controller = new PIDController(p, i, d);
         dashboard = FtcDashboard.getInstance();
         turret = hardwareMap.get(DcMotorEx.class, "turret");
@@ -55,7 +54,6 @@ public class Turret extends OpMode {
     public void loop() {
         double presentVoltage = volt.getVoltage();
         controller.setPID(p, i, d);
-        controller.setConstraints(new TrapezoidProfile.Constraints(maxV, maxA));
         double pos = turret.getCurrentPosition() / TICKS_PER_DEGREES;
         double absVoltage = abs.getVoltage();
         double absDegrees = absVoltage * m + b;
