@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -13,15 +14,18 @@ import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.seattlesolvers.solverslib.controller.PIDController;
+import com.seattlesolvers.solverslib.controller.wpilibcontroller.ProfiledPIDController;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
+import com.seattlesolvers.solverslib.trajectory.TrapezoidProfile;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+@Config
 public class ShooterMove extends SubsystemBase {
     public static final double TURRET_MIN = -135;  // Actual mechanical limit
     public static final double TURRET_MAX = 260;   // Actual mechanical limit
@@ -44,10 +48,10 @@ public class ShooterMove extends SubsystemBase {
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter;
-    private PIDController controllerTurret;
+    private ProfiledPIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
-    public static double pT = 0.8, iT = 0, dT = 0.015;
+    public static double pT = 1.68, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
@@ -56,7 +60,7 @@ public class ShooterMove extends SubsystemBase {
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public static double lastTurretPos;
     public static int canShoot = 1;
-    public static double m = -122.78, b = 277.49;
+    public static double m = -123.71, b = 270.1;
 
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
@@ -79,7 +83,7 @@ public class ShooterMove extends SubsystemBase {
 
 //        controllerShooter = new ProfiledPIDController(p, i, d, new TrapezoidProfile.Constraints(maxV, maxA));
         controllerShooter = new PIDController(p, i, d);
-        controllerTurret = new PIDController(pT, iT, dT);
+        controllerTurret = new ProfiledPIDController(pT, iT, dT, new TrapezoidProfile.Constraints(maxV, maxA));
 
         RPM.add(0, 310);
         RPM.add(42.5, 280);
@@ -154,9 +158,9 @@ public class ShooterMove extends SubsystemBase {
     public double getAbsAngle() {
         double absVoltage = abs.getVoltage();
         double absDegrees = absVoltage * m + b;
-        if (absDegrees >= 245) {
-            absDegrees -= 406;
-        }
+//        if (absDegrees >= 260) {
+//            absDegrees -= 360;
+//        }
         return absDegrees;
     }
 
@@ -233,7 +237,7 @@ public class ShooterMove extends SubsystemBase {
 
         chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
         Log.d("chosen", String.valueOf(chosen));
-
+        controllerTurret.setPID(pT, iT, dT);
         double turretPower = controllerTurret.calculate(turretPos, chosen);
 
 //        if (!Limelight.turretOn && !Limelight.fix) {
