@@ -19,6 +19,8 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.seattlesolvers.solverslib.controller.PIDController;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.robot.Memory;
@@ -111,10 +113,15 @@ public class Limelight extends SubsystemBase {
                 double decodeX = 72 + llY_in;
                 double decodeY = 72 - llX_in;
 
+                Log.d("x", String.valueOf(decodeX));
+                Log.d("y", String.valueOf(decodeY));
+
+
                 if (fix) {
                     Follower follower = followerSupplier.get();
                     double robotHeading = followerSupplier.get().getHeading();
                     follower.setPose(new Pose(decodeX, decodeY, robotHeading));
+                    Log.d("pose", String.valueOf(new Pose(decodeX, decodeY, robotHeading)));
                 }
 
                 if (turretOn) {

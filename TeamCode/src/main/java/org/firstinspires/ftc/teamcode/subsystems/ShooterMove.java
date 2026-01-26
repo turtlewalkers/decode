@@ -267,6 +267,8 @@ public class ShooterMove extends SubsystemBase {
                     turretOffset = (frozenTx+fixedtx);
                     Log.d("frozenTx", "frozentxoffset=" + frozenTx);
                     Log.d("turretOffset", "turretOffset=" + turretOffset);
+                } else {
+                    turretOffset = 0;
                 }
             }
         }
