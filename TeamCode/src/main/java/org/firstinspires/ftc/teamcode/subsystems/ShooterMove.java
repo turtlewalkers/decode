@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ShooterMove extends SubsystemBase {
-    public static final double TURRET_MIN = -130;  // Actual mechanical limit
+    public static final double TURRET_MIN = -135;  // Actual mechanical limit
     public static final double TURRET_MAX = 260;   // Actual mechanical limit
     public final MotorEx shootert;
     public final MotorEx shooterb;
@@ -47,7 +47,7 @@ public class ShooterMove extends SubsystemBase {
     private PIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
-    public static double pT = 1.68, iT = 0, dT = 0.015;
+    public static double pT = 0.8, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
@@ -55,6 +55,8 @@ public class ShooterMove extends SubsystemBase {
     public static double turretPos = 0;
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public static double lastTurretPos;
+    public static int canShoot = 1;
+    public static double m = -122.78, b = 277.49;
 
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
@@ -150,7 +152,12 @@ public class ShooterMove extends SubsystemBase {
     }
 
     public double getAbsAngle() {
-        return Range.scale(abs.getVoltage(), 0, abs.getMaxVoltage(), TURRET_MIN, 270);
+        double absVoltage = abs.getVoltage();
+        double absDegrees = absVoltage * m + b;
+        if (absDegrees >= 245) {
+            absDegrees -= 406;
+        }
+        return absDegrees;
     }
 
     @Override
@@ -194,7 +201,8 @@ public class ShooterMove extends SubsystemBase {
                 targetAngleDeg - 360.0
         };
 
-        turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+//        turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        turretPos = getAbsAngle();
         Log.d("turretPos", String.valueOf(turretPos));
         Log.d("turretPosAbs", String.valueOf(getAbsAngle()));
 
