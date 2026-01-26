@@ -27,8 +27,8 @@ import java.util.function.Supplier;
 
 @Config
 public class ShooterMove extends SubsystemBase {
-    public static final double TURRET_MIN = -135;  // Actual mechanical limit
-    public static final double TURRET_MAX = 260;   // Actual mechanical limit
+    public static final double TURRET_MIN = -127;  // Actual mechanical limit
+    public static final double TURRET_MAX = 250;   // Actual mechanical limit
     public final MotorEx shootert;
     public final MotorEx shooterb;
     public final MotorEx turret;
@@ -51,7 +51,7 @@ public class ShooterMove extends SubsystemBase {
     private ProfiledPIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
-    public static double pT = 1.68, iT = 0, dT = 0.015;
+    public static double pT = 0.7, iT = 0, dT = 0.03;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
