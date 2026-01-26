@@ -41,9 +41,12 @@ public class Limelight extends SubsystemBase {
     private VoltageSensor volt;
 
 
-    private double frozenTx = 0;
+    public double frozenTx = 0;
     private boolean txFrozen = false;
     private ShooterMove currShooter;
+
+    public static boolean hasValidTarget = false;
+
 
 
     public static double TICKS_PER_DEG =
@@ -132,6 +135,9 @@ public class Limelight extends SubsystemBase {
 
                     boolean goodtag = (tagId == targetId);
 
+                    hasValidTarget = hasTarget && goodtag;
+
+
                     double turretPosDeg = ShooterMove.turretPos;
                     Log.d("turretPosDeg", String.valueOf(turretPosDeg));
 
@@ -154,7 +160,7 @@ public class Limelight extends SubsystemBase {
                         power = pidOut;
                         Log.d("PIDPower", String.valueOf(power));
                         //currShooter.turret.set(power/presentVoltage);
-                        currShooter.turret.set(power);
+                        //currShooter.turret.set(power);
                         double fixedtx = result.getTx();
                         Log.d("fixedtx", String.valueOf(fixedtx));
                         Log.d("fixedturretPosDeg", String.valueOf(ShooterMove.turretPos));

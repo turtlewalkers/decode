@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -30,6 +32,7 @@ public class ShooterMove extends SubsystemBase {
     public final MotorEx turret;
     private final ServoEx hood;
     private VoltageSensor volt;
+    private Limelight3A limelight;
     private AnalogInput abs;
     public static double TURRET_FWD_OFFSET  = -1.63; // in
     public static double TURRET_LEFT_OFFSET = 0.0;
@@ -56,10 +59,17 @@ public class ShooterMove extends SubsystemBase {
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public static double lastTurretPos;
 
+    private boolean txFrozen = false;
+    private double frozenTx = 0;
+
+
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
         this.followerSupplier = followerSupplier;
+        limelight = hMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(6);
+        limelight.start();
         shootert = new MotorEx(hMap, "st");
         shooterb = new MotorEx(hMap, "sb");
         turret = new MotorEx(hMap, "turret");
@@ -175,6 +185,17 @@ public class ShooterMove extends SubsystemBase {
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
+
+        LLResult result = limelight.getLatestResult();
+        double tx = result.getTx();
+        if (Limelight.hasValidTarget) {
+            if (!txFrozen) {
+                frozenTx = tx;
+                txFrozen = true;
+            }
+        }
+
+
         for (int i = 0; i < 10; ++i) {
             double shotTime = shottime.get(distance);
 
@@ -233,13 +254,22 @@ public class ShooterMove extends SubsystemBase {
 
         double turretPower = controllerTurret.calculate(turretPos, chosen);
 
-//        if (!Limelight.turretOn && !Limelight.fix) {
+        if (!Limelight.turretOn && !Limelight.fix) {
             turret.set(turretPower / presentVoltage);
             lastTurretPos = turretPos;
             Log.d("lastTurretPos", String.valueOf(lastTurretPos));
-//        } else {
-//            turret.set(Limelight.power);
-//        }
+        } else {
+            if (Limelight.hasValidTarget) {
+                turret.set(Limelight.power);
+                Log.d("Power", String.valueOf(Limelight.power));
+                double fixedtx = result.getTx();
+                if (Math.abs(fixedtx) <= 4.0) {
+                    turretOffset = (frozenTx+fixedtx);
+                    Log.d("frozenTx", "frozentxoffset=" + frozenTx);
+                    Log.d("turretOffset", "turretOffset=" + turretOffset);
+                }
+            }
+        }
         target = RPM.get(distance);
         double theta = angle.get(distance) + hoodOffset;
         theta = Math.max(theta, 0);
