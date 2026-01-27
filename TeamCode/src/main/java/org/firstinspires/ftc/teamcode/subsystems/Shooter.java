@@ -47,7 +47,7 @@ public class Shooter extends SubsystemBase {
     private double shooterX, shooterY;
     private PIDController controllerShooter, controllerTurret;
     public static double p = 1, i = 0.1, d = 0;
-    public static double pT = 1.68, iT = 0, dT = 0.015;
+    public static double pT = 0.5, iT = 0, dT = 0.015;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0212;
     public static double kS = 0.84;

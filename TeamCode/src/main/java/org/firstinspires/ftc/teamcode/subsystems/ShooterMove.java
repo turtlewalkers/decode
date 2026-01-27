@@ -48,10 +48,10 @@ public class ShooterMove extends SubsystemBase {
     private double hoodOffset = 0;
     private double shooterX, shooterY;
     private PIDController controllerShooter;
-    private ProfiledPIDController controllerTurret;
+    private PIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
-    public static double pT = 0.7, iT = 0, dT = 0.03;
+    public static double pT = 0.62, iT = 0, dT = 0.03;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
@@ -83,7 +83,7 @@ public class ShooterMove extends SubsystemBase {
 
 //        controllerShooter = new ProfiledPIDController(p, i, d, new TrapezoidProfile.Constraints(maxV, maxA));
         controllerShooter = new PIDController(p, i, d);
-        controllerTurret = new ProfiledPIDController(pT, iT, dT, new TrapezoidProfile.Constraints(maxV, maxA));
+        controllerTurret = new PIDController(pT, iT, dT);
 
         RPM.add(0, 310);
         RPM.add(42.5, 280);

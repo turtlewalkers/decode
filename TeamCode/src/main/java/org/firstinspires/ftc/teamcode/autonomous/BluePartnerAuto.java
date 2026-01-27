@@ -200,8 +200,8 @@ public class BluePartnerAuto extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 6, 138, true);
-        intake = new Intake(hardwareMap, () -> follower, 6, 138);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 5.1, 136.6, true);
+        intake = new Intake(hardwareMap, () -> follower, 5.1, 136.6);
         this.resetRuntime();
         buildpaths();
 
@@ -212,7 +212,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, PreloadShoot, 1),
                                 shooter.flywheel(true),
-                                shooter.turretOff(false),
+                                shooter.turretOff(true), //change to false when turret is fixed
                                 new SequentialCommandGroup(
                                         new WaitCommand(1650),
                                         intake.open(),
@@ -224,7 +224,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(false),
+                        shooter.turretOff(true), //change
 
 
                         new ParallelCommandGroup(
@@ -239,7 +239,7 @@ public class BluePartnerAuto extends CommandOpMode {
 
                         intake.close(),
                         new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(false),
+                        shooter.turretOff(true), //change
                         new FollowPathCommand(follower, OpenGateAfter1, false),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
@@ -255,7 +255,7 @@ public class BluePartnerAuto extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(false),
+                        shooter.turretOff(true ), //s
                         new WaitCommand(450),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
@@ -272,7 +272,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
                         new WaitCommand(450),
-                        shooter.turretOff(false),
+                        shooter.turretOff(true), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
                         intake.stop(),
@@ -288,7 +288,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
                         new WaitCommand(450),
-                        shooter.turretOff(false),
+                        shooter.turretOff(true), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
                         intake.stop(),
@@ -335,6 +335,7 @@ public class BluePartnerAuto extends CommandOpMode {
         Memory.robotAutoX = follower.getPose().getX();
         Memory.robotAutoY = follower.getPose().getY();
         Memory.robotPose = follower.getPose();
+//        Memory.autoRan = true;
 
 //        Log.d("Drive power")
     }

@@ -69,7 +69,9 @@ public class TeleopMoving extends CommandOpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(start);
         follower.startTeleopDrive(true);
-
+        telemetryData.addData("Pose", Memory.robotPose);
+        telemetryData.addData("Start", start);
+        telemetry.update();
         gamepad = new GamepadEx(gamepad1);
         gamepadOffset = new GamepadEx(gamepad2);
 
@@ -335,7 +337,10 @@ public class TeleopMoving extends CommandOpMode {
 
         Park = new Path(new BezierLine(start, end));
         Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());
-
+        telemetryData.addData("AutoH", Memory.robotHeading);
+        telemetryData.addData("AutoX", Memory.robotAutoX);
+        telemetryData.addData("AutoY", Memory.robotAutoY);
+        telemetryData.addData("Start", start);
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
         telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
