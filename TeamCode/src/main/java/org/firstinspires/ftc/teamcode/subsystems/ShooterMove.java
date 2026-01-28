@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -43,7 +44,7 @@ public class ShooterMove extends SubsystemBase {
     InterpLUT RPM = new InterpLUT();
     InterpLUT angle = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
-    private double turretOff = 0;
+    private double turretOff = 1;
     public static double turretOffset = 0;
     private double hoodOffset = 0;
     private double shooterX, shooterY;
@@ -51,7 +52,7 @@ public class ShooterMove extends SubsystemBase {
     private ProfiledPIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
-    public static double pT = 1.68, iT = 0, dT = 0.015;
+    public static double pT = 1.68, iT = 0, dT = 0.03;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
@@ -61,6 +62,11 @@ public class ShooterMove extends SubsystemBase {
     public static double lastTurretPos;
     public static int canShoot = 1;
     public static double m = -123.71, b = 270.1;
+    private ElapsedTime timer;
+    private double fusedTurretPos = 0.0;
+    private int lastTurretEncoderTicks = 0;
+    public static final double TURRET_TAU = 0.1;
+    private static final double CORRECTION_DEADBAND = 0.05;
 
     public ShooterMove(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY, boolean turretReset) {
         this.shooterX = shooterX;
@@ -80,10 +86,13 @@ public class ShooterMove extends SubsystemBase {
         }
         turret.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         turret.setRunMode(MotorEx.RunMode.RawPower);
-
-//        controllerShooter = new ProfiledPIDController(p, i, d, new TrapezoidProfile.Constraints(maxV, maxA));
+        timer = new ElapsedTime();
+        timer.reset();
+        lastTurretEncoderTicks = turret.getCurrentPosition();
+        fusedTurretPos = ((double) lastTurretEncoderTicks) / TICKS_PER_DEGREES;
         controllerShooter = new PIDController(p, i, d);
         controllerTurret = new ProfiledPIDController(pT, iT, dT, new TrapezoidProfile.Constraints(maxV, maxA));
+        turretOff(false);
 
         RPM.add(0, 310);
         RPM.add(42.5, 280);
@@ -158,10 +167,13 @@ public class ShooterMove extends SubsystemBase {
     public double getAbsAngle() {
         double absVoltage = abs.getVoltage();
         double absDegrees = absVoltage * m + b;
-//        if (absDegrees >= 260) {
-//            absDegrees -= 360;
-//        }
         return absDegrees;
+    }
+
+    private double angleDiffDeg(double a, double b) {
+        double diff = a - b;
+        diff = ((diff + 180.0) % 360.0 + 360.0) % 360.0 - 180.0;
+        return diff;
     }
 
     @Override
@@ -169,14 +181,18 @@ public class ShooterMove extends SubsystemBase {
         Pose robot = followerSupplier.get().getPose();
         double presentVoltage = volt.getVoltage();
 
+        // pose calculations
         double robotX = robot.getX();
         double robotY = robot.getY();
         double robotHeading = robot.getHeading();
         double cosH = Math.cos(robotHeading);
         double sinH = Math.sin(robotHeading);
+
+        // turret offset
         double turretX = TURRET_FWD_OFFSET * cosH;
         double turretY = TURRET_FWD_OFFSET * sinH;
 
+        // shooting while moving
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
@@ -193,6 +209,7 @@ public class ShooterMove extends SubsystemBase {
             Log.d("Distance" + i, String.valueOf(distance));
         }
 
+        // turret angle
         double targetAngleRad = Math.atan2(dy, dx);
         double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
         targetAngleDeg *= turretOff;
@@ -205,11 +222,47 @@ public class ShooterMove extends SubsystemBase {
                 targetAngleDeg - 360.0
         };
 
-//        turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
-        turretPos = getAbsAngle();
+        turretPos = ((double) turret.getCurrentPosition()) / TICKS_PER_DEGREES;
+        double realTurretPos = getAbsAngle();
+
+        // filter
+        double dt = timer.seconds();
+        timer.reset();
+        int curTicks = turret.getCurrentPosition();
+        int deltaTicks = curTicks - lastTurretEncoderTicks;
+        lastTurretEncoderTicks = curTicks;
+        double deltaDeg = ((double) deltaTicks) / TICKS_PER_DEGREES;
+        fusedTurretPos += deltaDeg;
+        double k;
+        if (TURRET_TAU <= 1e-6) {
+            k = 1.0;
+        } else {
+            if (dt <= 0.0) {
+                k = 0.0;
+            } else {
+                k = 1.0 - Math.exp(-dt / TURRET_TAU);
+            }
+        }
+        k = Math.max(0.0, Math.min(1.0, k));
+        double absError = angleDiffDeg(realTurretPos, fusedTurretPos);
+
+        if (Math.abs(absError) > CORRECTION_DEADBAND) {
+            fusedTurretPos += k * absError;
+        }
+
+        fusedTurretPos = Math.max(TURRET_MIN, Math.min(TURRET_MAX, fusedTurretPos));
+
+        Log.d("turretPosMotor", String.valueOf(turretPos));
+        Log.d("turretPosAbs", String.valueOf(realTurretPos));
+        Log.d("turretPosFused", String.valueOf(fusedTurretPos));
+        Log.d("dt", String.valueOf(dt));
+        Log.d("k", String.valueOf(k));
+        Log.d("absError", String.valueOf(absError));
+
         Log.d("turretPos", String.valueOf(turretPos));
         Log.d("turretPosAbs", String.valueOf(getAbsAngle()));
 
+        // hysterisis
         List<Double> inRange = new ArrayList<>();
         for (int i = 0; i < 3; ++i) {
             if (cands[i] >= TURRET_MIN && cands[i] <= TURRET_MAX) {
@@ -238,7 +291,7 @@ public class ShooterMove extends SubsystemBase {
         chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
         Log.d("chosen", String.valueOf(chosen));
         controllerTurret.setPID(pT, iT, dT);
-        double turretPower = controllerTurret.calculate(turretPos, chosen);
+        double turretPower = controllerTurret.calculate(fusedTurretPos, chosen);
 
 //        if (!Limelight.turretOn && !Limelight.fix) {
             turret.set(turretPower / presentVoltage);
