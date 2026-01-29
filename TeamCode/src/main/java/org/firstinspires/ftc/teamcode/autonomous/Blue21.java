@@ -330,18 +330,25 @@ public class Blue21 extends CommandOpMode {
             T++;
         }
         Memory.autoRan = true;
+
+
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
         telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryData.addData("Auto Time", this.getRuntime());
-        Log.d("Ypos", String.valueOf(Memory.robotAutoX));
-        Log.d("Xpos", String.valueOf(Memory.robotAutoY));
-        Log.d("Head", String.valueOf(Memory.robotHeading));
         Log.d("pose", String.valueOf(Memory.robotPose));
-        Memory.robotHeading = follower.getHeading();
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotPose = follower.getPose();
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
         telemetry.update();
 
 //        Log.d("Drive power")
@@ -349,14 +356,25 @@ public class Blue21 extends CommandOpMode {
 
     @Override
     public void end() {
+
         Log.d("Ypos", String.valueOf(Memory.robotAutoX));
         Log.d("Xpos", String.valueOf(Memory.robotAutoY));
         Log.d("Head", String.valueOf(Memory.robotHeading));
         Log.d("EPose", String.valueOf(Memory.robotPose));
-        Memory.robotHeading = follower.getHeading();
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        //Memory.robotPose = follower.getPose();
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
+
+
         Memory.autoRan = true;
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
