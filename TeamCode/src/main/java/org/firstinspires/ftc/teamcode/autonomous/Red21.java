@@ -188,13 +188,13 @@ public class Red21 extends CommandOpMode {
     @Override
     public void initialize() {
         super.reset();
-        Memory.allianceRed = true;
+        Memory.allianceRed = false;
         Memory.autoRan = true;
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138, true);
-        intake = new Intake(hardwareMap, () -> follower, 138, 138);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 6, 138, true);
+        intake = new Intake(hardwareMap, () -> follower, 6, 138);
         this.resetRuntime();
         buildpaths();
 
@@ -205,7 +205,7 @@ public class Red21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, PreloadShoot),
                                 shooter.flywheel(true),
-                                shooter.turretOff(true), //change
+                                shooter.turretOff(false), //change
                                 new SequentialCommandGroup(
                                         new WaitCommand(1350),
                                         intake.open(),
@@ -217,7 +217,7 @@ public class Red21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(true), //cjange
+                        shooter.turretOff(false), //cjange
 
 
                         new ParallelCommandGroup(
@@ -232,7 +232,7 @@ public class Red21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(true), //change
+                        shooter.turretOff(false), //change
                         new WaitCommand(150),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
                         new WaitCommand(750),
@@ -248,7 +248,7 @@ public class Red21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(true), //chage
+                        shooter.turretOff(false), //chage
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -262,7 +262,7 @@ public class Red21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(true),//change
+                        shooter.turretOff(false),//change
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -277,7 +277,7 @@ public class Red21 extends CommandOpMode {
 
 //                        new FollowPathCommand(follower, Turn1, false),
                         new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(true), //change
+                        shooter.turretOff(false), //change
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(

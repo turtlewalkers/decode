@@ -37,12 +37,12 @@ public class Blue21 extends CommandOpMode {
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
-
+    public static int T = 1;
     private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
     private final Pose PreloadScore = new Pose(61, 72.4, Math.toRadians(200));
     private final Pose Stack2Score = new Pose(57, 78, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(15.5, 61.3, Math.toRadians(150));
-    private final Pose CollectGate = new Pose(15, 54, Math.toRadians(125));
+    private final Pose OpenGate = new Pose(14.8, 60.8, Math.toRadians(145));
+    private final Pose CollectGate = new Pose(14, 54, Math.toRadians(125));
     private final Pose Gate1Score = new Pose(59, 77, Math.toRadians(195));
     private final Pose Turny1 = new Pose(59, 78, Math.toRadians(165));
     private final Pose Stack1Score = new Pose(56, 82, Math.toRadians(245));
@@ -92,7 +92,7 @@ public class Blue21 extends CommandOpMode {
         IntakeGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack2Score,
-                        new Pose(36, 59.5),
+                        new Pose(36, 62.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Stack2Score.getHeading(), OpenGate.getHeading())
@@ -118,7 +118,7 @@ public class Blue21 extends CommandOpMode {
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(40, 61.5),
+                        new Pose(40, 62),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -210,9 +210,9 @@ public class Blue21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, PreloadShoot),
                                 shooter.flywheel(true),
-                                shooter.turretOff(true), //change
+                                shooter.turretOff(false), //change
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1350),
+                                        new WaitCommand(1650),
                                         intake.open(),
                                         intake.collect()
                                 )
@@ -222,7 +222,7 @@ public class Blue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(true), //cjange
+                        shooter.turretOff(false), //cjange
 
 
                         new ParallelCommandGroup(
@@ -237,7 +237,7 @@ public class Blue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(true), //change
+                        shooter.turretOff(false), //change
                         new WaitCommand(150),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
                         new WaitCommand(750),
@@ -253,7 +253,7 @@ public class Blue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(true), //chage
+                        shooter.turretOff(false), //chage
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -267,7 +267,7 @@ public class Blue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(true),//change
+                        shooter.turretOff(false),//change
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -282,7 +282,7 @@ public class Blue21 extends CommandOpMode {
 
 //                        new FollowPathCommand(follower, Turn1, false),
                         new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(true), //change
+                        shooter.turretOff(false), //change
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(
@@ -302,7 +302,7 @@ public class Blue21 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot3, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1650),
+                                        new WaitCommand(1850),
                                         intake.open()
                                 )
                         ),
@@ -312,9 +312,8 @@ public class Blue21 extends CommandOpMode {
 
 
 
-                        shooter.turretOff(true),
 //                        new FollowPathCommand(follower, tatawireless, true),
-                        new WaitCommand(500),
+                        new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
         );
@@ -324,32 +323,47 @@ public class Blue21 extends CommandOpMode {
     @Override
     public void run() {
         super.run();
-
+        if (T == 1) {
+            this.resetRuntime();
+            Memory.autoRan = true;
+            Log.d("Reset Time", String.valueOf(Memory.autoRan));
+            T++;
+        }
+        Memory.autoRan = true;
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
-        telemetryData.addData("Heading", follower.getPose().getHeading());
+        telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryData.addData("Auto Time", this.getRuntime());
-        telemetryData.update();
-
+        Log.d("Ypos", String.valueOf(Memory.robotAutoX));
+        Log.d("Xpos", String.valueOf(Memory.robotAutoY));
+        Log.d("Head", String.valueOf(Memory.robotHeading));
+        Log.d("pose", String.valueOf(Memory.robotPose));
         Memory.robotHeading = follower.getHeading();
         Memory.robotAutoX = follower.getPose().getX();
         Memory.robotAutoY = follower.getPose().getY();
         Memory.robotPose = follower.getPose();
+        telemetry.update();
 
 //        Log.d("Drive power")
     }
 
     @Override
     public void end() {
+        Log.d("Ypos", String.valueOf(Memory.robotAutoX));
+        Log.d("Xpos", String.valueOf(Memory.robotAutoY));
+        Log.d("Head", String.valueOf(Memory.robotHeading));
+        Log.d("EPose", String.valueOf(Memory.robotPose));
+        Memory.robotHeading = follower.getHeading();
         Memory.robotAutoX = follower.getPose().getX();
         Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotHeading = follower.getPose().getHeading();
-        Memory.robotPose = follower.getPose();
+        //Memory.robotPose = follower.getPose();
         Memory.autoRan = true;
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
         telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryData.addData("Auto Time", this.getRuntime());
+
+        telemetry.update();
 
         schedule(new InstantCommand(() -> shooter.turretOff(true)));
     }

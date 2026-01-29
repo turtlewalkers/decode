@@ -212,7 +212,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, PreloadShoot, 1),
                                 shooter.flywheel(true),
-                                shooter.turretOff(true), //change to false when turret is fixed
+                                shooter.turretOff(false), //change to false when turret is fixed
                                 new SequentialCommandGroup(
                                         new WaitCommand(1650),
                                         intake.open(),
@@ -224,7 +224,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(true), //change
+                        shooter.turretOff(false), //change
 
 
                         new ParallelCommandGroup(
@@ -239,7 +239,7 @@ public class BluePartnerAuto extends CommandOpMode {
 
                         intake.close(),
                         new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(true), //change
+                        shooter.turretOff(false), //change
                         new FollowPathCommand(follower, OpenGateAfter1, false),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
@@ -255,7 +255,7 @@ public class BluePartnerAuto extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(true ), //s
+                        shooter.turretOff(false ), //s
                         new WaitCommand(450),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
@@ -272,7 +272,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
                         new WaitCommand(450),
-                        shooter.turretOff(true), //b
+                        shooter.turretOff(false), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
                         intake.stop(),
@@ -288,7 +288,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         intake.close(),
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
                         new WaitCommand(450),
-                        shooter.turretOff(true), //b
+                        shooter.turretOff(false), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
                         intake.stop(),
