@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class BluePartnerAuto extends CommandOpMode {
+public class ARedPartnerAuto extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -31,24 +31,24 @@ public class BluePartnerAuto extends CommandOpMode {
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
-    private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
-    private final Pose PreloadScore = new Pose(62.5, 71.4, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(56, 77, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(16.54, 61.8, Math.toRadians(156));
-
-    private final Pose GateOpen = new Pose(17, 70, Math.toRadians(180));
-    private final Pose CollectGate = new Pose(13, 54, Math.toRadians(125));
-    private final Pose Gate1Score = new Pose(59, 78, Math.toRadians(205));
-    private final Pose Stack1Score = new Pose(56, 82, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(56, 82, Math.toRadians(245));
-    private final Pose Collect1 = new Pose(144-125, 83, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(144-127, 60, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(144-127, 36, Math.toRadians(180));
-    private final Pose LeaveZone = new Pose(52, 74.5, Math.toRadians(245));
-    private final Pose farshoot = new Pose(144-81.3, 9, Math.toRadians(245));
+    private final Pose Start = new Pose(144-26.7, 128.2, Math.toRadians(180-135));
+    private final Pose PreloadScore = new Pose(144-61, 72.4, Math.toRadians(540-200));
+    private final Pose Stack2Score = new Pose(144-57, 78, Math.toRadians(540-190));
+    private final Pose OpenGate = new Pose(144-14, 64, Math.toRadians(180-150));
+    private final Pose CollectGate = new Pose(144-13, 56, Math.toRadians(180-125));
+    private final Pose Gate1Score = new Pose(144-57, 78, Math.toRadians(540-190));
+    private final Pose Turny1 = new Pose(144-59, 78, Math.toRadians(180-165));
+    private final Pose Stack1Score = new Pose(144-56, 82, Math.toRadians(540-245));
+    private final Pose Stack3Score = new Pose(144-62.5, 102, Math.toRadians(540-235));
+    private final Pose Collect1 = new Pose(123, 83, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(127, 60, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(127, 36, Math.toRadians(0));
+    private final Pose Turny3 = new Pose(127, 36, Math.toRadians(540-220));
+    private final Pose LeaveZone = new Pose(144-51, 72, Math.toRadians(540-245));
+    private final Pose GateOpen = new Pose(144-16, 70, Math.toRadians(0));
 
     private double timer = 0;
-    private PathChain PreloadShoot, Goto1,OpenGateAfter1,  Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private PathChain ThirdGateSchoot, PreloadShoot, Goto1,OpenGateAfter1,  Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
 
     public void buildpaths() {
@@ -66,7 +66,7 @@ public class BluePartnerAuto extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         PreloadScore,
-                        new Pose(54, 58.5),
+                        new Pose(144-54, 58.5),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(PreloadScore.getHeading(), Collect2.getHeading())
@@ -85,7 +85,7 @@ public class BluePartnerAuto extends CommandOpMode {
         IntakeGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack2Score,
-                        new Pose(36.5, 60),
+                        new Pose(144-36, 59.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Stack2Score.getHeading(), OpenGate.getHeading())
@@ -95,7 +95,7 @@ public class BluePartnerAuto extends CommandOpMode {
         FirstGateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(14.8, 58),
+                        new Pose(144-17, 60),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), CollectGate.getHeading())
@@ -103,19 +103,20 @@ public class BluePartnerAuto extends CommandOpMode {
                 .build();
 
         FirstGateShoot = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        CollectGate,
-                        new Pose(26.5, 50),
-                        Gate1Score)
-                )
+                .addPath(new BezierLine(CollectGate, Gate1Score))
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), Gate1Score.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
+        ThirdGateSchoot = follower.pathBuilder()
+                .addPath(new BezierLine(CollectGate, Stack3Score))
+                .setLinearHeadingInterpolation(CollectGate.getHeading(), Stack3Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(36.5, 59),
+                        new Pose(144-40, 62.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -125,28 +126,18 @@ public class BluePartnerAuto extends CommandOpMode {
         GateShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(26, 56),
+                        new Pose(144-18.3, 60.31578947368421),
+                        new Pose(144-21.08947368421052, 62.013157894736835),
                         Gate1Score)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), Gate1Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
-
-        Goto1 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        Gate1Score,
-                        new Pose(45, 84),
-                        Collect1)
-                )
-                .setLinearHeadingInterpolation((Gate1Score.getHeading()-45), Collect1.getHeading())
-                .setTimeoutConstraint(50)
-                .build();
-
         OpenGateAfter1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Collect1,
-                        new Pose(27, 75),
+                        new Pose(144-27, 75),
                         GateOpen)
                 )
                 .setLinearHeadingInterpolation((Collect1.getHeading()), GateOpen.getHeading())
@@ -162,7 +153,7 @@ public class BluePartnerAuto extends CommandOpMode {
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack1Score,
-                        new Pose(57, 31),
+                        new Pose(144-57, 31),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(Stack1Score.getHeading(), Collect3.getHeading())
@@ -172,13 +163,21 @@ public class BluePartnerAuto extends CommandOpMode {
         Shoot3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Collect3,
-                        new Pose(44, 50),
+                        new Pose(144-44, 50),
                         Stack3Score)
                 )
                 .setLinearHeadingInterpolation(Collect3.getHeading(), Stack3Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
-
+        Goto1 = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        Gate1Score,
+                        new Pose(144-45, 84),
+                        Collect1)
+                )
+                .setLinearHeadingInterpolation((Gate1Score.getHeading()+45), Collect1.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
 
         tatawireless = follower.pathBuilder()
                 .addPath(new BezierLine(Stack3Score, LeaveZone))
@@ -200,8 +199,8 @@ public class BluePartnerAuto extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 5.1, 136.6, true);
-        intake = new Intake(hardwareMap, () -> follower, 5.1, 136.6);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138, true);
+        intake = new Intake(hardwareMap, () -> follower, 138, 138);
         this.resetRuntime();
         buildpaths();
 
@@ -255,11 +254,11 @@ public class BluePartnerAuto extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(false ), //s
+                        shooter.turretOff(false), //s
                         new WaitCommand(450),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
-                        intake.stop(),
+//                        intake.stop(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
@@ -275,7 +274,7 @@ public class BluePartnerAuto extends CommandOpMode {
                         shooter.turretOff(false), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
-                        intake.stop(),
+//                        intake.stop(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
@@ -291,9 +290,9 @@ public class BluePartnerAuto extends CommandOpMode {
                         shooter.turretOff(false), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
-                        intake.stop(),
+//                        intake.stop(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
+                                new FollowPathCommand(follower, ThirdGateSchoot, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(1500),
                                         intake.collect(),
@@ -307,7 +306,7 @@ public class BluePartnerAuto extends CommandOpMode {
 
 
 
-                        shooter.turretOff(true),
+                        shooter.turretOff(false),
                         new FollowPathCommand(follower, tatawireless, true),
                         new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))

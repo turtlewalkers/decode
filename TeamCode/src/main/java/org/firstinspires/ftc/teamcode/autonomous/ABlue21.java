@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import android.util.Log;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -22,7 +25,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class RedPartnerAuto extends CommandOpMode {
+public class ABlue21 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -31,24 +34,26 @@ public class RedPartnerAuto extends CommandOpMode {
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
-    private final Pose Start = new Pose(144-26.7, 128.2, Math.toRadians(180-135));
-    private final Pose PreloadScore = new Pose(144-61, 72.4, Math.toRadians(540-200));
-    private final Pose Stack2Score = new Pose(144-57, 78, Math.toRadians(540-190));
-    private final Pose OpenGate = new Pose(144-14, 62, Math.toRadians(180-150));
-    private final Pose CollectGate = new Pose(144-13, 54, Math.toRadians(180-125));
-    private final Pose Gate1Score = new Pose(144-57, 78, Math.toRadians(540-190));
-    private final Pose Turny1 = new Pose(144-59, 78, Math.toRadians(180-165));
-    private final Pose Stack1Score = new Pose(144-56, 82, Math.toRadians(540-245));
-    private final Pose Stack3Score = new Pose(144-62.5, 102, Math.toRadians(540-235));
-    private final Pose Collect1 = new Pose(123, 83, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(127, 60, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(127, 36, Math.toRadians(0));
-    private final Pose Turny3 = new Pose(127, 36, Math.toRadians(540-220));
-    private final Pose LeaveZone = new Pose(144-51, 72, Math.toRadians(540-245));
-    private final Pose GateOpen = new Pose(144-16, 70, Math.toRadians(0));
+    public static int T = 1;
+    private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
+    private final Pose PreloadScore = new Pose(61, 72.4, Math.toRadians(200));
+    private final Pose Stack2Score = new Pose(57, 78, Math.toRadians(190));
+    private final Pose OpenGate = new Pose(14.8, 60.8, Math.toRadians(145));
+    private final Pose CollectGate = new Pose(14, 54, Math.toRadians(125));
+    private final Pose Gate1Score = new Pose(59, 77, Math.toRadians(195));
+    private final Pose Turny1 = new Pose(59, 78, Math.toRadians(165));
+    private final Pose Stack1Score = new Pose(56, 82, Math.toRadians(245));
+    private final Pose Stack3Score = new Pose(62.5, 102, Math.toRadians(235));
+    private final Pose Collect1 = new Pose(144-123, 83, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(144-127, 60, Math.toRadians(180));
+    private final Pose Collect3 = new Pose(144-127, 36, Math.toRadians(180));
+    private final Pose Turny3 = new Pose(144-127, 36, Math.toRadians(220));
+    private final Pose LeaveZone = new Pose(51, 72, Math.toRadians(245));
 
-    private double timer = 0;
-    private PathChain PreloadShoot, Goto1,OpenGateAfter1,  Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+
+    private Path PreloadShoot;
+    private Path Paneer;
+    private PathChain Turn1, Turn3, Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
 
     public void buildpaths() {
@@ -56,17 +61,16 @@ public class RedPartnerAuto extends CommandOpMode {
         follower.setStartingPose(Start);
         follower.setMaxPower(1);
 
-        PreloadShoot = follower.pathBuilder()
-                .addPath(new BezierLine(Start, PreloadScore))
-                .setLinearHeadingInterpolation(Start.getHeading(), PreloadScore.getHeading())
-                .setTimeoutConstraint(50)
-                .build();
+        PreloadShoot = new Path(new BezierLine(Start, PreloadScore));
+        PreloadShoot.setLinearHeadingInterpolation(Start.getHeading(), PreloadScore.getHeading());
+        PreloadShoot.setTimeoutConstraint(50);
+
 
 
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         PreloadScore,
-                        new Pose(144-54, 58.5),
+                        new Pose(54, 59.5),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(PreloadScore.getHeading(), Collect2.getHeading())
@@ -85,7 +89,7 @@ public class RedPartnerAuto extends CommandOpMode {
         IntakeGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack2Score,
-                        new Pose(144-36, 59.5),
+                        new Pose(36, 62.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Stack2Score.getHeading(), OpenGate.getHeading())
@@ -95,7 +99,7 @@ public class RedPartnerAuto extends CommandOpMode {
         FirstGateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(144-17, 60),
+                        new Pose(17, 58),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), CollectGate.getHeading())
@@ -111,7 +115,7 @@ public class RedPartnerAuto extends CommandOpMode {
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(144-40, 62.5),
+                        new Pose(40, 62),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -121,47 +125,50 @@ public class RedPartnerAuto extends CommandOpMode {
         GateShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(144-18.3, 60.31578947368421),
-                        new Pose(144-21.08947368421052, 62.013157894736835),
+                        new Pose(18.3, 60.31578947368421),
+                        new Pose(21.08947368421052, 62.013157894736835),
                         Gate1Score)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), Gate1Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
+        Turn1 = follower.pathBuilder()
+                .addPath(new BezierLine(Gate1Score, Turny1))
+                .setLinearHeadingInterpolation(Gate1Score.getHeading(), Turny1.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
 
-        OpenGateAfter1 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        Collect1,
-                        new Pose(144-27, 75),
-                        GateOpen)
-                )
-                .setLinearHeadingInterpolation((Collect1.getHeading()), GateOpen.getHeading())
+        Goto1 = follower.pathBuilder()
+                .addPath(new BezierLine(Turny1, Collect1))
+                .setLinearHeadingInterpolation(Turny1.getHeading(), Collect1.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Shoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(GateOpen, Stack1Score))
-                .setLinearHeadingInterpolation(GateOpen.getHeading(), Stack1Score.getHeading())
+                .addPath(new BezierLine(Collect1, Stack1Score))
+                .setLinearHeadingInterpolation(Collect1.getHeading(), Stack1Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack1Score,
-                        new Pose(144-57, 31),
+                        new Pose(57, 31),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(Stack1Score.getHeading(), Collect3.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
+        Turn3 = follower.pathBuilder()
+                .addPath(new BezierLine(Collect3, Turny3))
+                .setLinearHeadingInterpolation(Collect3.getHeading(), Turny3.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
+
         Shoot3 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        Collect3,
-                        new Pose(144-44, 50),
-                        Stack3Score)
-                )
-                .setLinearHeadingInterpolation(Collect3.getHeading(), Stack3Score.getHeading())
+                .addPath(new BezierLine(Turny3, Stack3Score))
+                .setLinearHeadingInterpolation(Turny3.getHeading(), Stack3Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -172,12 +179,14 @@ public class RedPartnerAuto extends CommandOpMode {
                 .setTimeoutConstraint(50)
                 .build();
     }
+
     @Override
     public void reset() {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.resetPosAndIMU();
         pinpoint.recalibrateIMU();
     }
+
     @Override
     public void initialize() {
         super.reset();
@@ -186,8 +195,8 @@ public class RedPartnerAuto extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138, true);
-        intake = new Intake(hardwareMap, () -> follower, 138, 138);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 6, 138, true);
+        intake = new Intake(hardwareMap, () -> follower, 6, 138);
         this.resetRuntime();
         buildpaths();
 
@@ -196,21 +205,21 @@ public class RedPartnerAuto extends CommandOpMode {
                 new SequentialCommandGroup(
                         intake.close(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, PreloadShoot, 1),
+                                new FollowPathCommand(follower, PreloadShoot),
                                 shooter.flywheel(true),
-                                shooter.turretOff(false), //change to false when turret is fixed
+                                shooter.turretOff(false), //change
                                 new SequentialCommandGroup(
                                         new WaitCommand(1650),
                                         intake.open(),
                                         intake.collect()
                                 )
                         ),
-                        new WaitCommand(800),
+                        new WaitCommand(550),
 //                        shooter.turretOff(true),
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(false), //change
+                        shooter.turretOff(false), //cjange
 
 
                         new ParallelCommandGroup(
@@ -220,81 +229,87 @@ public class RedPartnerAuto extends CommandOpMode {
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(800),
+                        new WaitCommand(550),
 //                        shooter.turretOff(true),
+                        intake.close(),
+
+                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
+                        shooter.turretOff(false), //change
+                        new WaitCommand(150),
+                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
+                        new WaitCommand(750),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, FirstGateShoot, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1500),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(550),
 
                         intake.close(),
+
+                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
+                        shooter.turretOff(false), //chage
+                        new WaitCommand(1750),
+
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, GateShoot, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1500),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(550),
+                        intake.close(),
+
+                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
+                        shooter.turretOff(false),//change
+                        new WaitCommand(1750),
+
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, GateShoot, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1500),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(550),
+                        intake.close(),
+
+//                        new FollowPathCommand(follower, Turn1, false),
                         new FollowPathCommand(follower, Goto1, false),
                         shooter.turretOff(false), //change
-                        new FollowPathCommand(follower, OpenGateAfter1, false),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(
                                         new WaitCommand(750),
-                                        new WaitCommand(350),
+                                        new WaitCommand(200),
                                         intake.open()
                                 )
                         ),
-                        new WaitCommand(800),
+                        new WaitCommand(550),
+//                        shooter.turretOff(true),
+                        intake.close(),
+
+//                        new FollowPathCommand(follower, Turn3, false),
+                        new FollowPathCommand(follower, Pickup3, true),
+                        shooter.turretOff(false),
+
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, Shoot3, true),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(1850),
+                                        intake.open()
+                                )
+                        ),
+                        new WaitCommand(550),
 //                        shooter.turretOff(true),
                         intake.close(),
 
 
-                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(false), //s
-                        new WaitCommand(450),
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
-                        new WaitCommand(950),
-                        intake.stop(),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.collect(),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(800),
-                        intake.close(),
-                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new WaitCommand(450),
-                        shooter.turretOff(false), //b
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
-                        new WaitCommand(950),
-                        intake.stop(),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.collect(),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(800),
-                        intake.close(),
-                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new WaitCommand(450),
-                        shooter.turretOff(false), //b
-                        new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
-                        new WaitCommand(950),
-                        intake.stop(),
-                        new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
-                                new SequentialCommandGroup(
-                                        new WaitCommand(1500),
-                                        intake.collect(),
-                                        intake.open()
-                                )
-                        ),
-                        new WaitCommand(800),
-                        intake.close(),
 
-
-
-
-
-                        shooter.turretOff(false),
-                        new FollowPathCommand(follower, tatawireless, true),
+//                        new FollowPathCommand(follower, tatawireless, true),
                         new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
@@ -303,42 +318,68 @@ public class RedPartnerAuto extends CommandOpMode {
 
 
     @Override
-
     public void run() {
-        if (timer == 0) {
-            this.resetRuntime();
-            timer = 1;
-        }
         super.run();
+        if (T == 1) {
+            this.resetRuntime();
+            Memory.autoRan = true;
+            Log.d("Reset Time", String.valueOf(Memory.autoRan));
+            T++;
+        }
+        Memory.autoRan = true;
+
 
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
-        telemetryData.addData("Heading", follower.getPose().getHeading());
+        telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryData.addData("Auto Time", this.getRuntime());
-        telemetryData.update();
-
-        Memory.robotHeading = follower.getHeading();
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotPose = follower.getPose();
-//        Memory.autoRan = true;
+        Log.d("pose", String.valueOf(Memory.robotPose));
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
+        telemetry.update();
 
 //        Log.d("Drive power")
     }
 
     @Override
     public void end() {
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotHeading = follower.getPose().getHeading();
-        Memory.robotPose = follower.getPose();
+
+        Log.d("Ypos", String.valueOf(Memory.robotAutoX));
+        Log.d("Xpos", String.valueOf(Memory.robotAutoY));
+        Log.d("Head", String.valueOf(Memory.robotHeading));
+        Log.d("EPose", String.valueOf(Memory.robotPose));
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
+
+
         Memory.autoRan = true;
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());
         telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryData.addData("Auto Time", this.getRuntime());
 
+        telemetry.update();
+
         schedule(new InstantCommand(() -> shooter.turretOff(true)));
     }
 }
-

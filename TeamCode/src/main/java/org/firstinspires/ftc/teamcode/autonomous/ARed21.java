@@ -6,7 +6,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -17,18 +16,16 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
-import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 @Autonomous
-public class Blue21 extends CommandOpMode {
+public class ARed21 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -37,26 +34,26 @@ public class Blue21 extends CommandOpMode {
     TelemetryData telemetryData = new TelemetryData(telemetry);
 
     // Poses:
-    public static int T = 1;
-    private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
-    private final Pose PreloadScore = new Pose(61, 72.4, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(57, 78, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(14.8, 60.8, Math.toRadians(145));
-    private final Pose CollectGate = new Pose(14, 54, Math.toRadians(125));
-    private final Pose Gate1Score = new Pose(59, 77, Math.toRadians(195));
-    private final Pose Turny1 = new Pose(59, 78, Math.toRadians(165));
-    private final Pose Stack1Score = new Pose(56, 82, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(62.5, 102, Math.toRadians(235));
-    private final Pose Collect1 = new Pose(144-123, 83, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(144-127, 60, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(144-127, 36, Math.toRadians(180));
-    private final Pose Turny3 = new Pose(144-127, 36, Math.toRadians(220));
-    private final Pose LeaveZone = new Pose(51, 72, Math.toRadians(245));
+    public static int T;
+    private final Pose Start = new Pose(144-26.7, 128.2, Math.toRadians(180-135));
+    private final Pose PreloadScore = new Pose(144-61, 72.4, Math.toRadians(540-200));
+    private final Pose Stack2Score = new Pose(145.5-57, 78, Math.toRadians(540-190));
+    private final Pose OpenGate = new Pose(144-13, 64, Math.toRadians(180-150));
+    private final Pose CollectGate = new Pose(144-13, 56, Math.toRadians(180-125));
+    private final Pose Gate1Score = new Pose(145.5-57, 78, Math.toRadians(540-190));
+    private final Pose Turny1 = new Pose(145.5-59, 78, Math.toRadians(180-165));
+    private final Pose Stack1Score = new Pose(145.5-56, 82, Math.toRadians(540-245));
+    private final Pose Stack3Score = new Pose(145.5-62.5, 102, Math.toRadians(540-235));
+    private final Pose Collect1 = new Pose(123, 84, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(127, 60, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(127, 36, Math.toRadians(0));
+    private final Pose Turny3 = new Pose(127, 36, Math.toRadians(540-220));
+    private final Pose LeaveZone = new Pose(145.5-51, 72, Math.toRadians(540-245));
 
 
     private Path PreloadShoot;
     private Path Paneer;
-    private PathChain Turn1, Turn3, Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private PathChain Turn1, Turn3, Goto1, Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2                                                                                                                                                                                                                                                                                                ;
 
 
     public void buildpaths() {
@@ -73,7 +70,7 @@ public class Blue21 extends CommandOpMode {
         Pickup2 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         PreloadScore,
-                        new Pose(54, 59.5),
+                        new Pose(145.5-54, 59.5),
                         Collect2)
                 )
                 .setLinearHeadingInterpolation(PreloadScore.getHeading(), Collect2.getHeading())
@@ -92,7 +89,7 @@ public class Blue21 extends CommandOpMode {
         IntakeGate1 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack2Score,
-                        new Pose(36, 62.5),
+                        new Pose(145.5-36, 62.5),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Stack2Score.getHeading(), OpenGate.getHeading())
@@ -102,7 +99,7 @@ public class Blue21 extends CommandOpMode {
         FirstGateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(17, 58),
+                        new Pose(145.5-17, 58),
                         CollectGate)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), CollectGate.getHeading())
@@ -118,7 +115,7 @@ public class Blue21 extends CommandOpMode {
         GateIntake = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Gate1Score,
-                        new Pose(40, 62),
+                        new Pose(145.5-40, 62),
                         OpenGate)
                 )
                 .setLinearHeadingInterpolation(Gate1Score.getHeading(), OpenGate.getHeading())
@@ -128,8 +125,8 @@ public class Blue21 extends CommandOpMode {
         GateShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         OpenGate,
-                        new Pose(18.3, 60.31578947368421),
-                        new Pose(21.08947368421052, 62.013157894736835),
+                        new Pose(145.5-18.3, 60.31578947368421),
+                        new Pose(145.5-21.08947368421052, 62.013157894736835),
                         Gate1Score)
                 )
                 .setLinearHeadingInterpolation(OpenGate.getHeading(), Gate1Score.getHeading())
@@ -156,7 +153,7 @@ public class Blue21 extends CommandOpMode {
         Pickup3 = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         Stack1Score,
-                        new Pose(57, 31),
+                        new Pose(145.5-57, 31),
                         Collect3)
                 )
                 .setLinearHeadingInterpolation(Stack1Score.getHeading(), Collect3.getHeading())
@@ -193,13 +190,13 @@ public class Blue21 extends CommandOpMode {
     @Override
     public void initialize() {
         super.reset();
-        Memory.allianceRed = false;
+        Memory.allianceRed = true;
         Memory.autoRan = true;
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 6, 138, true);
-        intake = new Intake(hardwareMap, () -> follower, 6, 138);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138, true);
+        intake = new Intake(hardwareMap, () -> follower, 138, 138);
         this.resetRuntime();
         buildpaths();
 
