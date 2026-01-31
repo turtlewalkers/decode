@@ -52,7 +52,7 @@ public class ShooterMove extends SubsystemBase {
     private ProfiledPIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
     public static double maxV = 530, maxA = 3750;
-    public static double pT = 1.68, iT = 0, dT = 0.03;
+    public static double pT = 1.68, iT = 0, dT = 0.025;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
@@ -98,13 +98,13 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(42.5, 280);
         RPM.add(49.5, 300);
         RPM.add(56.5, 320);
-        RPM.add(67.25, 340);
+        RPM.add(70, 340);
         RPM.add(77.25, 350);
         RPM.add(91.75, 370);
         RPM.add(102.75, 390);
         RPM.add(114, 415);
         RPM.add(130.75, 445);
-        RPM.add(148, 484);
+        RPM.add(142, 470);
         RPM.add(3000, 485);
         RPM.createLUT();
 
@@ -112,13 +112,13 @@ public class ShooterMove extends SubsystemBase {
         angle.add(42.5, 0.7);
         angle.add(49.5, 0.7);
         angle.add(56.5, 0.45);
-        angle.add(67.25, 0.25);
+        angle.add(70, 0.21);
         angle.add(77.25, 0.22);
         angle.add(91.75, 0.15);
         angle.add(102.75, 0.12);
         angle.add(114, 0.10);
         angle.add(130.75, 0.03);
-        angle.add(148, 0.04);
+        angle.add(142, 0.1);
         angle.add(3000, 0.01);
         angle.createLUT();
 
@@ -130,7 +130,8 @@ public class ShooterMove extends SubsystemBase {
         shottime.add( 95.7, 0.67);
         shottime.add(101.9, 0.7);
         shottime.add( 116.6, 0.72);
-        shottime.add( 3000, 0.72);
+        shottime.add( 116.6, 0.95);
+        shottime.add( 3000, 1);
         shottime.createLUT();
     }
 
@@ -294,9 +295,9 @@ public class ShooterMove extends SubsystemBase {
         double turretPower = controllerTurret.calculate(fusedTurretPos, chosen);
 
 //        if (!Limelight.turretOn && !Limelight.fix) {
-            turret.set(turretPower / presentVoltage);
-            lastTurretPos = turretPos;
-            Log.d("lastTurretPos", String.valueOf(lastTurretPos));
+        turret.set(turretPower / presentVoltage);
+        lastTurretPos = turretPos;
+        Log.d("lastTurretPos", String.valueOf(lastTurretPos));
 //        } else {
 //            turret.set(Limelight.power);
 //        }

@@ -13,6 +13,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
+import android.util.Log;
 
 import java.util.function.Supplier;
 
@@ -74,5 +75,7 @@ public class Intake extends SubsystemBase {
         double dx = shooterX - robotX;
         double dy = shooterY - robotY;
         double distance = Math.sqrt(dx*dx + dy*dy);
+
+//        Log.d("Intake Current", intake);
     }
 }
