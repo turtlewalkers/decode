@@ -22,14 +22,18 @@ import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 import com.seattlesolvers.solverslib.trajectory.TrapezoidProfile;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 
+import org.firstinspires.ftc.teamcode.robot.Memory;
+import org.psilynx.psikit.core.rlog.RLOGServer;
+import org.psilynx.psikit.core.rlog.RLOGWriter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 @Config
 public class ShooterMove extends SubsystemBase {
-    public static final double TURRET_MIN = -135;  // Actual mechanical limit
-    public static final double TURRET_MAX = 260;   // Actual mechanical limit
+    public static final double TURRET_MIN = -130;  // Actual mechanical limit
+    public static final double TURRET_MAX = 255;   // Actual mechanical limit
     public final MotorEx shootert;
     public final MotorEx shooterb;
     public final MotorEx turret;
@@ -51,8 +55,8 @@ public class ShooterMove extends SubsystemBase {
     private PIDController controllerShooter;
     private ProfiledPIDController controllerTurret;
     public static double p = 0.8, i = 0.05, d = 0;
-    public static double maxV = 530, maxA = 3750;
-    public static double pT = 1.68, iT = 0, dT = 0.025;
+    public static double maxV = 580, maxA = 4000;
+    public static double pT = 1.6, iT = 0, dT = 0.025;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
@@ -61,7 +65,7 @@ public class ShooterMove extends SubsystemBase {
     public static double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
     public static double lastTurretPos;
     public static int canShoot = 1;
-    public static double m = -123.71, b = 270.1;
+    public static double m = -123.71, b = 256.37;
     private ElapsedTime timer;
     private double fusedTurretPos = 0.0;
     private int lastTurretEncoderTicks = 0;
@@ -83,6 +87,11 @@ public class ShooterMove extends SubsystemBase {
         Log.d("Initial Turret Pose", String.valueOf((double)turret.getCurrentPosition() / TICKS_PER_DEGREES));
         if (turretReset) {
             turret.stopAndResetEncoder();
+        }
+        if (Memory.autoRan == true) {
+            pT = 1.48;
+        } else {
+            pT = 1.6;
         }
         turret.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         turret.setRunMode(MotorEx.RunMode.RawPower);
@@ -130,7 +139,7 @@ public class ShooterMove extends SubsystemBase {
         shottime.add( 95.7, 0.67);
         shottime.add(101.9, 0.7);
         shottime.add( 116.6, 0.72);
-        shottime.add( 116.6, 0.95);
+        shottime.add( 136.6, 0.95);
         shottime.add( 3000, 1);
         shottime.createLUT();
     }

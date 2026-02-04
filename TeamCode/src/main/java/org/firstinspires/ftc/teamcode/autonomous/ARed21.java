@@ -38,15 +38,15 @@ public class ARed21 extends CommandOpMode {
     private final Pose Start = new Pose(144-26.7, 128.2, Math.toRadians(180-135));
     private final Pose PreloadScore = new Pose(144-61, 72.4, Math.toRadians(540-200));
     private final Pose Stack2Score = new Pose(145.5-57, 78, Math.toRadians(540-190));
-    private final Pose OpenGate = new Pose(144-13, 64, Math.toRadians(180-150));
+    private final Pose OpenGate = new Pose(144-14, 63, Math.toRadians(180-150));
     private final Pose CollectGate = new Pose(144-13, 56, Math.toRadians(180-125));
     private final Pose Gate1Score = new Pose(145.5-57, 78, Math.toRadians(540-190));
     private final Pose Turny1 = new Pose(145.5-59, 78, Math.toRadians(180-165));
     private final Pose Stack1Score = new Pose(145.5-56, 82, Math.toRadians(540-245));
     private final Pose Stack3Score = new Pose(145.5-62.5, 102, Math.toRadians(540-235));
-    private final Pose Collect1 = new Pose(123, 84, Math.toRadians(0));
+    private final Pose Collect1 = new Pose(125, 84, Math.toRadians(0));
     private final Pose Collect2 = new Pose(127, 60, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(127, 36, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(128, 36, Math.toRadians(0));
     private final Pose Turny3 = new Pose(127, 36, Math.toRadians(540-220));
     private final Pose LeaveZone = new Pose(145.5-51, 72, Math.toRadians(540-245));
 
@@ -219,7 +219,6 @@ public class ARed21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(false), //cjange
 
 
                         new ParallelCommandGroup(
@@ -234,7 +233,6 @@ public class ARed21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(false), //change
                         new WaitCommand(150),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
                         new WaitCommand(750),
@@ -250,7 +248,6 @@ public class ARed21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(false), //chage
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -264,7 +261,6 @@ public class ARed21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(false),//change
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -277,9 +273,7 @@ public class ARed21 extends CommandOpMode {
                         new WaitCommand(550),
                         intake.close(),
 
-//                        new FollowPathCommand(follower, Turn1, false),
                         new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(false), //change
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(
@@ -292,10 +286,7 @@ public class ARed21 extends CommandOpMode {
 //                        shooter.turretOff(true),
                         intake.close(),
 
-//                        new FollowPathCommand(follower, Turn3, false),
                         new FollowPathCommand(follower, Pickup3, true),
-                        shooter.turretOff(false),
-
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot3, true),
                                 new SequentialCommandGroup(

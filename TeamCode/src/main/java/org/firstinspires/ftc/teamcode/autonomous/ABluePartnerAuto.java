@@ -32,23 +32,23 @@ public class ABluePartnerAuto extends CommandOpMode {
 
     // Poses:
     private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
-    private final Pose PreloadScore = new Pose(62.5, 71.4, Math.toRadians(200));
-    private final Pose Stack2Score = new Pose(56, 77, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(16.54, 61.8, Math.toRadians(156));
-
+    private final Pose PreloadScore = new Pose(61, 71.4, Math.toRadians(200));
+    private final Pose Stack2Score = new Pose(59, 77, Math.toRadians(195));
+    private final Pose OpenGate = new Pose(12.8, 62.2, Math.toRadians(145));
+    private final Pose CollectGate = new Pose(14, 54, Math.toRadians(125));
     private final Pose GateOpen = new Pose(17, 70, Math.toRadians(180));
-    private final Pose CollectGate = new Pose(13, 54, Math.toRadians(125));
+//    private final Pose CollectGate = new Pose(13, 54, Math.toRadians(125));
     private final Pose Gate1Score = new Pose(59, 78, Math.toRadians(205));
     private final Pose Stack1Score = new Pose(56, 82, Math.toRadians(245));
-    private final Pose Stack3Score = new Pose(56, 82, Math.toRadians(245));
+    private final Pose Stack3Score = new Pose(62.5, 102, Math.toRadians(235));
     private final Pose Collect1 = new Pose(144-125, 83, Math.toRadians(180));
     private final Pose Collect2 = new Pose(144-127, 60, Math.toRadians(180));
     private final Pose Collect3 = new Pose(144-127, 36, Math.toRadians(180));
-    private final Pose LeaveZone = new Pose(52, 74.5, Math.toRadians(245));
+    private final Pose LeaveZone = new Pose(62.5, 102, Math.toRadians(245));
     private final Pose farshoot = new Pose(144-81.3, 9, Math.toRadians(245));
 
     private double timer = 0;
-    private PathChain PreloadShoot, Goto1,OpenGateAfter1,  Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
+    private PathChain ThridGateShoot, PreloadShoot, Goto1,OpenGateAfter1,  Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
 
 
     public void buildpaths() {
@@ -105,10 +105,19 @@ public class ABluePartnerAuto extends CommandOpMode {
         FirstGateShoot = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         CollectGate,
-                        new Pose(26.5, 50),
+                        new Pose(26.5, 56),
                         Gate1Score)
                 )
                 .setLinearHeadingInterpolation(CollectGate.getHeading(), Gate1Score.getHeading())
+                .setTimeoutConstraint(50)
+                .build();
+        ThridGateShoot = follower.pathBuilder()
+                .addPath(new BezierCurve(
+                        CollectGate,
+                        new Pose(26.5, 53),
+                        Stack3Score)
+                )
+                .setLinearHeadingInterpolation(CollectGate.getHeading(), Stack3Score.getHeading())
                 .setTimeoutConstraint(50)
                 .build();
 
@@ -259,7 +268,7 @@ public class ABluePartnerAuto extends CommandOpMode {
                         new WaitCommand(450),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
-                        intake.stop(),
+//                        intake.stop(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
@@ -275,7 +284,7 @@ public class ABluePartnerAuto extends CommandOpMode {
                         shooter.turretOff(false), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
-                        intake.stop(),
+//                        intake.stop(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, FirstGateShoot, true),
                                 new SequentialCommandGroup(
@@ -291,11 +300,11 @@ public class ABluePartnerAuto extends CommandOpMode {
                         shooter.turretOff(false), //b
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5).withTimeout(500),
                         new WaitCommand(950),
-                        intake.stop(),
+//                        intake.stop(),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, FirstGateShoot, true),
+                                new FollowPathCommand(follower, ThridGateShoot, true),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(1500),
+                                        new WaitCommand(1700),
                                         intake.collect(),
                                         intake.open()
                                 )
@@ -308,7 +317,7 @@ public class ABluePartnerAuto extends CommandOpMode {
 
 
                         shooter.turretOff(true),
-                        new FollowPathCommand(follower, tatawireless, true),
+//                        new FollowPathCommand(follower, tatawireless, true),
                         new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
@@ -331,10 +340,18 @@ public class ABluePartnerAuto extends CommandOpMode {
         telemetryData.addData("Auto Time", this.getRuntime());
         telemetryData.update();
 
-        Memory.robotHeading = follower.getHeading();
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotPose = follower.getPose();
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
 //        Memory.autoRan = true;
 
 //        Log.d("Drive power")
@@ -342,10 +359,18 @@ public class ABluePartnerAuto extends CommandOpMode {
 
     @Override
     public void end() {
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotHeading = follower.getPose().getHeading();
-        Memory.robotPose = follower.getPose();
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
         Memory.autoRan = true;
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());

@@ -23,12 +23,12 @@ public class Turret extends OpMode {
     private FtcDashboard dashboard;
     public static final double TURRET_MIN = -135;
     public static final double TURRET_MAX = 260;
-    public static double m = -122.78, b = 277.49;
+    public static double m = -123.71, b = 256.37;
     public static double offset = 406, limit = 240;
     private ProfiledPIDController controller;
     private AnalogInput abs;
-    public static double p = 0.8, i = 0, d = 0.03;
-    public static double maxV = 530, maxA = 3750;
+    public static double p = 2.1, i = 0, d = 0.02;
+    public static double maxV = 580, maxA = 4000;
     public static double target = 0;
     public static double acceleration = 0;
     public static double currentVelocity = 0, previousVelocity = 0;

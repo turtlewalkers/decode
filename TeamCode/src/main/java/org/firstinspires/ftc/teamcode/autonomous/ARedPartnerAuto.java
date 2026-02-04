@@ -34,8 +34,8 @@ public class ARedPartnerAuto extends CommandOpMode {
     private final Pose Start = new Pose(144-26.7, 128.2, Math.toRadians(180-135));
     private final Pose PreloadScore = new Pose(144-61, 72.4, Math.toRadians(540-200));
     private final Pose Stack2Score = new Pose(144-57, 78, Math.toRadians(540-190));
-    private final Pose OpenGate = new Pose(144-14, 64, Math.toRadians(180-150));
-    private final Pose CollectGate = new Pose(144-13, 56, Math.toRadians(180-125));
+    private final Pose OpenGate = new Pose(144-15, 64, Math.toRadians(180-150));
+    private final Pose CollectGate = new Pose(144-13, 53, Math.toRadians(180-130));
     private final Pose Gate1Score = new Pose(144-57, 78, Math.toRadians(540-190));
     private final Pose Turny1 = new Pose(144-59, 78, Math.toRadians(180-165));
     private final Pose Stack1Score = new Pose(144-56, 82, Math.toRadians(540-245));
@@ -45,7 +45,7 @@ public class ARedPartnerAuto extends CommandOpMode {
     private final Pose Collect3 = new Pose(127, 36, Math.toRadians(0));
     private final Pose Turny3 = new Pose(127, 36, Math.toRadians(540-220));
     private final Pose LeaveZone = new Pose(144-51, 72, Math.toRadians(540-245));
-    private final Pose GateOpen = new Pose(144-16, 70, Math.toRadians(0));
+    private final Pose GateOpen = new Pose(144-16.5, 70, Math.toRadians(0));
 
     private double timer = 0;
     private PathChain ThirdGateSchoot, PreloadShoot, Goto1,OpenGateAfter1,  Pickup1, Shoot1, IntakeGate1, FirstGateShoot, GateShoot, IntakeGate2, FirstGateIntake, GateIntake, ShootGate1, ShootGate2, ShootGate3, Goto2, Pickup2, Shoot2, Pickup3, Shoot3, Goto3, Goto4Part1, Goto4Part2, Goto4, Shoot4P1, Shoot4P2, tatawireless, tatawireless2;
@@ -194,7 +194,7 @@ public class ARedPartnerAuto extends CommandOpMode {
     @Override
     public void initialize() {
         super.reset();
-        Memory.allianceRed = false;
+        Memory.allianceRed = true;
         Memory.autoRan = true;
 
         follower = Constants.createFollower(hardwareMap);
@@ -307,7 +307,7 @@ public class ARedPartnerAuto extends CommandOpMode {
 
 
                         shooter.turretOff(false),
-                        new FollowPathCommand(follower, tatawireless, true),
+//                        new FollowPathCommand(follower, tatawireless, true),
                         new WaitCommand(100),
                         new InstantCommand(() -> shooter.flywheel(false))
                 )
@@ -330,21 +330,37 @@ public class ARedPartnerAuto extends CommandOpMode {
         telemetryData.addData("Auto Time", this.getRuntime());
         telemetryData.update();
 
-        Memory.robotHeading = follower.getHeading();
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotPose = follower.getPose();
-//        Memory.autoRan = true;
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
+        Memory.autoRan = true;
 
 //        Log.d("Drive power")
     }
 
     @Override
     public void end() {
-        Memory.robotAutoX = follower.getPose().getX();
-        Memory.robotAutoY = follower.getPose().getY();
-        Memory.robotHeading = follower.getPose().getHeading();
-        Memory.robotPose = follower.getPose();
+        if (Math.abs(follower.getHeading()) > 0.05) {
+            Memory.robotHeading = follower.getHeading();
+        }
+        if (Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotAutoX = follower.getPose().getX();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05) {
+            Memory.robotAutoY = follower.getPose().getY();
+        }
+        if (Math.abs(follower.getPose().getY()) > 0.05 && Math.abs(follower.getPose().getX()) > 0.05) {
+            Memory.robotPose = follower.getPose();
+        }
         Memory.autoRan = true;
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());

@@ -38,10 +38,10 @@ public class ABlue21 extends CommandOpMode {
     private final Pose Start = new Pose(26.7, 128.2, Math.toRadians(135));
     private final Pose PreloadScore = new Pose(61, 72.4, Math.toRadians(200));
     private final Pose Stack2Score = new Pose(57, 78, Math.toRadians(190));
-    private final Pose OpenGate = new Pose(14.8, 60.8, Math.toRadians(145));
+    private final Pose OpenGate = new Pose(14.2, 62, Math.toRadians(145));
     private final Pose CollectGate = new Pose(14, 54, Math.toRadians(125));
     private final Pose Gate1Score = new Pose(59, 77, Math.toRadians(195));
-    private final Pose Turny1 = new Pose(59, 78, Math.toRadians(165));
+    private final Pose Turny1 = new Pose(50, 81, Math.toRadians(165));
     private final Pose Stack1Score = new Pose(56, 82, Math.toRadians(245));
     private final Pose Stack3Score = new Pose(62.5, 102, Math.toRadians(235));
     private final Pose Collect1 = new Pose(144-123, 83, Math.toRadians(180));
@@ -219,7 +219,6 @@ public class ABlue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, Pickup2, false),
-                        shooter.turretOff(false), //cjange
 
 
                         new ParallelCommandGroup(
@@ -234,7 +233,6 @@ public class ABlue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        shooter.turretOff(false), //change
                         new WaitCommand(150),
                         new FollowPathCommand(follower, FirstGateIntake, true, 0.5),
                         new WaitCommand(750),
@@ -250,7 +248,6 @@ public class ABlue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(false), //chage
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -264,7 +261,6 @@ public class ABlue21 extends CommandOpMode {
                         intake.close(),
 
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        shooter.turretOff(false),//change
                         new WaitCommand(1750),
 
                         new ParallelCommandGroup(
@@ -277,9 +273,7 @@ public class ABlue21 extends CommandOpMode {
                         new WaitCommand(550),
                         intake.close(),
 
-//                        new FollowPathCommand(follower, Turn1, false),
                         new FollowPathCommand(follower, Goto1, false),
-                        shooter.turretOff(false), //change
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot1, true),
                                 new SequentialCommandGroup(
@@ -292,10 +286,7 @@ public class ABlue21 extends CommandOpMode {
 //                        shooter.turretOff(true),
                         intake.close(),
 
-//                        new FollowPathCommand(follower, Turn3, false),
                         new FollowPathCommand(follower, Pickup3, true),
-                        shooter.turretOff(false),
-
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, Shoot3, true),
                                 new SequentialCommandGroup(
