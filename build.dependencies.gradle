@@ -22,8 +22,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
 //    implementation 'com.pedropathing:ftc:2.0.6'
-    implementation 'com.pedropathing:ftc:2.1.0-alpha.1'
-//    implementation 'com.pedropathing:ftc:5.0.0-LOCAL'
+//    implementation 'com.pedropathing:ftc:2.1.0-alpha.1'
+    implementation 'com.pedropathing:ftc:5.0.0-LOCAL'
     implementation 'com.pedropathing:telemetry:1.0.0'
     implementation 'com.bylazar:fullpanels:1.0.9'
 }
