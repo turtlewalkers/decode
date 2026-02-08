@@ -23,8 +23,6 @@ import com.seattlesolvers.solverslib.trajectory.TrapezoidProfile;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 
 import org.firstinspires.ftc.teamcode.robot.Memory;
-import org.psilynx.psikit.core.rlog.RLOGServer;
-import org.psilynx.psikit.core.rlog.RLOGWriter;
 
 import java.util.ArrayList;
 import java.util.List;
