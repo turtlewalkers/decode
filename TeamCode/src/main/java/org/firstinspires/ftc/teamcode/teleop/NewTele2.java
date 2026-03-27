@@ -1,62 +1,59 @@
-//package org.firstinspires.ftc.teamcode.teleop;
-//
-//import com.acmerobotics.dashboard.FtcDashboard;
-//import com.acmerobotics.dashboard.config.Config;
-//import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-//import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-//import com.seattlesolvers.solverslib.controller.PIDController;
-//import com.bylazar.telemetry.PanelsTelemetry;
-//import com.bylazar.telemetry.TelemetryManager;
-//import com.pedropathing.follower.Follower;
-//import com.pedropathing.geometry.Pose;
-//import org.firstinspires.ftc.teamcode.robot.Memory;
-//import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-//import com.qualcomm.robotcore.hardware.DcMotor;
-//import com.qualcomm.robotcore.hardware.DcMotorEx;
-//import com.qualcomm.robotcore.hardware.Servo;
-//import com.seattlesolvers.solverslib.util.InterpLUT;
-//import com.qualcomm.robotcore.hardware.VoltageSensor;
-//
-//import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-//
-//@Disabled
-//@Config
-//@TeleOp
-//public class Teleop extends OpMode {
-//    public static Follower follower;
-//    private PIDController controller, controllerTurret;
-//    private TelemetryManager telemetryM;
-//    public static double p = 0.6, i = 0.1, d = 0;
-//    public static double pT = 0.3, iT = 0, dT = 0.00001;
-//    public static double f = 0.0265;
-//    private static double vel = 0;
-//    public static double target = 0;
-//    public static double alpha = 0.6;
+package org.firstinspires.ftc.teamcode.teleop;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.seattlesolvers.solverslib.controller.PIDController;
+import com.seattlesolvers.solverslib.util.InterpLUT;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.robot.Memory;
+
+@Disabled
+@Config
+@TeleOp
+public class NewTele2 extends OpMode {
+    public static Follower follower;
+////    private PIDController controller, controllerTurret;
+////    private TelemetryManager telemetryM;
+////    public static double p = 0.6, i = 0.1, d = 0;
+////    public static double pT = 0.3, iT = 0, dT = 0.00001;
+////    public static double f = 0.0265;
+////    private static double vel = 0;
+////    public static double target = 0;
+////    public static double alpha = 0.6;
 //    InterpLUT RPM = new InterpLUT();
 //    InterpLUT angle = new InterpLUT();
 //    InterpLUT shottime = new InterpLUT();
-//    private DcMotorEx shooterb, shootert, intake, turret;
-//    private Servo hood;
-//    private VoltageSensor volt;
+    private DcMotorEx shooterb, shootert, intake, turret;
+    private Servo hood;
+    private VoltageSensor volt;
 //    public static double tangle = 40;
 //    public static double theta = 0;
 //    public static double shooterX = 138;
 //    public static double shooterY = 138;
-//    Servo latch;
-//    private double turretOffset = 0;
-//    private static final int TICKS_MIN = -330;
-//    private static final int TICKS_MAX = 990;
-//    public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
-//    public boolean stopAutoTurret = false;
-//    @Override
-//    public void init() {
+    Servo latch;
+    private double turretOffset = 0;
+    private static final int TICKS_MIN = -330;
+    private static final int TICKS_MAX = 990;
+    public static  double TICKS_PER_DEGREES = ((((1.0+(46.0/17.0))) * (1.0+(46.0/11.0))) * 28.0 * 3.0) / 360.0;
+    public boolean stopAutoTurret = false;
+    @Override
+    public void init() {
 //        controller = new PIDController(p, i, d);
 //        controllerTurret = new PIDController(pT, iT, dT);
 //        shooterb = hardwareMap.get(DcMotorEx.class, "sb");
 //        turret = hardwareMap.get(DcMotorEx.class, "turret");
-//        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+////        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+////        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        shootert = hardwareMap.get(DcMotorEx.class, "st");
 //        intake = hardwareMap.get(DcMotorEx.class, "intake");
 //        hood = hardwareMap.get(Servo.class, "hood");
@@ -85,21 +82,21 @@
 //        shottime.add(210, 1);
 //        shottime.createLUT();
 //
-//        latch = hardwareMap.servo.get("latch");
-//    }
-//
-//    @Override
-//    public void start() {
-//        follower = Constants.createFollower(hardwareMap);
-//        follower.setStartingPose(Memory.robotPose);
-//        follower.startTeleOpDrive(true);
-//        follower.update();
+        latch = hardwareMap.servo.get("latch");
+    }
+
+    @Override
+    public void start() {
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(Memory.robotPose);
+        follower.startTeleOpDrive(true);
+        follower.update();
 //        controller = new PIDController(p, i, d);
 //        Memory.autoRan = false;
-//    }
-//
-//    @Override
-//    public void init_loop() {
+    }
+
+    @Override
+    public void init_loop() {
 //        if (gamepad1.a) {
 //            Memory.allianceRed = true;
 //        } else if (gamepad1.b) {
@@ -112,15 +109,15 @@
 //        } else {
 //            shooterY = 138;
 //        }
-//    }
-//
-//    @Override
-//    public void loop() {
-//        double multiplier = 1;
-//        if (gamepad1.left_trigger != 0) multiplier = 0.3;
-//        follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
-//        follower.update();
-//
+    }
+
+    @Override
+    public void loop() {
+        double multiplier = 1;
+        if (gamepad1.left_trigger != 0) multiplier = 0.3;
+        follower.setTeleOpDrive(-gamepad1.left_stick_y * multiplier, -gamepad1.left_stick_x * multiplier, -gamepad1.right_stick_x * multiplier, true);
+        follower.update();
+
 //        if (gamepad1.dpad_up) {
 //            follower.setStartingPose(new Pose(72, 72, 0));
 //        }
@@ -216,5 +213,5 @@
 //        telemetry.addData("RPM: ", RPM.get(distance));
 //        telemetry.addData("Angle: ", angle.get(distance));
 //        telemetry.update();
-//    }
-//}
+    }
+}

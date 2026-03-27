@@ -86,11 +86,11 @@ public class ShooterMove extends SubsystemBase {
         if (turretReset) {
             turret.stopAndResetEncoder();
         }
-        if (Memory.autoRan == true) {
-            pT = 1.48;
-        } else {
-            pT = 1.6;
-        }
+//        if (Memory.autoRan == true) {
+//            pT = 1.48;
+//        } else {
+//            pT = 1.6;
+//        }
         turret.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         turret.setRunMode(MotorEx.RunMode.RawPower);
         timer = new ElapsedTime();
