@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.shooter;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -9,6 +10,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.util.RobotLog;
 
+*/
 /**
  * ShooterFFTest
  *
@@ -34,7 +36,8 @@ import com.qualcomm.robotcore.util.RobotLog;
  *         - testPower
  *         - shooterRPM or rad/s
  *      in a spreadsheet for kV fitting.
- */
+ *//*
+
 
 @Config
 @TeleOp
@@ -174,3 +177,4 @@ public class ShooterTest extends LinearOpMode {
     }
 }
 
+*/

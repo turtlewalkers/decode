@@ -25,10 +25,10 @@ public class Constants {
             .rightRearMotorName("rb") // 1
             .leftRearMotorName("lb") // 2
             .leftFrontMotorName("lf") // 3
-            .leftFrontMotorDirection(DcMotorEx.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorEx.Direction.FORWARD)
-            .leftRearMotorDirection(DcMotorEx.Direction.REVERSE)
-            .rightRearMotorDirection(DcMotorEx.Direction.FORWARD)
+            .leftFrontMotorDirection(DcMotorEx.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorEx.Direction.REVERSE)
+            .leftRearMotorDirection(DcMotorEx.Direction.FORWARD)
+            .rightRearMotorDirection(DcMotorEx.Direction.REVERSE)
             .xVelocity(78.420)
             .yVelocity(63.420);
     public static FollowerConstants followerConstants = new FollowerConstants()

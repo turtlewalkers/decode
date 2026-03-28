@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.camera;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
 
+*/
 /**
  * Limelight tuning / inspection OpMode.
  *
@@ -24,7 +26,8 @@ import java.util.List;
  *
  * Use this while you move the robot around by hand to learn where
  * tags are reliable and what quality numbers look like.
- */
+ *//*
+
 @TeleOp(name = "LimelightTuning", group = "Test")
 @Config
 public class Limelight extends LinearOpMode {
@@ -33,16 +36,24 @@ public class Limelight extends LinearOpMode {
 
     // --- Tunable filters (FTC Dashboard) ---
 
-    /** Keep only tags with this ID; -1 = accept any ID. */
+    */
+/** Keep only tags with this ID; -1 = accept any ID. *//*
+
     public static int TARGET_TAG_ID = -1;
 
-    /** Minimum image area (0–100) for a tag to be considered "good". */
+    */
+/** Minimum image area (0–100) for a tag to be considered "good". *//*
+
     public static double MIN_TAG_AREA = 0.5;
 
-    /** Maximum allowed staleness in ms (how old the frame is). */
+    */
+/** Maximum allowed staleness in ms (how old the frame is). *//*
+
     public static long MAX_STALENESS_MS = 150;
 
-    /** If true, log best-tag info to logcat/RobotLog periodically. */
+    */
+/** If true, log best-tag info to logcat/RobotLog periodically. *//*
+
     public static boolean LOG_TO_ROBOTLOG = true;
 
     private Limelight3A limelight;
@@ -192,3 +203,4 @@ public class Limelight extends LinearOpMode {
         limelight.stop();
     }
 }
+*/

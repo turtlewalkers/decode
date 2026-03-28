@@ -1,4 +1,3 @@
-/*
 package org.firstinspires.ftc.teamcode.teleop;
 
 
@@ -29,20 +28,16 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Limelight;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
 
 import java.util.List;
 
 @Config
 @TeleOp
-public class TeleopMoving extends CommandOpMode {
+public class Teleop5 extends CommandOpMode {
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
     private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
-    private ShooterMove shooter;
-    private Limelight limelight;
     public static double shooterX, shooterY, gateX, gateY;
     private double multiplier = 1;
     private Path Park, Stay;
@@ -77,37 +72,10 @@ public class TeleopMoving extends CommandOpMode {
         gamepad = new GamepadEx(gamepad1);
         gamepadOffset = new GamepadEx(gamepad2);
 
-        if (Memory.allianceRed) {
-            shooterX = 138;
-            shooterY = 138;
-            gateX = 6;
-            gateY = 70;
-            end = new Pose(36.5, 38, Math.toRadians(90));
-            relocalize = new Pose(12.315, 8.7159, Math.toRadians(174.392));
-        } else {
-            shooterX = 6;
-            shooterY = 138;
-            gateX = 138;
-            gateY = 70;
-            end = new Pose(105, 33, Math.toRadians(90));
-            relocalize = new Pose(132.8288, 8.3812, Math.toRadians(6.7524));
-        }
-        if (!Memory.autoRan) {
-            Memory.robotPose = new Pose(72, 72, Math.toRadians(90));
-        }
-        Park = new Path(new BezierLine(start, end));
+     /*   Park = new Path(new BezierLine(start, end));
         Stay = new Path(new BezierLine(start, start));
-        Park.setConstantHeadingInterpolation(Math.toRadians(90));
-        shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY, !Memory.autoRan);
+        Park.setConstantHeadingInterpolation(Math.toRadians(90));*/
         intake = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
-        limelight = new Limelight(hardwareMap, () -> follower);
-        shooter.turretOff(false);
-        shooter.flywheel(true);
-        Memory.autoRan = false;
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> Memory.allianceRed = !Memory.allianceRed)
-        );
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5).whenActive(
                 intake.collect()
@@ -123,10 +91,10 @@ public class TeleopMoving extends CommandOpMode {
 
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5).whenActive(
                 new SequentialCommandGroup(
-                        intake.open(),
+                     //   intake.open(),
                         new ParallelCommandGroup(
-                                intake.collect(),
-                                intake.LEDon()
+                                intake.collect()
+                             //   intake.LEDon()
 //                        new InstantCommand(() -> multiplier = 0.1)
                         )
                 )
@@ -136,9 +104,9 @@ public class TeleopMoving extends CommandOpMode {
                         gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) < 0.5
         ).whenActive(
                 new ParallelCommandGroup(
-                        intake.stop(),
-                        intake.close(),
-                        intake.LEDoff()
+                        intake.stop()
+                //        intake.close(),
+                 //       intake.LEDoff()
                 )
         );
         new Trigger(() ->
@@ -146,27 +114,18 @@ public class TeleopMoving extends CommandOpMode {
                         gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5
         ).whenActive(
                 new ParallelCommandGroup(
-                        intake.collect(),
-                        intake.close(),
-                        intake.LEDoff()
+                        intake.collect()
+                //        intake.close(),
+                  //      intake.LEDoff()
                 )
         );
 
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                shooter.turretOff(true)
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
-                shooter.turretOff(false)
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
+        /*gamepad.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
                 new SequentialCommandGroup(
                         new InstantCommand(() -> start = follower.getPose()),
                         new FollowPathCommand(follower, Park)
                 )
-        );
+        );*/
 
         gamepad.getGamepadButton(GamepadKeys.Button.X).whenPressed(
                 new InstantCommand(() -> {
@@ -177,57 +136,13 @@ public class TeleopMoving extends CommandOpMode {
 
         gamepad.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
                 new SequentialCommandGroup(
-                        new InstantCommand(() -> start = follower.getPose()),
-                        new FollowPathCommand(follower, Stay, true)
+                        new InstantCommand(() -> start = follower.getPose())
+                     //   new FollowPathCommand(follower, Stay, true)
                 )
-        );
-        gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(
-                shooter.flywheel(false)
-        );
-        gamepad.getGamepadButton(GamepadKeys.Button.A).whenPressed(
-                shooter.flywheel(true)
-        );
-
-
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                shooter.decreaseHoodOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
-            shooter.increaseHoodOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                shooter.decreaseTurretOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
-            shooter.increaseTurretOffset()
-        );
-
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(
-                shooter.OffsetZero()
         );
 
         gamepadOffset.getGamepadButton(GamepadKeys.Button.B).whenPressed(
                 new InstantCommand(() -> follower.setPose(relocalize))
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(
-                limelight.relocalize()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenReleased(
-                limelight.norelocalize()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                limelight.fixTurret()
-        );
-
-        gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
-                limelight.nofixTurret()
         );
 
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -337,8 +252,8 @@ public class TeleopMoving extends CommandOpMode {
         }
         follower.update();
 
-        Park = new Path(new BezierLine(start, end));
-        Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());
+        /*Park = new Path(new BezierLine(start, end));
+        Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());*/
         telemetryData.addData("AutoH", Memory.robotHeading);
         telemetryData.addData("AutoX", Memory.robotAutoX);
         telemetryData.addData("AutoY", Memory.robotAutoY);
@@ -349,4 +264,3 @@ public class TeleopMoving extends CommandOpMode {
         telemetryData.update();
     }
 }
-*/

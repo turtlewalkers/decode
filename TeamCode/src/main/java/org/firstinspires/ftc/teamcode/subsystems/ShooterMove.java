@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import android.util.Log;
@@ -334,4 +335,4 @@ public class ShooterMove extends SubsystemBase {
         Log.d("Velocity of Shooter", String.valueOf(shooterb.getVelocity() * (2 * Math.PI / 28)));
         Log.d("TurretOffset", String.valueOf(turretOffset));
     }
-}
+}*/

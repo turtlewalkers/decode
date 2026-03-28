@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.shooter;
 
 import static org.firstinspires.ftc.teamcode.subsystems.ShooterMove.kV;
@@ -92,4 +93,4 @@ public class Shooter extends OpMode {
             throw new RuntimeException(e);
         }
     }
-}
+}*/
