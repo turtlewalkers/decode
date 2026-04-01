@@ -6,6 +6,10 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.pedropathing.ftc.drivetrains.Mecanum;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -34,6 +38,7 @@ public class Teleop5 extends CommandOpMode {
     private Pose start;
     List<LynxModule> allHubs;
     private GoBildaPinpointDriver pinpoint;
+    private DcMotorEx lf, rf, lb, rb;
 
     @Override
     public void reset() {
@@ -57,6 +62,14 @@ public class Teleop5 extends CommandOpMode {
         intake = new Intake(hardwareMap);
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY);
         register(shooter);
+
+        // Motor order from Mecanum.java:60 — Arrays.asList(leftFront, leftRear, rightFront, rightRear)
+        // Source: com.pedropathing/ftc/2.1.0-SNAPSHOT (ftc-2.1.0-SNAPSHOT-sources.jar)
+        List<DcMotorEx> driveMotors = ((Mecanum) follower.getDrivetrain()).getMotors();
+        lf = driveMotors.get(0);  // leftFront
+        lb = driveMotors.get(1);  // leftRear
+        rf = driveMotors.get(2);  // rightFront
+        rb = driveMotors.get(3);  // rightRear
 
         // Left trigger — collect mode: intake + transfer run, stall stops transfer
         new Trigger(() -> gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5)
@@ -118,6 +131,10 @@ public class Teleop5 extends CommandOpMode {
         telemetryData.addData("Y", follower.getPose().getY());
         telemetryData.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryData.addData("Flywheel RPM", shooter.getFlywheelRpm());
+        telemetryData.addData("LF current (A)", lf.getCurrent(CurrentUnit.AMPS));
+        telemetryData.addData("RF current (A)", rf.getCurrent(CurrentUnit.AMPS));
+        telemetryData.addData("LB current (A)", lb.getCurrent(CurrentUnit.AMPS));
+        telemetryData.addData("RB current (A)", rb.getCurrent(CurrentUnit.AMPS));
         telemetryData.update();
     }
 }
