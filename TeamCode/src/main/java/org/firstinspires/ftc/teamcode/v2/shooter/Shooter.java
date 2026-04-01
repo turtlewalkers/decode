@@ -25,7 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
  * DPAD up/down         — adjust TARGET_RPM by 10
  *
  * === PID TUNING PROCEDURE ===
- * 1. Set ENABLE_FF = false, TARGET_RPM = 300
+ * 1. Set ENABLE_FF = false, TARGET_RAD = 300 (rad/s ≈ 2865 RPM)
  * 2. Increase p until velocity reaches target without oscillation
  * 3. Add i to eliminate steady-state error (keep small to avoid windup)
  * 4. Set ENABLE_FF = true with kV/kS from ShooterTest for best performance
@@ -39,11 +39,11 @@ public class Shooter extends OpMode {
 
     // --- Flywheel PID + FF ---
     public static double p = 0.8, i = 0.05, d = 0;
-    public static double f = 0.026;
-    public static double TARGET_RPM = 300;
+    public static double f = 0.0025;
+    public static double TARGET_RAD = 300;        // rad/s — 300 rad/s ≈ 2865 RPM (~0.55 power)
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.002482948;   // retune on V2 using ShooterTest
-    public static double kS = 4.940223544;   // retune on V2 using ShooterTest
+    public static double kV = 0.021814629;   // retune on V2 using ShooterTest
+    public static double kS = 0.872149217;   // retune on V2 using ShooterTest
 
     // --- Hood ---
     public static boolean HOOD_ENABLED = false;
@@ -86,6 +86,7 @@ public class Shooter extends OpMode {
 
         shooterB = hardwareMap.get(DcMotorEx.class, "sb");
         shooterT = hardwareMap.get(DcMotorEx.class, "st");
+        shooterB.setDirection(DcMotorSimple.Direction.REVERSE);
         volt     = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         if (INTAKE_ENABLED) {
@@ -99,7 +100,7 @@ public class Shooter extends OpMode {
         hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
 
         telemetry.addData("Status", "Ready — LEFT=collect  RIGHT=shoot");
-        telemetry.addData("TARGET_RPM",     TARGET_RPM);
+        telemetry.addData("TARGET_RAD",     TARGET_RAD);
         telemetry.addData("INTAKE_ENABLED", INTAKE_ENABLED);
         telemetry.update();
     }
@@ -111,9 +112,9 @@ public class Shooter extends OpMode {
         boolean up           = gamepad1.dpad_up;
         boolean down         = gamepad1.dpad_down;
 
-        // DPAD — adjust TARGET_RPM live
-        if (up   && !lastUp)   TARGET_RPM += 10;
-        if (down && !lastDown) TARGET_RPM -= 10;
+        // DPAD — adjust TARGET_RAD live
+        if (up   && !lastUp)   TARGET_RAD += 10;
+        if (down && !lastDown) TARGET_RAD -= 10;
         lastUp = up; lastDown = down;
 
         // Hood
@@ -177,34 +178,34 @@ public class Shooter extends OpMode {
         // --- Flywheel PID + FF (always running) ---
         controller.setPID(p, i, d);
         double presentVoltage = volt.getVoltage();
-        double vel = shooterB.getVelocity() / 28.0 * 60.0;  // ticks/sec → RPM
+        double vel = shooterB.getVelocity() * (2 * Math.PI / 28);  // ticks/sec → rad/s (matches V1)
 
-        double pid = controller.calculate(vel, TARGET_RPM);
+        double pid = controller.calculate(vel, TARGET_RAD);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
 
-        double ffVolts = ENABLE_FF ? (kV * TARGET_RPM + kS * Math.signum(TARGET_RPM)) : f * TARGET_RPM;
+        double ffVolts = ENABLE_FF ? (kV * TARGET_RAD + kS * Math.signum(TARGET_RAD)) : f * TARGET_RAD;
         double flywheelVolts = Math.max(-presentVoltage, Math.min(pid + ffVolts, presentVoltage));
 
-        shooterB.setPower((-1) * flywheelVolts / presentVoltage);
+        shooterB.setPower(flywheelVolts / presentVoltage);
         shooterT.setPower(flywheelVolts / presentVoltage);
 
         // --- Telemetry ---
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Velocity (RPM)", vel);
-        packet.put("Target (RPM)",   TARGET_RPM);
-        packet.put("Error (RPM)",    TARGET_RPM - vel);
-        packet.put("PID output",     pid);
-        packet.put("FF volts",       ffVolts);
-        packet.put("Battery V",      presentVoltage);
-        packet.put("transferStalled", transferStalled);
+        packet.put("Velocity (rad/s)", vel);
+        packet.put("Target (rad/s)",   TARGET_RAD);
+        packet.put("Error (rad/s)",    TARGET_RAD - vel);
+        packet.put("PID output",       pid);
+        packet.put("FF volts",         ffVolts);
+        packet.put("Battery V",        presentVoltage);
+        packet.put("transferStalled",  transferStalled);
         dashboard.sendTelemetryPacket(packet);
 
-        telemetry.addData("transferStalled", transferStalled);
-        telemetry.addData("Velocity (RPM)", "%.1f", vel);
-        telemetry.addData("Target (RPM)",   "%.1f", TARGET_RPM);
-        telemetry.addData("Error (RPM)",    "%.1f", TARGET_RPM - vel);
-        telemetry.addData("Battery V",      "%.2f", presentVoltage);
-        telemetry.addData("DPAD up/down",   "adjust TARGET_RPM (now %.0f)", TARGET_RPM);
+        telemetry.addData("transferStalled",  transferStalled);
+        telemetry.addData("Velocity (rad/s)", "%.1f", vel);
+        telemetry.addData("Target (rad/s)",   "%.1f", TARGET_RAD);
+        telemetry.addData("Error (rad/s)",    "%.1f", TARGET_RAD - vel);
+        telemetry.addData("Battery V",        "%.2f", presentVoltage);
+        telemetry.addData("DPAD up/down",     "adjust TARGET_RAD (now %.0f)", TARGET_RAD);
         telemetry.update();
     }
 
