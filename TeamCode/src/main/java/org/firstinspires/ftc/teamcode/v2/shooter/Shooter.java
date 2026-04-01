@@ -6,86 +6,216 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.controller.PIDController;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+
 /**
  * Flywheel PID tuning opmode.
- * Set target RPM (rad/s) via FTC Dashboard, tune p/i/d until velocity converges cleanly.
- * Hood angle and latch also controllable for full shot testing.
+ * Both vel and target are in RPM — tuned p/i/d values copy directly to ShooterMove.
  *
- * Controls:
- *   Right trigger: intake
- *   Y (hold):      latch open
+ * === SEQUENCE ===
+ * Left trigger (hold)  — collect: intake + transfer run, first ball stalls transfer
+ *                        → transfer stops, all 3 balls held at closed latch
+ * Right trigger (hold) — shoot: latch open + transfer run → all 3 balls fire
+ * Release right        — latch close, transfer stop
+ * DPAD up/down         — adjust TARGET_RPM by 10
+ *
+ * === PID TUNING PROCEDURE ===
+ * 1. Set ENABLE_FF = false, TARGET_RPM = 300
+ * 2. Increase p until velocity reaches target without oscillation
+ * 3. Add i to eliminate steady-state error (keep small to avoid windup)
+ * 4. Set ENABLE_FF = true with kV/kS from ShooterTest for best performance
+ * 5. Load 3 balls (left trigger), then shoot (right trigger)
+ *    Watch RPM dip per ball on Dashboard — tune until recovery is fast between balls
+ * 6. Copy confirmed p/i/d to ShooterMove
  */
 @Config
 @TeleOp(name = "Shooter", group = "V2")
 public class Shooter extends OpMode {
-    private FtcDashboard dashboard;
-    private PIDController controller;
 
+    // --- Flywheel PID + FF ---
     public static double p = 0.8, i = 0.05, d = 0;
     public static double f = 0.026;
-    public static double target = 0;           // rad/s — set from Dashboard
-    public static double alpha = 0.6;
-    public static double theta = 0;            // hood position [0, 1]
+    public static double TARGET_RPM = 300;
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.002482948;     // retune on V2
-    public static double kS = 4.940223544;     // retune on V2
-    public static double multiplier = 0.65;
+    public static double kV = 0.002482948;   // retune on V2 using ShooterTest
+    public static double kS = 4.940223544;   // retune on V2 using ShooterTest
 
-    private DcMotorEx shooterB, shooterT, intake;
+    // --- Hood ---
+    public static boolean HOOD_ENABLED = false;
+    public static double theta = 0;          // hood position [0, 1]
+
+    // --- Intake / transfer / latch ---
+    public static boolean INTAKE_ENABLED     = true;
+    public static double  INTAKE_SPEED       = 1.0;
+    public static double  TRANSFER_SPEED     = 1.0;
+    public static double  LATCH_OPEN         = 0.71;
+    public static double  LATCH_CLOSED       = 0.95;
+
+    // --- Stall detection (collect mode) ---
+    public static double STALL_CURRENT        = 3.0;  // amps
+    public static int    STALL_LOOPS          = 2;    // consecutive loops above threshold → stall confirmed
+    public static int    STARTUP_IGNORE_LOOPS = 10;   // ignore stall for first N loops after transfer starts
+
+    // Hardware
+    private FtcDashboard dashboard;
+    private PIDController controller;
+    private DcMotorEx shooterB, shooterT;
+    private DcMotorEx intakeMotor, transferMotor;
     private Servo hood, latch;
     private VoltageSensor volt;
 
+    // Collect state
+    private boolean transferStalled = false;
+    private int stallCount    = 0;
+    private int startupCount  = 0;
+
+    private boolean lastLeft  = false;
+    private boolean lastRight = false;
+    private boolean lastUp    = false;
+    private boolean lastDown  = false;
+
     @Override
     public void init() {
-        dashboard = FtcDashboard.getInstance();
+        dashboard  = FtcDashboard.getInstance();
         controller = new PIDController(p, i, d);
 
         shooterB = hardwareMap.get(DcMotorEx.class, "sb");
         shooterT = hardwareMap.get(DcMotorEx.class, "st");
-        intake   = hardwareMap.get(DcMotorEx.class, "intake");
-        hood     = hardwareMap.get(Servo.class, "hood");
-        latch    = hardwareMap.get(Servo.class, "latch");
         volt     = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
-        telemetry.addData("Status", "Initialized — set target RPM on Dashboard");
+        if (INTAKE_ENABLED) {
+            intakeMotor   = hardwareMap.get(DcMotorEx.class, "intake");
+            transferMotor = hardwareMap.get(DcMotorEx.class, "transfer");
+            latch         = hardwareMap.get(Servo.class, "latch");
+            transferMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            latch.setPosition(LATCH_CLOSED);
+        }
+
+        hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
+
+        telemetry.addData("Status", "Ready — LEFT=collect  RIGHT=shoot");
+        telemetry.addData("TARGET_RPM",     TARGET_RPM);
+        telemetry.addData("INTAKE_ENABLED", INTAKE_ENABLED);
         telemetry.update();
     }
 
     @Override
     public void loop() {
-        intake.setPower(gamepad1.right_trigger * multiplier);
-        hood.setPosition(theta);
-        latch.setPosition(gamepad1.y ? 1 : 0);
+        boolean leftTrigger  = gamepad1.left_trigger  > 0.5;
+        boolean rightTrigger = gamepad1.right_trigger > 0.5;
+        boolean up           = gamepad1.dpad_up;
+        boolean down         = gamepad1.dpad_down;
 
+        // DPAD — adjust TARGET_RPM live
+        if (up   && !lastUp)   TARGET_RPM += 10;
+        if (down && !lastDown) TARGET_RPM -= 10;
+        lastUp = up; lastDown = down;
+
+        // Hood
+        if (HOOD_ENABLED && hood != null) hood.setPosition(theta);
+
+        // --- Intake / transfer / latch logic ---
+        if (INTAKE_ENABLED) {
+            if (rightTrigger) {
+                // Shoot — latch open, transfer run continuously (no stall detection)
+                latch.setPosition(LATCH_OPEN);
+                intakeMotor.setPower(INTAKE_SPEED);
+                transferMotor.setPower(TRANSFER_SPEED);
+                // Reset collect state so next left trigger works fresh
+                transferStalled = false;
+                stallCount      = 0;
+                startupCount    = 0;
+
+            } else if (leftTrigger) {
+                // Collect — intake + transfer run, stall stops transfer (first ball blocks latch)
+                latch.setPosition(LATCH_CLOSED);
+                intakeMotor.setPower(INTAKE_SPEED);
+
+                if (!transferStalled) {
+                    transferMotor.setPower(TRANSFER_SPEED);
+
+                    // Stall detection
+                    if (startupCount < STARTUP_IGNORE_LOOPS) {
+                        startupCount++;
+                    } else {
+                        double current = transferMotor.getCurrent(CurrentUnit.AMPS);
+                        if (current > STALL_CURRENT) {
+                            stallCount++;
+                            if (stallCount >= STALL_LOOPS) {
+                                transferStalled = true;
+                                transferMotor.setPower(0);
+                            }
+                        } else {
+                            stallCount = 0;
+                        }
+                    }
+                }
+                // If already stalled, intake keeps running to push remaining balls up to latch
+
+            } else {
+                // Neither trigger — stop everything, close latch
+                latch.setPosition(LATCH_CLOSED);
+                intakeMotor.setPower(0);
+                transferMotor.setPower(0);
+                // Reset stall state when left trigger released so next press works fresh
+                if (lastLeft) {
+                    transferStalled = false;
+                    stallCount      = 0;
+                    startupCount    = 0;
+                }
+            }
+        }
+
+        lastLeft  = leftTrigger;
+        lastRight = rightTrigger;
+
+        // --- Flywheel PID + FF (always running) ---
         controller.setPID(p, i, d);
         double presentVoltage = volt.getVoltage();
-        double vel = shooterB.getVelocity() * (2 * Math.PI / 28);
+        double vel = shooterB.getVelocity() / 28.0 * 60.0;  // ticks/sec → RPM
 
-        double pid = controller.calculate(vel, target);
+        double pid = controller.calculate(vel, TARGET_RPM);
         pid = Math.max(-presentVoltage, Math.min(pid, presentVoltage));
 
-        double ffVolts = ENABLE_FF ? (kV * target + kS * Math.signum(target)) : f * target;
+        double ffVolts = ENABLE_FF ? (kV * TARGET_RPM + kS * Math.signum(TARGET_RPM)) : f * TARGET_RPM;
         double flywheelVolts = Math.max(-presentVoltage, Math.min(pid + ffVolts, presentVoltage));
 
-        shooterB.setPower(flywheelVolts / presentVoltage);
-        shooterT.setPower((-1) * flywheelVolts / presentVoltage);
+        shooterB.setPower((-1) * flywheelVolts / presentVoltage);
+        shooterT.setPower(flywheelVolts / presentVoltage);
 
+        // --- Telemetry ---
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Velocity (rad/s)", vel);
-        packet.put("Target (rad/s)", target);
-        packet.put("Error", target - vel);
-        packet.put("PID output", pid);
-        packet.put("FF volts", ffVolts);
-        packet.put("Battery V", presentVoltage);
+        packet.put("Velocity (RPM)", vel);
+        packet.put("Target (RPM)",   TARGET_RPM);
+        packet.put("Error (RPM)",    TARGET_RPM - vel);
+        packet.put("PID output",     pid);
+        packet.put("FF volts",       ffVolts);
+        packet.put("Battery V",      presentVoltage);
+        packet.put("transferStalled", transferStalled);
         dashboard.sendTelemetryPacket(packet);
 
-        telemetry.addData("Velocity (rad/s)", vel);
-        telemetry.addData("Target (rad/s)", target);
-        telemetry.addData("Battery V", presentVoltage);
+        telemetry.addData("transferStalled", transferStalled);
+        telemetry.addData("Velocity (RPM)", "%.1f", vel);
+        telemetry.addData("Target (RPM)",   "%.1f", TARGET_RPM);
+        telemetry.addData("Error (RPM)",    "%.1f", TARGET_RPM - vel);
+        telemetry.addData("Battery V",      "%.2f", presentVoltage);
+        telemetry.addData("DPAD up/down",   "adjust TARGET_RPM (now %.0f)", TARGET_RPM);
         telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        shooterB.setPower(0);
+        shooterT.setPower(0);
+        if (INTAKE_ENABLED) {
+            intakeMotor.setPower(0);
+            transferMotor.setPower(0);
+            latch.setPosition(LATCH_CLOSED);
+        }
     }
 }

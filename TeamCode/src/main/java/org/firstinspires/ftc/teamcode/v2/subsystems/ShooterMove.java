@@ -52,7 +52,7 @@ public class ShooterMove extends SubsystemBase {
 
     // --- r1 direction: all three servos confirmed same direction ---
 
-    // --- Slew rate limiting (from reference) — prevents slamming mechanical stops ---
+    // --- Slew rate limiting — prevents slamming mechanical stops ---
     public static double MAX_SERVO_STEP = 0.05;  // max position change per loop at full speed
     public static double MIN_SERVO_STEP = 0.01;  // min step near limits
     public static double EDGE_ZONE_DEG  = 20.0;  // degrees from limit where slew starts reducing
@@ -385,8 +385,8 @@ public class ShooterMove extends SubsystemBase {
         if (flywheelOn) {
             if (MANUAL_POWER > 0) {
                 // Raw power mode — use during initial testing before PID is tuned
-                shooterT.set(MANUAL_POWER);
                 shooterB.set(-MANUAL_POWER);
+                shooterT.set(MANUAL_POWER);
             } else {
                 // PID + FF mode — target from MANUAL_RPM override or distance LUT
                 double target = MANUAL_RPM > 0 ? MANUAL_RPM : RPM.get(distance);
@@ -398,8 +398,8 @@ public class ShooterMove extends SubsystemBase {
                 double ffVolts = ENABLE_FF ? (kV * target + kS * Math.signum(target)) : f * target;
                 double flywheelVolts = Math.max(-presentVoltage, Math.min(pidVolts + ffVolts, presentVoltage));
 
-                shooterT.set(flywheelVolts / presentVoltage);
                 shooterB.set((-1) * flywheelVolts / presentVoltage);
+                shooterT.set(flywheelVolts / presentVoltage);
             }
         } else {
             shooterB.set(0);

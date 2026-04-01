@@ -53,7 +53,7 @@ import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 public class TurretTest extends LinearOpMode {
 
     // --- Abs encoder calibration ---
-    public static boolean ABS_ENABLED = true;
+    public static boolean ABS_ENABLED = false;
     public static double m = -123.71;
     public static double b = 256.37;
 
