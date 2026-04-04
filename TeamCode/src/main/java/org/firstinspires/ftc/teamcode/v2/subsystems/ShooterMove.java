@@ -52,9 +52,11 @@ public class ShooterMove extends SubsystemBase {
 
     // --- r1 direction: all three servos confirmed same direction ---
 
+    //- MAX_SERVO_STEP = 0.01 — matches physical hardware, no over-command
+    //  - MIN_SERVO_STEP = 0.003 — near limits, ~1/3 speed
     // --- Slew rate limiting — prevents slamming mechanical stops ---
-    public static double MAX_SERVO_STEP = 0.05;  // max position change per loop at full speed
-    public static double MIN_SERVO_STEP = 0.01;  // min step near limits
+    public static double MAX_SERVO_STEP = 0.01;  // max position change per loop at full speed
+    public static double MIN_SERVO_STEP = 0.003;  // min step near limits
     public static double EDGE_ZONE_DEG  = 20.0;  // degrees from limit where slew starts reducing
 
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
@@ -62,8 +64,8 @@ public class ShooterMove extends SubsystemBase {
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
     public static double kS = 0.461428918657443;
-    public static double f = 0.0265;
-    // Set > 0 to override LUT and run at a fixed RPM target (for manual testing)
+    public static double f = 0.0025;
+    // Set > 0 to override LUT and run at a fixed target (rad/s, bypasses distance LUT)
     public static double MANUAL_RPM = 0;
     // Set 0.0–1.0 to drive flywheel at raw power (bypasses PID — use for initial testing)
     public static double MANUAL_POWER = 0.5;
@@ -130,6 +132,7 @@ public class ShooterMove extends SubsystemBase {
 
         shooterB.setRunMode(MotorEx.RunMode.RawPower);
         shooterT.setRunMode(MotorEx.RunMode.RawPower);
+        shooterB.setInverted(true);
 
         // Initialize servo position — use abs encoder if available, else start at 0°
         fusedTurretPos = ABS_ENABLED ? getAbsAngle() : 0.0;
@@ -193,8 +196,9 @@ public class ShooterMove extends SubsystemBase {
     }
 
     /** Returns current flywheel RPM (bottom motor velocity converted from rad/s). */
+    /** Returns flywheel velocity in rad/s (same units as PID target). */
     public double getFlywheelRpm() {
-        return shooterB.getVelocity() * (60.0 / 28.0);
+        return shooterB.getVelocity() * (2 * Math.PI / 28);
     }
 
     public Command increaseTurretOffset() {
@@ -385,12 +389,12 @@ public class ShooterMove extends SubsystemBase {
         if (flywheelOn) {
             if (MANUAL_POWER > 0) {
                 // Raw power mode — use during initial testing before PID is tuned
-                shooterB.set(-MANUAL_POWER);
+                shooterB.set(MANUAL_POWER);
                 shooterT.set(MANUAL_POWER);
             } else {
                 // PID + FF mode — target from MANUAL_RPM override or distance LUT
                 double target = MANUAL_RPM > 0 ? MANUAL_RPM : RPM.get(distance);
-                double vel = shooterB.getVelocity() / 28.0 * 60.0;  // ticks/sec → RPM
+                double vel = shooterB.getVelocity() * (2 * Math.PI / 28);  // rad/s — matches V1
                 controllerShooter.setPID(p, i, d);
                 double pidVolts = controllerShooter.calculate(vel, target);
                 pidVolts = Math.max(-presentVoltage, Math.min(pidVolts, presentVoltage));
@@ -398,7 +402,7 @@ public class ShooterMove extends SubsystemBase {
                 double ffVolts = ENABLE_FF ? (kV * target + kS * Math.signum(target)) : f * target;
                 double flywheelVolts = Math.max(-presentVoltage, Math.min(pidVolts + ffVolts, presentVoltage));
 
-                shooterB.set((-1) * flywheelVolts / presentVoltage);
+                shooterB.set(flywheelVolts / presentVoltage);
                 shooterT.set(flywheelVolts / presentVoltage);
             }
         } else {

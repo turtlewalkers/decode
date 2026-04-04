@@ -2,7 +2,9 @@ package org.firstinspires.ftc.teamcode.v2.teleop;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -32,6 +34,7 @@ public class TeleopMoving extends CommandOpMode {
 
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
+    private final FtcDashboard dashboard = FtcDashboard.getInstance();
     private GamepadEx gamepad, gamepadOffset;
     private Intake intake;
     private ShooterMove shooter;
@@ -286,6 +289,22 @@ public class TeleopMoving extends CommandOpMode {
         telemetryData.addData("TurretDeg",   ShooterMove.turretPosDeg);
         telemetryData.addData("FlywheelRPM", shooter.getFlywheelRpm());
         telemetryData.addData("Alliance",    Memory.allianceRed ? "RED" : "BLUE");
+
+        double vx   = follower.getVelocity().getXComponent();
+        double vy   = follower.getVelocity().getYComponent();
+        double speed = Math.hypot(vx, vy);
+        telemetryData.addData("Speed (in/s)", speed);
+        telemetryData.addData("VX (in/s)",    vx);
+        telemetryData.addData("VY (in/s)",    vy);
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Speed (in/s)",   speed);
+        packet.put("VX (in/s)",      vx);
+        packet.put("VY (in/s)",      vy);
+        packet.put("TurretDeg",      ShooterMove.turretPosDeg);
+        packet.put("FlywheelRPM",    shooter.getFlywheelRpm());
+        dashboard.sendTelemetryPacket(packet);
+
         telemetryData.update();
     }
 }
