@@ -46,7 +46,7 @@ public class Shooter extends OpMode {
     public static double kS = 0.872149217;   // retune on V2 using ShooterTest
 
     // --- Hood ---
-    public static boolean HOOD_ENABLED = false;
+    public static boolean HOOD_ENABLED = true;
     public static double theta = 0;          // hood position [0, 1]
 
     // --- Intake / transfer / latch ---

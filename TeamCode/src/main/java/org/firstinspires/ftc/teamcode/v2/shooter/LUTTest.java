@@ -57,11 +57,11 @@ public class LUTTest extends OpMode {
     // --- Set these per shot on Dashboard ---
     public static double TEST_DISTANCE = 42.0;   // inches — informational label only
     public static double TARGET_RPM    = 280.0;  // rad/s target for flywheel
-    public static double TARGET_HOOD   = 0.70;   // [0,1] servo position (ignored if HOOD_ENABLED=false)
-    public static boolean HOOD_ENABLED = false;
+    public static double TARGET_HOOD   = 0.50;   // [0,1] servo position (ignored if HOOD_ENABLED=false)
+    public static boolean HOOD_ENABLED = true;
 
     // --- PID + FF (copy from ShooterMove — retune on V2) ---
-    public static double p = 0.8, i = 0.05, d = 0;
+    public static double p = 0.4, i = 0.05, d = 0;
     public static double f = 0.0025;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.0211771178235103;
@@ -113,7 +113,8 @@ public class LUTTest extends OpMode {
         transferMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         latch.setPosition(LATCH_CLOSED);
 
-        hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
+        //hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
+        hood = hardwareMap.get(Servo.class, "hood");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -125,6 +126,21 @@ public class LUTTest extends OpMode {
         telemetry.addData("TEST_DISTANCE", TEST_DISTANCE);
         telemetry.addData("TARGET_RPM",    TARGET_RPM);
         telemetry.update();
+
+
+        /*
+
+        distance, rad, hood, transferspeed
+        29, 275, 1, 0.55
+        35.5, 275, 0.7, 0.7
+        43, 275, 0.7, 1
+        49.5, 285, 0.65, 1
+        56.5, 290. 0.58, 1
+        68, 310, 0.5, 1
+        76, 315, 0.45, 1
+        83, 335, 0.40, 1
+        91, 360, 0.30, 1
+         */
     }
 
     @Override
