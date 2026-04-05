@@ -31,14 +31,14 @@ public class ShooterMove extends SubsystemBase {
     public static double m = -123.71, b = 256.37;
 
     // --- Turret angle limits in turret degrees (TBD from mechanical stops, max ~500°) ---
-    public static double TURRET_MIN = -130.0;
-    public static double TURRET_MAX = 255.0;
+    public static double TURRET_MIN = -140.0;
+    public static double TURRET_MAX = 245.0;
 
     // --- Turret servo geometry ---
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
     public static double SERVO_RANGE_DEG = 355.0;
     public static double SERVO_TO_TURRET_RATIO = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
-    public static double SERVO_CENTER = 0.5; // tune on real robot — center of turret travel
+    public static double SERVO_CENTER = 0.525; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
     public static double SERVO_MIN = 0.03;
@@ -134,9 +134,10 @@ public class ShooterMove extends SubsystemBase {
         shooterT.setRunMode(MotorEx.RunMode.RawPower);
         shooterB.setInverted(true);
 
-        // Initialize servo position — use abs encoder if available, else start at 0°
-        fusedTurretPos = ABS_ENABLED ? getAbsAngle() : 0.0;
-        currentServoPos = turretDegToServoPos(fusedTurretPos);
+        // Initialize from actual servo position — Axon MAX is absolute, always knows where it is.
+        // This avoids the 0° assumption when the turret is physically at a different angle at startup.
+        currentServoPos = turretL1.getRawPosition();
+        fusedTurretPos = servoPosToTurretDeg(currentServoPos);
 
         timer = new ElapsedTime();
         timer.reset();
@@ -235,13 +236,13 @@ public class ShooterMove extends SubsystemBase {
 
     /** Turret degrees → servo position [SERVO_MIN, SERVO_MAX] */
     private double turretDegToServoPos(double turretDeg) {
-        double pos = SERVO_CENTER + turretDeg / (SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO);
+        double pos = SERVO_CENTER - turretDeg / (SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO);
         return Math.max(SERVO_MIN, Math.min(SERVO_MAX, pos));
     }
 
     /** Servo position [0, 1] → turret degrees */
     private double servoPosToTurretDeg(double servoPos) {
-        return (servoPos - SERVO_CENTER) * SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO;
+        return -(servoPos - SERVO_CENTER) * SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO;
     }
 
     // --- Slew-rate-limited servo write ---
@@ -325,6 +326,10 @@ public class ShooterMove extends SubsystemBase {
         return ((diff + 180.0) % 360.0 + 360.0) % 360.0 - 180.0;
     }
 
+    public double getServoPos(){
+        return currentServoPos;
+    }
+
     // --- Periodic ---
 
     @Override
@@ -358,7 +363,13 @@ public class ShooterMove extends SubsystemBase {
         }
 
         // Turret angle target
-        double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
+        //double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
+
+        double targetAngleRad = Math.atan2(dy, dx) - robotHeading;
+        //normalize to [-180, 180]
+        targetAngleRad = Math.atan2(Math.sin(targetAngleRad), Math.cos(targetAngleRad));
+        double targetAngleDeg= Math.toDegrees(targetAngleRad);
+
         targetAngleDeg += turretOffset;
 
         // Pick best candidate within limits (handles wrap-around)

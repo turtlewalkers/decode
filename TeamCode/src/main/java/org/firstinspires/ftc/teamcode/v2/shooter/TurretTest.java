@@ -58,15 +58,15 @@ public class TurretTest extends LinearOpMode {
     public static double b = 256.37;
 
     // --- Servo geometry (copy confirmed values to ShooterMove) ---
-    public static double SERVO_CENTER = 0.5;
+    public static double SERVO_CENTER = 0.525;
     public static double SERVO_MIN    = 0.03;
     public static double SERVO_MAX    = 0.97;
     public static double SERVO_RANGE_DEG        = 355.0;
     public static double SERVO_TO_TURRET_RATIO  = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
 
     // --- Turret soft limits in turret degrees (tune here, copy to ShooterMove) ---
-    public static double TURRET_MIN = -130.0;
-    public static double TURRET_MAX =  255.0;
+    public static double TURRET_MIN = -140.0; //-130.0
+    public static double TURRET_MAX =  245.0; //-255.0
 
     // --- Slew rate limiting (tune here, copy to ShooterMove) ---
     public static double MAX_SERVO_STEP = 0.05;  // max position change per loop (~20ms)
@@ -102,8 +102,10 @@ public class TurretTest extends LinearOpMode {
         ((PwmControl) hardwareMap.get(Servo.class, "tl2")).setPwmRange(axonRange);
         ((PwmControl) hardwareMap.get(Servo.class, "tr1")).setPwmRange(axonRange);
 
-        currentServoPos = SERVO_CENTER;
-//        applyServoPos(l1, l2, r1, currentServoPos);
+       // currentServoPos = SERVO_CENTER;
+        // Read actual servo position - Axon max is absolute, always knows where it is
+        currentServoPos = l1.getRawPosition();
+        applyServoPos(l1, l2, r1, currentServoPos);
 
         telemetry.addLine("TurretTest ready.  START = toggle MANUAL / SLEW mode");
         telemetry.update();
@@ -113,9 +115,9 @@ public class TurretTest extends LinearOpMode {
         boolean lastB = false, lastY = false, lastLB = false, lastRB = false;
         boolean lastStart = false;
 
-        double currentServoPosl1 = SERVO_CENTER;
-        double currentServoPosl2 = SERVO_CENTER;
-        double currentServoPosr1 = SERVO_CENTER;
+        double currentServoPosl1 = l1.getRawPosition();//SERVO_CENTER;
+        double currentServoPosl2 = l1.getRawPosition(); //SERVO_CENTER;
+        double currentServoPosr1 = l1.getRawPosition(); //SERVO_CENTER;
 
         waitForStart();
 
@@ -292,12 +294,12 @@ public class TurretTest extends LinearOpMode {
     // --- Coordinate helpers ---
 
     private double servoPosFromTurretDeg(double turretDeg) {
-        double pos = SERVO_CENTER + turretDeg / (SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO);
+        double pos = SERVO_CENTER - turretDeg / (SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO);
         return Math.max(SERVO_MIN, Math.min(SERVO_MAX, pos));
     }
 
     private double turretDegFromServoPos(double pos) {
-        return (pos - SERVO_CENTER) * SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO;
+        return -(pos - SERVO_CENTER) * SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO;
     }
 
     // --- Servo write ---
