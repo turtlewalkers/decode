@@ -10,6 +10,8 @@ import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
+import com.seattlesolvers.solverslib.util.InterpLUT;
+import com.pedropathing.follower.Follower;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
@@ -17,6 +19,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 public class Intake extends SubsystemBase {
 
     // --- Tunable via FTC Dashboard ---
+
+    Follower follower;
     public static double STALL_CURRENT = 3.0;   // amps — between 0.25A normal and 9.2A stall
     public static int STALL_LOOPS = 2;           // consecutive loops above threshold → stop transfer (~40ms)
     public static int STARTUP_IGNORE_LOOPS = 10; // ignore stall for first N loops after transfer starts (~200ms)
@@ -24,13 +28,14 @@ public class Intake extends SubsystemBase {
     public static double TRANSFER_SPEED = 1.0;
     public static double LATCH_OPEN = 0.71;
     public static double LATCH_CLOSED = 0.95;
-
+    InterpLUT transferPos    = new InterpLUT();
     private final MotorEx intake;
     private final DcMotorEx transfer;
     private final ServoEx latch;
 
     // Transfer stall state
     private boolean transferRunning = false;
+    private double distanceTo;
     private int stallCount = 0;
     private int startupCount = 0;
 
@@ -41,7 +46,22 @@ public class Intake extends SubsystemBase {
     // Shoot mode flag — disables stall detection
     private boolean shootMode = false;
 
-    public Intake(final HardwareMap hMap) {
+    public Intake(final HardwareMap hMap, double distance) {
+
+        this.distanceTo = distance;
+
+        transferPos.add(29, 0.55);
+        transferPos.add(33.5, 0.7);
+        transferPos.add(43, 0.7);
+        transferPos.add(49.5, 1);
+        transferPos.add(56.5, 1);
+        transferPos.add(68, 1);
+        transferPos.add(76, 1);
+        transferPos.add(93, 1);
+        transferPos.add(1000, 1);
+        transferPos.createLUT();
+
+
         intake = new MotorEx(hMap, "intake");
         transfer = hMap.get(DcMotorEx.class, "transfer");
         latch = new ServoEx(hMap, "latch");
@@ -110,7 +130,7 @@ public class Intake extends SubsystemBase {
     // --- Internal helpers ---
 
     private void startTransfer() {
-        transfer.setPower(TRANSFER_SPEED);
+        transfer.setPower(transferPos.get(distanceTo));
         transferRunning = true;
         stallCount = 0;
         startupCount = 0;

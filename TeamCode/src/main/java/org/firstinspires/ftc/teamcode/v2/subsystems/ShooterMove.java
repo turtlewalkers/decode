@@ -68,7 +68,7 @@ public class ShooterMove extends SubsystemBase {
     // Set > 0 to override LUT and run at a fixed target (rad/s, bypasses distance LUT)
     public static double MANUAL_RPM = 0;
     // Set 0.0–1.0 to drive flywheel at raw power (bypasses PID — use for initial testing)
-    public static double MANUAL_POWER = 0.5;
+    public static double MANUAL_POWER = 0;
 
     // --- Turret offset adjustment ---
     public static double turretOffset = 0;
@@ -106,6 +106,8 @@ public class ShooterMove extends SubsystemBase {
     // LUTs (carry over from V1 — retune on V2)
     InterpLUT RPM      = new InterpLUT();
     InterpLUT angle    = new InterpLUT();
+
+    InterpLUT transfer    = new InterpLUT();
     InterpLUT shottime = new InterpLUT();
 
     public ShooterMove(HardwareMap hMap, Supplier<Follower> followerSupplier,
@@ -145,33 +147,41 @@ public class ShooterMove extends SubsystemBase {
         controllerShooter = new PIDController(p, i, d);
 
         // LUTs — V1 values, retune on V2
-        RPM.add(0, 310);
-        RPM.add(42.5, 280);
-        RPM.add(49.5, 300);
-        RPM.add(56.5, 320);
-        RPM.add(70, 340);
-        RPM.add(77.25, 350);
-        RPM.add(91.75, 370);
-        RPM.add(102.75, 390);
-        RPM.add(114, 415);
-        RPM.add(130.75, 445);
-        RPM.add(142, 470);
-        RPM.add(3000, 485);
+        RPM.add(29, 275);
+        RPM.add(33.5, 275);
+        RPM.add(43, 275);
+        RPM.add(49.5, 285);
+        RPM.add(56.5, 290);
+        RPM.add(68, 310);
+        RPM.add(76, 315);
+        RPM.add(91, 335);
+        RPM.add(93, 360);
+        RPM.add(1000, 360);
         RPM.createLUT();
 
-        angle.add(0, 0.6);
-        angle.add(42.5, 0.7);
-        angle.add(49.5, 0.7);
-        angle.add(56.5, 0.45);
-        angle.add(70, 0.21);
-        angle.add(77.25, 0.22);
-        angle.add(91.75, 0.15);
-        angle.add(102.75, 0.12);
-        angle.add(114, 0.10);
-        angle.add(130.75, 0.03);
-        angle.add(142, 0.1);
-        angle.add(3000, 0.01);
+        angle.add(29, 1);
+        angle.add(33.5, 0.7);
+        angle.add(43, 0.7);
+        angle.add(49.5, 0.65);
+        angle.add(56.5, 0.58);
+        angle.add(68, 0.5);
+        angle.add(76, 0.45);
+        angle.add(91, 0.3);
+        angle.add(93, 0.4);
+        angle.add(1000, 0.4);
         angle.createLUT();
+
+        transfer.add(29, 0.55);
+        transfer.add(33.5, 0.7);
+        transfer.add(43, 0.7);
+        transfer.add(49.5, 1);
+        transfer.add(56.5, 1);
+        transfer.add(68, 1);
+        transfer.add(76, 1);
+        transfer.add(91, 1);
+        transfer.add(93, 1);
+        transfer.add(1000, 1);
+        transfer.createLUT();
 
         shottime.add(0, 0.63);
         shottime.add(42.5, 0.53);
@@ -184,6 +194,20 @@ public class ShooterMove extends SubsystemBase {
         shottime.add(136.6, 0.95);
         shottime.add(3000, 1);
         shottime.createLUT();
+
+        /*
+
+        distance, rad, hood, transferspeed
+        29, 275, 1, 0.55
+        35.5, 275, 0.7, 0.7
+        43, 275, 0.7, 1
+        49.5, 285, 0.65, 1
+        56.5, 290. 0.58, 1
+        68, 310, 0.5, 1
+        76, 315, 0.45, 1
+        83, 335, 0.40, 1
+        91, 360, 0.30, 1
+         */
     }
 
     // --- Public commands ---
@@ -423,5 +447,6 @@ public class ShooterMove extends SubsystemBase {
 
         Log.d("Distance", String.valueOf(distance));
         Log.d("FlywheelRPM", String.valueOf(shooterB.getVelocity() / 28.0 * 60.0));
+        Log.d("TargetRPM", String.valueOf(RPM.get(distance)));
     }
 }
