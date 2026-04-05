@@ -103,7 +103,7 @@ public class TurretTest extends LinearOpMode {
         ((PwmControl) hardwareMap.get(Servo.class, "tr1")).setPwmRange(axonRange);
 
         currentServoPos = SERVO_CENTER;
-        applyServoPos(l1, l2, r1, currentServoPos);
+//        applyServoPos(l1, l2, r1, currentServoPos);
 
         telemetry.addLine("TurretTest ready.  START = toggle MANUAL / SLEW mode");
         telemetry.update();
@@ -112,6 +112,10 @@ public class TurretTest extends LinearOpMode {
         boolean lastRight = false, lastLeft = false, lastA = false;
         boolean lastB = false, lastY = false, lastLB = false, lastRB = false;
         boolean lastStart = false;
+
+        double currentServoPosl1 = SERVO_CENTER;
+        double currentServoPosl2 = SERVO_CENTER;
+        double currentServoPosr1 = SERVO_CENTER;
 
         waitForStart();
 
@@ -140,19 +144,50 @@ public class TurretTest extends LinearOpMode {
 
             if (!slewMode) {
                 // --- MANUAL MODE ---
-                if (right && !lastRight) currentServoPos = Math.min(SERVO_MAX, currentServoPos + STEP_SIZE);
-                if (left  && !lastLeft)  currentServoPos = Math.max(SERVO_MIN, currentServoPos - STEP_SIZE);
-                if (a     && !lastA)     currentServoPos = SERVO_CENTER;
-                if (bBtn  && !lastB)     currentServoPos = SERVO_MIN;
-                if (y     && !lastY)     currentServoPos = SERVO_MAX;
+                if (right && !lastRight) {
+
+                    currentServoPosl1 = Math.min(SERVO_MAX, currentServoPos + STEP_SIZE);
+                    currentServoPosl2 = Math.min(SERVO_MAX, currentServoPos + STEP_SIZE);
+                    currentServoPosr1 = Math.min(SERVO_MAX, currentServoPos + STEP_SIZE);
+                }
+                if (left  && !lastLeft)  {
+                    currentServoPosl1 = Math.max(SERVO_MIN, currentServoPos - STEP_SIZE);
+                    currentServoPosl2 = Math.max(SERVO_MIN, currentServoPos - STEP_SIZE);
+                    currentServoPosr1 = Math.max(SERVO_MIN, currentServoPos - STEP_SIZE);
+                }
+                if (a     && !lastA) {
+                    currentServoPosl1 = SERVO_CENTER;
+                    currentServoPosl2 = SERVO_CENTER;
+                    currentServoPosr1 = SERVO_CENTER;
+                }
+                if (bBtn  && !lastB)    {
+                    //Keep this for later for zeroing the servos
+                  /*  currentServoPosl1 = SERVO_MIN + 0.002;
+                    currentServoPosl2 = SERVO_MIN;
+                    currentServoPosr1 = SERVO_MIN - 0.002;*/
+
+                    currentServoPosl1 = SERVO_MIN;
+                    currentServoPosl2 = SERVO_MIN;
+                    currentServoPosr1 = SERVO_MIN;
+
+                }
+                if (y     && !lastY)  {
+                    currentServoPosl1 = SERVO_MAX;
+                    currentServoPosl2 = SERVO_MAX;
+                    currentServoPosr1 = SERVO_MAX;
+                }
                 if (lb    && !lastLB)    STEP_SIZE = Math.max(0.005, STEP_SIZE - 0.005);
                 if (rb    && !lastRB)    STEP_SIZE = Math.min(0.05,  STEP_SIZE + 0.005);
 
-                applyServoPos(l1, l2, r1, currentServoPos);
+                applyServoPosl1(l1, currentServoPosl1);
+                applyServoPosl2(l2, currentServoPosl2);
+                applyServoPosr1(r1, currentServoPosr1);
 
                 double turretDeg = turretDegFromServoPos(currentServoPos);
                 telemetry.addLine("=== MANUAL MODE === (START to switch)");
-                telemetry.addData("servoPos",          "%.4f", currentServoPos);
+                telemetry.addData("servoPosl1",          "%.4f", currentServoPosl1);
+                telemetry.addData("servoPosl2",          "%.4f", currentServoPosl2);
+                telemetry.addData("servoPosr1",          "%.4f", currentServoPosr1);
                 telemetry.addData("Turret deg (calc)",  "%.1f", turretDeg);
                 if (ABS_ENABLED) {
                     telemetry.addData("Abs Encoder (V)",   "%.4f", absVolts);
@@ -167,7 +202,9 @@ public class TurretTest extends LinearOpMode {
 
                 TelemetryPacket packet = new TelemetryPacket();
                 packet.put("mode", 0);
-                packet.put("servoPos",       currentServoPos);
+                packet.put("servoPosl1",       currentServoPosl1);
+                packet.put("servoPosl2",       currentServoPosl2);
+                packet.put("servoPosr1",       currentServoPosr1);
                 packet.put("turretDeg_calc", turretDeg);
                 packet.put("absEncoder_deg", absDeg);
                 packet.put("SERVO_CENTER",   SERVO_CENTER);
@@ -180,7 +217,7 @@ public class TurretTest extends LinearOpMode {
                 if (y    && !lastY)  TARGET_DEG = TURRET_MAX;
 
                 setTurretDeg(TARGET_DEG);
-                applyServoPos(l1, l2, r1, currentServoPos);
+               applyServoPos(l1, l2, r1, currentServoPos);
 
                 double turretDeg = turretDegFromServoPos(currentServoPos);
                 double error = TARGET_DEG - turretDeg;
@@ -268,6 +305,15 @@ public class TurretTest extends LinearOpMode {
     private void applyServoPos(ServoEx l1, ServoEx l2, ServoEx r1, double pos) {
         l1.set(pos);
         l2.set(pos);
+        r1.set(pos);
+    }
+    private void applyServoPosl1(ServoEx l1, double pos) {
+        l1.set(pos);
+    }
+    private void applyServoPosl2(ServoEx l2, double pos) {
+        l2.set(pos);
+    }
+    private void applyServoPosr1(ServoEx r1, double pos) {
         r1.set(pos);
     }
 }
