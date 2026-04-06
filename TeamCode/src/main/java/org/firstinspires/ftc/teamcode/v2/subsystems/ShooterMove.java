@@ -62,8 +62,8 @@ public class ShooterMove extends SubsystemBase {
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
     public static double p = 0.8, i = 0.05, d = 0;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.0211771178235103;
-    public static double kS = 0.461428918657443;
+    public static double kV = 0.021477551;
+    public static double kS = 0.760983135;
     public static double f = 0.0025;
     // Set > 0 to override LUT and run at a fixed target (rad/s, bypasses distance LUT)
     public static double MANUAL_RPM = 0;
@@ -103,6 +103,9 @@ public class ShooterMove extends SubsystemBase {
     private static final double TURRET_TAU = 0.1;
     private static final double CORRECTION_DEADBAND = 0.05;
 
+    private ElapsedTime loopTimer = new ElapsedTime();
+    public static double loopTimeMs = 0;
+
     // LUTs (carry over from V1 — retune on V2)
     InterpLUT RPM      = new InterpLUT();
     InterpLUT angle    = new InterpLUT();
@@ -138,8 +141,8 @@ public class ShooterMove extends SubsystemBase {
 
         // Initialize from actual servo position — Axon MAX is absolute, always knows where it is.
         // This avoids the 0° assumption when the turret is physically at a different angle at startup.
-        currentServoPos = turretL1.getRawPosition();
-        fusedTurretPos = servoPosToTurretDeg(currentServoPos);
+        currentServoPos = SERVO_CENTER;//turretL1.getRawPosition();
+        fusedTurretPos = 0.0;//servoPosToTurretDeg(currentServoPos);
 
         timer = new ElapsedTime();
         timer.reset();
@@ -335,7 +338,10 @@ public class ShooterMove extends SubsystemBase {
 
     @Override
     public void periodic() {
-        updateFusedPosition();
+       // updateFusedPosition();
+
+        loopTimeMs = loopTimer.milliseconds();
+        loopTimer.reset();
 
         Pose robot = followerSupplier.get().getPose();
         double presentVoltage = volt.getVoltage();
@@ -354,14 +360,14 @@ public class ShooterMove extends SubsystemBase {
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-        for (int i = 0; i < 10; i++) {
+    /*    for (int i = 0; i < 10; i++) {
             double shotTime = shottime.get(distance);
             double vX = followerSupplier.get().getVelocity().getXComponent();
             double vY = followerSupplier.get().getVelocity().getYComponent();
             dx = shooterX - robotX - vX * shotTime - turretX;
             dy = shooterY - robotY - vY * shotTime - turretY;
             distance = Math.sqrt(dx * dx + dy * dy);
-        }
+        } */
 
         // Turret angle target
         //double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
@@ -388,9 +394,12 @@ public class ShooterMove extends SubsystemBase {
         }
         chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
 
-        turretL1.set(chosen);
-        turretL2.set(chosen);
-        turretR1.set(chosen);
+       // setTurretDeg(chosen);
+        currentServoPos = turretDegToServoPos(chosen);
+        turretPosDeg = chosen;
+        turretL1.set(currentServoPos);
+        turretL2.set(currentServoPos);
+        turretR1.set(currentServoPos);
 
         Log.d("TurretTarget", String.valueOf(chosen));
 

@@ -61,11 +61,11 @@ public class LUTTest extends OpMode {
     public static boolean HOOD_ENABLED = true;
 
     // --- PID + FF (copy from ShooterMove — retune on V2) ---
-    public static double p = 0.4, i = 0.05, d = 0;
+    public static double p = 0.7, i = 0.05, d = 0;
     public static double f = 0.0025;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.0211771178235103;
-    public static double kS = 0.461428918657443;
+    public static double kV = 0.021448433;
+    public static double kS = 0.784184038;
 
     // --- Intake / transfer / latch ---
     public static double INTAKE_SPEED   = 1.0;

@@ -38,12 +38,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 public class Shooter extends OpMode {
 
     // --- Flywheel PID + FF ---
-    public static double p = 0.8, i = 0.05, d = 0;
+    public static double p = 0.4, i = 0.05, d = 0;
     public static double f = 0.0025;
     public static double TARGET_RAD = 300;        // rad/s — 300 rad/s ≈ 2865 RPM (~0.55 power)
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.021814629;   // retune on V2 using ShooterTest
-    public static double kS = 0.872149217;   // retune on V2 using ShooterTest
+    public static double kV = 0.021477551;
+    public static double kS = 0.760983135;
 
     // --- Hood ---
     public static boolean HOOD_ENABLED = true;
