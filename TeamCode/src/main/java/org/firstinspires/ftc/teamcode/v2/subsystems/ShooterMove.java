@@ -149,6 +149,24 @@ public class ShooterMove extends SubsystemBase {
 
         controllerShooter = new PIDController(p, i, d);
 
+        /* Lookup table values from 11:15 pm April 05
+
+        distance, rad, hood, transferspeed
+        29, 260, 1, 0.55
+        35.5, 262, 0.7, 0.7
+        43, 270, 0.75, 1
+        49.5, 280, 0.6, 1
+        56.5, 285. 0.45, 1
+        68, 300, 0.35, 1
+        76, 310, 0.3, 0.9
+        83, 325, 0.23, 0.9
+        91, 335, 0.2, 0.9
+        103, 355, 0.18, 0.9
+        114, 370, 0.12, 0.9
+        130, 400, 0.10, 0.8
+        142, 435, 0.08, 0.6
+         */
+
         // LUTs — V1 values, retune on V2
         RPM.add(0, 275);
         RPM.add(29, 275);
