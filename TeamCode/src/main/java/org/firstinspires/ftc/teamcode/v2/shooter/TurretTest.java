@@ -164,9 +164,9 @@ public class TurretTest extends LinearOpMode {
                 }
                 if (bBtn  && !lastB)    {
                     //Keep this for later for zeroing the servos
-                    //currentServoPosl1 = SERVO_MIN + 0.002;
-                    //currentServoPosl2 = SERVO_MIN;
-                    //currentServoPosr1 = SERVO_MIN - 0.002;
+                   // currentServoPosl1 = SERVO_MIN + 0.002;
+                   // currentServoPosl2 = SERVO_MIN;
+                   // currentServoPosr1 = SERVO_MIN - 0.002;
 
                     currentServoPosl1 = SERVO_MIN;
                     currentServoPosl2 = SERVO_MIN;

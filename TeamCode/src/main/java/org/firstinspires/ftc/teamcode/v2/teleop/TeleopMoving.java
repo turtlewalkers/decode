@@ -304,6 +304,8 @@ public class TeleopMoving extends CommandOpMode {
         packet.put("VX (in/s)",      vx);
         packet.put("VY (in/s)",      vy);
         packet.put("TurretDeg",      ShooterMove.turretPosDeg);
+        packet.put("TurretTargetDeg",ShooterMove.turretTargetDeg);
+        packet.put("RobotHeadingDeg",   ShooterMove.robotHeadingDeg);
         packet.put("ServoPos", shooter.getServoPos());
         packet.put("Heading", Math.toDegrees(follower.getPose().getHeading()));
         packet.put("LoopTimeMs", ShooterMove.loopTimeMs);

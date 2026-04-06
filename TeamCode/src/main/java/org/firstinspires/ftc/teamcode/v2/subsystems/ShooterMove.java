@@ -76,6 +76,9 @@ public class ShooterMove extends SubsystemBase {
     // --- Turret position (published for telemetry / other subsystems) ---
     public static double turretPosDeg = 0;
 
+    public static double turretTargetDeg = 0;
+    public static double robotHeadingDeg = 0;
+
     // --- Shooter position on field (set by teleop, same as V1) ---
     public static double TURRET_FWD_OFFSET = -1.63;
     public static double TURRET_LEFT_OFFSET = 0.0;
@@ -396,6 +399,7 @@ public class ShooterMove extends SubsystemBase {
         double targetAngleDeg= Math.toDegrees(targetAngleRad);
 
         targetAngleDeg += turretOffset;
+        turretTargetDeg = targetAngleDeg;
 
         // Pick best candidate within limits (handles wrap-around)
         double[] cands = { targetAngleDeg, targetAngleDeg + 360.0, targetAngleDeg - 360.0 };
