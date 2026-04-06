@@ -50,16 +50,21 @@ public class Intake extends SubsystemBase {
 
         this.distanceTo = distance;
 
-        transferPos.add(0, 275);
+        transferPos.add(0, 0.55);
         transferPos.add(29, 0.55);
-        transferPos.add(33.5, 0.7);
-        transferPos.add(43, 0.7);
+        transferPos.add(35.5, 0.7);
+        transferPos.add(43, 1);
         transferPos.add(49.5, 1);
         transferPos.add(56.5, 1);
         transferPos.add(68, 1);
-        transferPos.add(76, 1);
-        transferPos.add(93, 1);
-        transferPos.add(1000, 1);
+        transferPos.add(76, 0.9);
+        transferPos.add(83, 0.9);
+        transferPos.add(91, 0.9);
+        transferPos.add(103, 0.9);
+        transferPos.add(114, 0.9);
+        transferPos.add(130, 0.8);
+        transferPos.add(142, 0.6);
+        transferPos.add(1000, 0.6);
         transferPos.createLUT();
 
 
@@ -101,7 +106,7 @@ public class Intake extends SubsystemBase {
     public Command shootStart() {
         return new InstantCommand(() -> {
             shootMode = true;
-            ballLoaded = false;  // clear loaded state — shoot cycle empties the latch
+            ballLoaded = false;
             stallCount = 0;
             latch.set(LATCH_OPEN);
             intake.set(INTAKE_SPEED);

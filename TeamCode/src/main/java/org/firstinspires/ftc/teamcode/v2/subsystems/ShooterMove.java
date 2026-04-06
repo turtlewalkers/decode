@@ -147,45 +147,6 @@ public class ShooterMove extends SubsystemBase {
         controllerShooter = new PIDController(p, i, d);
 
         // LUTs — V1 values, retune on V2
-        RPM.add(0, 275);
-        RPM.add(29, 275);
-        RPM.add(33.5, 275);
-        RPM.add(43, 275);
-        RPM.add(49.5, 285);
-        RPM.add(56.5, 290);
-        RPM.add(68, 310);
-        RPM.add(76, 315);
-        RPM.add(91, 335);
-        RPM.add(93, 360);
-        RPM.add(1000, 360);
-        RPM.createLUT();
-
-        angle.add(0, 275);
-        angle.add(29, 1);
-        angle.add(33.5, 0.7);
-        angle.add(43, 0.7);
-        angle.add(49.5, 0.65);
-        angle.add(56.5, 0.58);
-        angle.add(68, 0.5);
-        angle.add(76, 0.45);
-        angle.add(91, 0.3);
-        angle.add(93, 0.4);
-        angle.add(1000, 0.4);
-        angle.createLUT();
-
-        transfer.add(0, 275);
-        transfer.add(29, 0.55);
-        transfer.add(33.5, 0.7);
-        transfer.add(43, 0.7);
-        transfer.add(49.5, 1);
-        transfer.add(56.5, 1);
-        transfer.add(68, 1);
-        transfer.add(76, 1);
-        transfer.add(91, 1);
-        transfer.add(93, 1);
-        transfer.add(1000, 1);
-        transfer.createLUT();
-
         shottime.add(0, 0.63);
         shottime.add(42.5, 0.53);
         shottime.add(55, 0.41);
@@ -198,19 +159,56 @@ public class ShooterMove extends SubsystemBase {
         shottime.add(3000, 1);
         shottime.createLUT();
 
-        /*
+        RPM.add(0, 275);
+        RPM.add(29, 260);
+        RPM.add(35.5, 262);
+        RPM.add(43, 270);
+        RPM.add(49.5, 280);
+        RPM.add(56.5, 285);
+        RPM.add(68, 300);
+        RPM.add(76, 310);
+        RPM.add(83, 325);
+        RPM.add(91, 335);
+        RPM.add(103, 355);
+        RPM.add(114, 370);
+        RPM.add(130, 400);
+        RPM.add(142, 435);
+        RPM.add(1000, 435);
+        RPM.createLUT();
 
-        distance, rad, hood, transferspeed
-        29, 275, 1, 0.55
-        35.5, 275, 0.7, 0.7
-        43, 275, 0.7, 1
-        49.5, 285, 0.65, 1
-        56.5, 290. 0.58, 1
-        68, 310, 0.5, 1
-        76, 315, 0.45, 1
-        83, 335, 0.40, 1
-        91, 360, 0.30, 1
+        angle.add(0, 1);
+        angle.add(29, 1);
+        angle.add(35.5, 0.7);
+        angle.add(43, 0.75);
+        angle.add(49.5, 0.6);
+        angle.add(56.5, 0.45);
+        angle.add(68, 0.35);
+        angle.add(76, 0.3);
+        angle.add(83, 0.23);
+        angle.add(91, 0.2);
+        angle.add(103, 0.18);
+        angle.add(114, 0.12);
+        angle.add(130, 0.1);
+        angle.add(142, 0.08);
+        angle.add(1000, 0.08);
+        angle.createLUT();
+        /*
+        distance, rpm, hood, transferspeed
+        29, 260, 1, 0.55
+        35.5, 262, 0.7, 0.7
+        43, 270, 0.75, 1
+        49.5, 280, 0.6, 1
+        56.5, 285. 0.45, 1
+        68, 300, 0.35, 1
+        76, 310, 0.3, 0.9
+        83, 325, 0.23, 0.9
+        91, 335, 0.2, 0.9
+        103, 355, 0.18, 0.9
+        114, 370, 0.12, 0.9
+        130, 400, 0.10, 0.8
+        142, 435, 0.08, 0.6
          */
+
     }
 
     // --- Public commands ---

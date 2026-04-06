@@ -29,20 +29,20 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorEx.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorEx.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorEx.Direction.REVERSE)
-            .xVelocity(78.420)
-            .yVelocity(63.420);
+            .xVelocity(84)
+            .yVelocity(71);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(11.8)
-            .forwardZeroPowerAcceleration(-31)
-            .lateralZeroPowerAcceleration(-60)
+            .mass(9.25)
+            .forwardZeroPowerAcceleration(-26)
+            .lateralZeroPowerAcceleration(-54)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.022, 0.006))
             .headingPIDFCoefficients(new PIDFCoefficients(1.3, 0, 0.04, 0.01))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.28,0.114,0.0000027,0.6,0.007))
             .centripetalScaling(0.00034)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.09, 0.0012));
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.07606, 0.00112251));
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-2.25)
-            .strafePodX(-6)
+            .forwardPodY(6.5)
+            .strafePodX(-1)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
