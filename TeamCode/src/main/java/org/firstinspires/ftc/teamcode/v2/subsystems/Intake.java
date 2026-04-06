@@ -50,6 +50,7 @@ public class Intake extends SubsystemBase {
 
         this.distanceTo = distance;
 
+        transferPos.add(0, 275);
         transferPos.add(29, 0.55);
         transferPos.add(33.5, 0.7);
         transferPos.add(43, 0.7);

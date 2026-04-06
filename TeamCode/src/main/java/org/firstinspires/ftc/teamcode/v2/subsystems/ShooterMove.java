@@ -147,6 +147,7 @@ public class ShooterMove extends SubsystemBase {
         controllerShooter = new PIDController(p, i, d);
 
         // LUTs — V1 values, retune on V2
+        RPM.add(0, 275);
         RPM.add(29, 275);
         RPM.add(33.5, 275);
         RPM.add(43, 275);
@@ -159,6 +160,7 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(1000, 360);
         RPM.createLUT();
 
+        angle.add(0, 275);
         angle.add(29, 1);
         angle.add(33.5, 0.7);
         angle.add(43, 0.7);
@@ -171,6 +173,7 @@ public class ShooterMove extends SubsystemBase {
         angle.add(1000, 0.4);
         angle.createLUT();
 
+        transfer.add(0, 275);
         transfer.add(29, 0.55);
         transfer.add(33.5, 0.7);
         transfer.add(43, 0.7);
@@ -267,32 +270,6 @@ public class ShooterMove extends SubsystemBase {
     /** Servo position [0, 1] → turret degrees */
     private double servoPosToTurretDeg(double servoPos) {
         return -(servoPos - SERVO_CENTER) * SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO;
-    }
-
-    // --- Slew-rate-limited servo write ---
-
-    private void setTurretDeg(double targetTurretDeg) {
-        targetTurretDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, targetTurretDeg));
-        double targetServoPos = turretDegToServoPos(targetTurretDeg);
-
-        double maxStep = computeMaxStep(targetTurretDeg);
-        double error = targetServoPos - currentServoPos;
-        if (Math.abs(error) > maxStep) {
-            currentServoPos += Math.signum(error) * maxStep;
-        } else {
-            currentServoPos = targetServoPos;
-        }
-
-        // Skip write if position unchanged
-        if (hasAppliedServoPos && Double.compare(lastAppliedServoPos, currentServoPos) == 0) {
-            return;
-        }
-        lastAppliedServoPos = currentServoPos;
-        hasAppliedServoPos = true;
-
-        turretL1.set(currentServoPos);
-        turretL2.set(currentServoPos);
-        turretR1.set(currentServoPos);
     }
 
     /** Full speed in the middle, linearly reduces near mechanical limits. */
@@ -411,7 +388,10 @@ public class ShooterMove extends SubsystemBase {
         }
         chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
 
-        setTurretDeg(chosen);
+        turretL1.set(chosen);
+        turretL2.set(chosen);
+        turretR1.set(chosen);
+
         Log.d("TurretTarget", String.valueOf(chosen));
 
         // Hood
