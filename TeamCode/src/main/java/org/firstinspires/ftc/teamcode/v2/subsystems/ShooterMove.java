@@ -44,6 +44,8 @@ public class ShooterMove extends SubsystemBase {
     public static double SERVO_MIN = 0.03;
     public static double SERVO_MAX = 0.97;
 
+    public static double SERVO_OFFSET = 0.01;
+
     // --- Abs encoder ---
     public static boolean ABS_ENABLED = false;
 
@@ -185,6 +187,7 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(114, 370);
         RPM.add(130, 400);
         RPM.add(142, 435);
+        RPM.add(3000, 435);
         RPM.createLUT();
         /*
         distance, rad, hood, transferspeed
@@ -218,6 +221,7 @@ public class ShooterMove extends SubsystemBase {
         angle.add(114, 0.12);
         angle.add(130, 0.10);
         angle.add(142, 0.08);
+        angle.add(3000, 0.08);
         angle.createLUT();
 
                 /*
@@ -463,9 +467,9 @@ public class ShooterMove extends SubsystemBase {
        // setTurretDeg(chosen);
         currentServoPos = turretDegToServoPos(chosen);
         turretPosDeg = chosen;
-        turretL1.set(currentServoPos);
+        turretL1.set(currentServoPos + SERVO_OFFSET);
         turretL2.set(currentServoPos);
-        turretR1.set(currentServoPos);
+        turretR1.set(currentServoPos - SERVO_OFFSET);
 
         Log.d("TurretTarget", String.valueOf(chosen));
 
