@@ -61,7 +61,7 @@ public class ShooterMove extends SubsystemBase {
 
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
     public static double p = 0.7, i = 0.05, d = 0;
-    public static boolean ENABLE_FF = false;
+    public static boolean ENABLE_FF = true;
     public static double kV = 0.021477551;
     public static double kS = 0.760983135;
     public static double f = 0.0025;
@@ -425,14 +425,14 @@ public class ShooterMove extends SubsystemBase {
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-    /*    for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 4; i++) {
             double shotTime = shottime.get(distance);
             double vX = followerSupplier.get().getVelocity().getXComponent();
             double vY = followerSupplier.get().getVelocity().getYComponent();
             dx = shooterX - robotX - vX * shotTime - turretX;
             dy = shooterY - robotY - vY * shotTime - turretY;
             distance = Math.sqrt(dx * dx + dy * dy);
-        } */
+        }
 
         // Turret angle target
         //double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
