@@ -59,7 +59,7 @@ public class Teleop5 extends CommandOpMode {
         gamepad = new GamepadEx(gamepad1);
         gamepadOffset = new GamepadEx(gamepad2);
 
-        intake = new Intake(hardwareMap, Math.sqrt((shooterX - follower.getPose().getX())*(shooterX - follower.getPose().getX()) + (shooterY - follower.getPose().getY())*(shooterY - follower.getPose().getY())));
+        intake = new Intake(hardwareMap,() -> follower, shooterX, shooterY);
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY);
         register(shooter);
 

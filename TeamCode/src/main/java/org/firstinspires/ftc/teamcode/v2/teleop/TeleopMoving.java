@@ -98,7 +98,7 @@ public class TeleopMoving extends CommandOpMode {
         Stay = new Path(new BezierLine(start, start));
         Park.setConstantHeadingInterpolation(Math.toRadians(90));
 
-        intake  = new Intake(hardwareMap, Math.sqrt((shooterX -follower.getPose().getX())*(shooterX -follower.getPose().getX()) + (shooterY -follower.getPose().getY())*(shooterY -follower.getPose().getY())));
+        intake  = new Intake(hardwareMap, () -> follower, shooterX, shooterY);
         shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY);
         register(shooter);
 

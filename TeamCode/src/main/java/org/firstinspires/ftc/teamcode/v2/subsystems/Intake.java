@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.v2.subsystems;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.Command;
@@ -14,6 +15,8 @@ import com.seattlesolvers.solverslib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+
+import java.util.function.Supplier;
 
 @Config
 public class Intake extends SubsystemBase {
@@ -28,10 +31,14 @@ public class Intake extends SubsystemBase {
     public static double TRANSFER_SPEED = 1.0;
     public static double LATCH_OPEN = 0.71;
     public static double LATCH_CLOSED = 0.95;
+
+    private final Supplier<Follower> followerSupplier;
     InterpLUT transferPos    = new InterpLUT();
     private final MotorEx intake;
     private final DcMotorEx transfer;
     private final ServoEx latch;
+
+    private double shooterX, shooterY;
 
     // Transfer stall state
     private boolean transferRunning = false;
@@ -46,11 +53,12 @@ public class Intake extends SubsystemBase {
     // Shoot mode flag — disables stall detection
     private boolean shootMode = false;
 
-    public Intake(final HardwareMap hMap, double distance) {
+    public Intake(final HardwareMap hMap,  Supplier<Follower> followerSupplier, double shooterX, double shooterY) {
+        this.followerSupplier = followerSupplier;
+        this.shooterX = shooterX;
+        this.shooterY = shooterY;
 
-        this.distanceTo = distance;
-
-        transferPos.add(0, 275);
+        transferPos.add(0, 0);
         transferPos.add(29, 0.55);
         transferPos.add(33.5, 0.7);
         transferPos.add(43, 0.7);
@@ -131,12 +139,18 @@ public class Intake extends SubsystemBase {
     // --- Internal helpers ---
 
     private void startTransfer() {
+        distanceTo = distanceToTarget();
         transfer.setPower(transferPos.get(distanceTo));
         transferRunning = true;
         stallCount = 0;
         startupCount = 0;
     }
-
+    private double distanceToTarget() {
+        Pose robot = followerSupplier.get().getPose();
+        double dx = shooterX - robot.getX();
+        double dy = shooterY - robot.getY();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
     private void stopTransfer() {
         transfer.setPower(0);
         transferRunning = false;
@@ -151,7 +165,8 @@ public class Intake extends SubsystemBase {
         if (!transferRunning || shootMode) {
             return;
         }
-
+        distanceTo = distanceToTarget();
+        transfer.setPower(transferPos.get(distanceTo));
         // Skip stall detection during motor startup ramp-up
         if (startupCount < STARTUP_IGNORE_LOOPS) {
             startupCount++;
@@ -160,7 +175,8 @@ public class Intake extends SubsystemBase {
 
         double current = transfer.getCurrent(CurrentUnit.AMPS);
         Log.d("Transfer Current", String.valueOf(current));
-
+        Log.d("Transfer Pos", String.valueOf(transferPos.get(distanceTo)));
+        Log.d("Transfer Pos Dist", String.valueOf(distanceTo));
         if (current > STALL_CURRENT) {
             stallCount++;
             Log.d("Transfer StallCount", String.valueOf(stallCount));
