@@ -58,7 +58,7 @@ public class TurretTest extends LinearOpMode {
     public static double b = 256.37;
 
     // --- Servo geometry (copy confirmed values to ShooterMove) ---
-    public static double SERVO_CENTER = 0.525;
+    public static double SERVO_CENTER = 0.607;
     public static double SERVO_MIN    = 0.03;
     public static double SERVO_MAX    = 0.97;
     public static double SERVO_RANGE_DEG        = 355.0;
@@ -164,9 +164,9 @@ public class TurretTest extends LinearOpMode {
                 }
                 if (bBtn  && !lastB)    {
                     //Keep this for later for zeroing the servos
-                  /*  currentServoPosl1 = SERVO_MIN + 0.002;
-                    currentServoPosl2 = SERVO_MIN;
-                    currentServoPosr1 = SERVO_MIN - 0.002;*/
+                    //currentServoPosl1 = SERVO_MIN + 0.001;
+                    //currentServoPosl2 = SERVO_MIN;
+                    //currentServoPosr1 = SERVO_MIN - 0.001;
 
                     currentServoPosl1 = SERVO_MIN;
                     currentServoPosl2 = SERVO_MIN;
@@ -218,9 +218,10 @@ public class TurretTest extends LinearOpMode {
                 if (bBtn && !lastB)  TARGET_DEG = TURRET_MIN;
                 if (y    && !lastY)  TARGET_DEG = TURRET_MAX;
 
-                setTurretDeg(TARGET_DEG);
-               applyServoPos(l1, l2, r1, currentServoPos);
-
+               // setTurretDeg(TARGET_DEG);
+                double targetServoPos = servoPosFromTurretDeg(TARGET_DEG);
+                applyServoPos(l1, l2, r1, targetServoPos);
+                currentServoPos = targetServoPos;
                 double turretDeg = turretDegFromServoPos(currentServoPos);
                 double error = TARGET_DEG - turretDeg;
                 telemetry.addLine("=== SLEW MODE === (START to switch)");

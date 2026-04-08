@@ -193,7 +193,7 @@ public class TeleopMoving extends CommandOpMode {
 
     @Override
     public void run() {
-        super.run();
+     //   super.run();
 
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();
@@ -283,6 +283,8 @@ public class TeleopMoving extends CommandOpMode {
         }
         follower.update();
 
+        super.run();
+
         telemetryData.addData("X",           follower.getPose().getX());
         telemetryData.addData("Y",           follower.getPose().getY());
         telemetryData.addData("Heading",     Math.toDegrees(follower.getPose().getHeading()));
@@ -302,8 +304,11 @@ public class TeleopMoving extends CommandOpMode {
         packet.put("VX (in/s)",      vx);
         packet.put("VY (in/s)",      vy);
         packet.put("TurretDeg",      ShooterMove.turretPosDeg);
+        packet.put("TurretTargetDeg",ShooterMove.turretTargetDeg);
+        packet.put("RobotHeadingDeg",   ShooterMove.robotHeadingDeg);
         packet.put("ServoPos", shooter.getServoPos());
         packet.put("Heading", Math.toDegrees(follower.getPose().getHeading()));
+        packet.put("LoopTimeMs", ShooterMove.loopTimeMs);
         packet.put("FlywheelRPM",    shooter.getFlywheelRpm());
         dashboard.sendTelemetryPacket(packet);
 

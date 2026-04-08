@@ -47,8 +47,8 @@ import java.util.List;
 @TeleOp(name = "DriveCharacterization", group = "V2")
 public class DriveCharacterization extends OpMode {
 
-    // Turret max angular rate at 7.4V (Axon MAX 167 deg/s ÷ 1.408x gear ratio)
-    public static final double TURRET_MAX_DEG_PER_SEC = 119.0;
+    // Turret effective speed including overshoot/correction (measured: 180° in 0.60s)
+    public static final double TURRET_MAX_DEG_PER_SEC = 300.0;
 
     // Worst-case back zone shooting distance — field center apex (72,72) to goal (138,138)
     public static final double DIST_WORST_IN = 94.0;
@@ -70,6 +70,9 @@ public class DriveCharacterization extends OpMode {
     private double peakSpeed    = 0.0;
     private double peakAccel    = 0.0;
     private double peakDecel    = 0.0;
+
+    private double lastHeading  = 0.0;
+    private double peakOmega    = 0.0;
 
     private boolean lastB = false;
 
@@ -109,6 +112,7 @@ public class DriveCharacterization extends OpMode {
             peakSpeed = 0.0;
             peakAccel = 0.0;
             peakDecel = 0.0;
+            peakOmega = 0.0;
         }
         lastB = bNow;
 
@@ -136,13 +140,27 @@ public class DriveCharacterization extends OpMode {
         double speed = Math.hypot(vx, vy);
         double accel = (speed - lastSpeed) / dt;
 
-        lastSpeed    = speed;
+        // Heading rate from pose delta
+        double heading = follower.getPose().getHeading();
+        double omega   = Math.toDegrees(heading - lastHeading) / dt;
+        // Normalize omega to avoid wrap-around spike
+        if (omega > 360) omega -= 720;
+        if (omega < -360) omega += 720;
+
+        lastSpeed   = speed;
+        lastHeading = heading;
         lastLoopTime = dt;
+
+        // Pinpoint status
+        pinpoint.update();
+        GoBildaPinpointDriver.DeviceStatus pinpointStatus = pinpoint.getDeviceStatus();
+        double pinpointHz = pinpoint.getFrequency();
 
         // Update peaks
         if (speed > peakSpeed) peakSpeed = speed;
-        if (accel > peakAccel) peakAccel = accel;   // peak acceleration
-        if (accel < -peakDecel) peakDecel = -accel; // peak deceleration (positive magnitude)
+        if (accel > peakAccel) peakAccel = accel;
+        if (accel < -peakDecel) peakDecel = -accel;
+        if (Math.abs(omega) > peakOmega) peakOmega = Math.abs(omega);
 
         // Tracking margin: turret angular rate headroom at each reference distance
         // Required rate = peak_speed / distance * (180/PI)   (pure perpendicular worst case)
@@ -155,30 +173,46 @@ public class DriveCharacterization extends OpMode {
         }
 
         // Driver hub telemetry
-        telemetry.addData("Speed (in/s)",          "%.1f", speed);
-        telemetry.addData("VX (in/s)",             "%.1f", vx);
-        telemetry.addData("VY (in/s)",             "%.1f", vy);
-        telemetry.addData("Accel (in/s²)",         "%.1f", accel);
+        telemetry.addData("Speed (in/s)",            "%.1f", speed);
+        telemetry.addData("VX (in/s)",               "%.1f", vx);
+        telemetry.addData("VY (in/s)",               "%.1f", vy);
+        telemetry.addData("Omega (deg/s)",           "%.1f", omega);
+        telemetry.addData("Accel (in/s²)",           "%.1f", accel);
+        telemetry.addData("Loop time (ms)",          "%.1f", dt * 1000);
+        telemetry.addData("X (in)",                  "%.1f", follower.getPose().getX());
+        telemetry.addData("Y (in)",                  "%.1f", follower.getPose().getY());
+        telemetry.addData("Heading (deg)",           "%.1f", Math.toDegrees(heading));
         telemetry.addData("---", "");
-        telemetry.addData("Peak Speed (in/s)",     "%.1f", peakSpeed);
-        telemetry.addData("Peak Accel (in/s²)",    "%.1f", peakAccel);
-        telemetry.addData("Peak Decel (in/s²)",    "%.1f", peakDecel);
-        telemetry.addData("Tracking margin @ 94in", "%.2fx  (need >1.3x)", margin94);
-        telemetry.addData("Tracking margin @ 42in", "%.2fx  (need >3.0x)", margin42);
-        telemetry.addData("Power multiplier",      "%.1f", POWER_MULTIPLIER);
+        telemetry.addData("Peak Speed (in/s)",       "%.1f", peakSpeed);
+        telemetry.addData("Peak Accel (in/s²)",      "%.1f", peakAccel);
+        telemetry.addData("Peak Decel (in/s²)",      "%.1f", peakDecel);
+        telemetry.addData("Peak Omega (deg/s)",      "%.1f", peakOmega);
+        telemetry.addData("Tracking margin @ 94in",  "%.2fx  (need >1.3x)", margin94);
+        telemetry.addData("Tracking margin @ 42in",  "%.2fx  (need >3.0x)", margin42);
+        telemetry.addData("---", "");
+        telemetry.addData("Pinpoint status",         pinpointStatus);
+        telemetry.addData("Pinpoint Hz",             "%.1f", pinpointHz);
+        telemetry.addData("Power multiplier",        "%.1f", POWER_MULTIPLIER);
         telemetry.update();
 
         // Dashboard packet — graphable over time
         TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Speed (in/s)",          speed);
-        packet.put("VX (in/s)",             vx);
-        packet.put("VY (in/s)",             vy);
-        packet.put("Accel (in/s²)",         accel);
-        packet.put("Peak Speed (in/s)",     peakSpeed);
-        packet.put("Peak Accel (in/s²)",    peakAccel);
-        packet.put("Peak Decel (in/s²)",    peakDecel);
+        packet.put("Speed (in/s)",           speed);
+        packet.put("VX (in/s)",              vx);
+        packet.put("VY (in/s)",              vy);
+        packet.put("Omega (deg/s)",          omega);
+        packet.put("Accel (in/s²)",          accel);
+        packet.put("Loop time (ms)",         dt * 1000);
+        packet.put("X (in)",                 follower.getPose().getX());
+        packet.put("Y (in)",                 follower.getPose().getY());
+        packet.put("Heading (deg)",          Math.toDegrees(heading));
+        packet.put("Peak Speed (in/s)",      peakSpeed);
+        packet.put("Peak Accel (in/s²)",     peakAccel);
+        packet.put("Peak Decel (in/s²)",     peakDecel);
+        packet.put("Peak Omega (deg/s)",     peakOmega);
         packet.put("Tracking margin @ 94in", margin94);
         packet.put("Tracking margin @ 42in", margin42);
+        packet.put("Pinpoint Hz",            pinpointHz);
         dashboard.sendTelemetryPacket(packet);
     }
 }
