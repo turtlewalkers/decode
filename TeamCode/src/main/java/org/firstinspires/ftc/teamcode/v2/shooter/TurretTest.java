@@ -65,8 +65,8 @@ public class TurretTest extends LinearOpMode {
     public static double SERVO_TO_TURRET_RATIO  = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
 
     // --- Turret soft limits in turret degrees (tune here, copy to ShooterMove) ---
-    public static double TURRET_MIN = -140.0; //-130.0
-    public static double TURRET_MAX =  245.0; //-255.0
+    public static double TURRET_MIN = -160.0; //-130.0
+    public static double TURRET_MAX =  265.0; //-255.0
 
     // --- Slew rate limiting (tune here, copy to ShooterMove) ---
     public static double MAX_SERVO_STEP = 0.05;  // max position change per loop (~20ms)

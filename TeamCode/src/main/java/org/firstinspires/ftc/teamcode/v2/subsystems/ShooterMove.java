@@ -31,8 +31,8 @@ public class ShooterMove extends SubsystemBase {
     public static double m = -123.71, b = 256.37;
 
     // --- Turret angle limits in turret degrees (TBD from mechanical stops, max ~500°) ---
-    public static double TURRET_MIN = -140.0;
-    public static double TURRET_MAX = 245.0;
+    public static double TURRET_MIN = -160.0; //-140.0;
+    public static double TURRET_MAX = 265.0; //245.0;
 
     // --- Turret servo geometry ---
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
@@ -60,6 +60,25 @@ public class ShooterMove extends SubsystemBase {
     public static double MAX_SERVO_STEP = 0.01;  // max position change per loop at full speed
     public static double MIN_SERVO_STEP = 0.003;  // min step near limits
     public static double EDGE_ZONE_DEG  = 20.0;  // degrees from limit where slew starts reducing
+
+    // --- Wrap jump limiting ---
+    // Prevents overcurrent when turret wraps around (>180° jump in one loop)
+    // Spreads the jump over multiple loops — only applies to wrap jumps, not normal tracking
+    public static boolean LIMIT_WRAP_JUMP = false;
+    public static double MAX_WRAP_JUMP_DEG = 90.0;  // max degrees per loop during a wrap jump
+
+    // --- Angular velocity compensation ---
+    // Feedforward: leads the turret command by omega * T_LAG to compensate for servo lag
+    // during robot rotation. Only active when ENABLE_OMEGA_COMP = true.
+    // Tune T_LAG on Dashboard while driving arcs: increase until shots stop trailing the goal.
+    public static boolean ENABLE_OMEGA_COMP = false;
+    public static double SERVO_T_LAG = 0.04;     // seconds (expect 0.03–0.08)
+    public static double OMEGA_ALPHA = 0.3;       // EMA filter coefficient (0–1, lower = smoother)
+    public static double OMEGA_COMP_CLAMP = 15.0; // max compensation degrees (safety clamp)
+
+    // Published for telemetry
+    public static double omegaDegPerSec = 0;
+    public static double servoLagCompDeg = 0;
 
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
     public static double p = 0.7, i = 0.05, d = 0;
@@ -93,11 +112,15 @@ public class ShooterMove extends SubsystemBase {
     private final VoltageSensor volt;
     private final Supplier<Follower> followerSupplier;
 
+    private double lastChosenDeg = 0.0;
+
     // State
     private boolean flywheelOn = true;
     private double hoodOffset = 0;
     private final PIDController controllerShooter;
     private double shooterX, shooterY;
+
+    private double filteredOmegaDeg = 0.0;
     private double currentServoPos;
     private boolean hasAppliedServoPos = false;
     private double lastAppliedServoPos = SERVO_CENTER;
@@ -418,6 +441,7 @@ public class ShooterMove extends SubsystemBase {
         double robotX = robot.getX();
         double robotY = robot.getY();
         double robotHeading = robot.getHeading();
+        robotHeadingDeg = Math.toDegrees(robotHeading);
         double cosH = Math.cos(robotHeading);
         double sinH = Math.sin(robotHeading);
 
@@ -425,10 +449,18 @@ public class ShooterMove extends SubsystemBase {
         double turretY = TURRET_FWD_OFFSET * sinH;
 
         // Shoot-while-moving: 10-iteration solver (carry over from V1)
+        // TODO: Uncomment after basic turret tracking + ENABLE_OMEGA_COMP are confirmed working.
+        //       When re-enabling, also add heading prediction:
+        //         double headingForAngle = robotHeading;
+        //         headingForAngle = robotHeading + rawOmegaRad * shotTime;
+        //         turretX = TURRET_FWD_OFFSET * Math.cos(headingForAngle);
+        //         turretY = TURRET_FWD_OFFSET * Math.sin(headingForAngle);
+        //       And use headingForAngle instead of robotHeading in the atan2 subtraction below.
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
+        /*
         for (int i = 0; i < 4; i++) {
             double shotTime = shottime.get(distance);
             double vX = followerSupplier.get().getVelocity().getXComponent();
@@ -436,17 +468,27 @@ public class ShooterMove extends SubsystemBase {
             dx = shooterX - robotX - vX * shotTime - turretX;
             dy = shooterY - robotY - vY * shotTime - turretY;
             distance = Math.sqrt(dx * dx + dy * dy);
-        }
+        }*/
 
         // Turret angle target
-        //double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
+        double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
 
-        double targetAngleRad = Math.atan2(dy, dx) - robotHeading;
+       /* double targetAngleRad = Math.atan2(dy, dx) - robotHeading;
         //normalize to [-180, 180]
         targetAngleRad = Math.atan2(Math.sin(targetAngleRad), Math.cos(targetAngleRad));
         double targetAngleDeg= Math.toDegrees(targetAngleRad);
-
+       */
         targetAngleDeg += turretOffset;
+
+        // Angular velocity compensation — leads the turret command to compensate for servo lag
+        if (ENABLE_OMEGA_COMP) {
+            servoLagCompDeg = -filteredOmegaDeg * SERVO_T_LAG;
+            servoLagCompDeg = Math.max(-OMEGA_COMP_CLAMP, Math.min(OMEGA_COMP_CLAMP, servoLagCompDeg));
+            targetAngleDeg += servoLagCompDeg;
+        } else {
+            servoLagCompDeg = 0;
+        }
+
         turretTargetDeg = targetAngleDeg;
 
         // Pick best candidate within limits (handles wrap-around)
@@ -455,7 +497,7 @@ public class ShooterMove extends SubsystemBase {
         double bestDist = Double.MAX_VALUE;
         for (double cand : cands) {
             if (cand >= TURRET_MIN && cand <= TURRET_MAX) {
-                double dist = Math.abs(cand - fusedTurretPos);
+                double dist = Math.abs(cand - lastChosenDeg);
                 if (dist < bestDist) {
                     bestDist = dist;
                     chosen = cand;
@@ -463,15 +505,35 @@ public class ShooterMove extends SubsystemBase {
             }
         }
         chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
+        double prevChosenDeg = lastChosenDeg;
+
+        // Wrap jump limiting — only applies when jump > 180°, normal tracking unaffected
+        if (LIMIT_WRAP_JUMP && Math.abs(chosen - prevChosenDeg) > 180.0) {
+            chosen = prevChosenDeg + Math.signum(chosen - prevChosenDeg) * MAX_WRAP_JUMP_DEG;
+            chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
+        }
+
+        lastChosenDeg = chosen;
 
        // setTurretDeg(chosen);
         currentServoPos = turretDegToServoPos(chosen);
         turretPosDeg = chosen;
+
+        // Logcat warnings — only fire on rare events, no per-loop logging
+        if (Math.abs(chosen - prevChosenDeg) > 180.0) {
+            Log.w("Turret", String.format(
+                    "WRAP JUMP: %.1f -> %.1f (%.1f deg) servoPos=%.4f limitActive=%b",
+                    prevChosenDeg, chosen, chosen - prevChosenDeg, currentServoPos, LIMIT_WRAP_JUMP));
+        }
+        if (currentServoPos <= SERVO_MIN + 0.01 || currentServoPos >= SERVO_MAX - 0.01) {
+            Log.w("Turret", String.format(
+                    "SERVO NEAR LIMIT: servoPos=%.4f (min=%.2f max=%.2f)",
+                    currentServoPos, SERVO_MIN, SERVO_MAX));
+        }
+
         turretL1.set(currentServoPos + SERVO_OFFSET);
         turretL2.set(currentServoPos);
         turretR1.set(currentServoPos - SERVO_OFFSET);
-
-        Log.d("TurretTarget", String.valueOf(chosen));
 
         // Hood
         if (HOOD_ENABLED && hood != null) {
@@ -504,8 +566,10 @@ public class ShooterMove extends SubsystemBase {
             shooterT.set(0);
         }
 
+        /*
         Log.d("Distance", String.valueOf(distance));
         Log.d("FlywheelRPM", String.valueOf(shooterB.getVelocity() / 28.0 * 60.0));
         Log.d("TargetRPM", String.valueOf(RPM.get(distance)));
+        */
     }
 }
