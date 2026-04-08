@@ -38,7 +38,7 @@ public class ShooterMove extends SubsystemBase {
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
     public static double SERVO_RANGE_DEG = 355.0;
     public static double SERVO_TO_TURRET_RATIO = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
-    public static double SERVO_CENTER = 0.525; // tune on real robot — center of turret travel
+    public static double SERVO_CENTER = 0.607; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
     public static double SERVO_MIN = 0.03;
@@ -48,7 +48,7 @@ public class ShooterMove extends SubsystemBase {
     public static boolean ABS_ENABLED = false;
 
     // --- Hood ---
-    public static boolean HOOD_ENABLED = false;
+    public static boolean HOOD_ENABLED = true;
 
     // --- r1 direction: all three servos confirmed same direction ---
 
@@ -60,7 +60,7 @@ public class ShooterMove extends SubsystemBase {
     public static double EDGE_ZONE_DEG  = 20.0;  // degrees from limit where slew starts reducing
 
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
-    public static double p = 0.8, i = 0.05, d = 0;
+    public static double p = 0.7, i = 0.05, d = 0;
     public static boolean ENABLE_FF = false;
     public static double kV = 0.021477551;
     public static double kS = 0.760983135;
@@ -171,43 +171,87 @@ public class ShooterMove extends SubsystemBase {
          */
 
         // LUTs — V1 values, retune on V2
-        RPM.add(0, 275);
-        RPM.add(29, 275);
-        RPM.add(33.5, 275);
-        RPM.add(43, 275);
-        RPM.add(49.5, 285);
-        RPM.add(56.5, 290);
-        RPM.add(68, 310);
-        RPM.add(76, 315);
+        RPM.add(0, 260);
+        RPM.add(29, 260);
+        RPM.add(35.5, 262);
+        RPM.add(43, 270);
+        RPM.add(49.5, 280);
+        RPM.add(56.5, 285);
+        RPM.add(68, 300);
+        RPM.add(76, 310);
+        RPM.add(83, 325);
         RPM.add(91, 335);
-        RPM.add(93, 360);
-        RPM.add(1000, 360);
+        RPM.add(103, 355);
+        RPM.add(114, 370);
+        RPM.add(130, 400);
+        RPM.add(142, 435);
         RPM.createLUT();
+        /*
+        distance, rad, hood, transferspeed
+        29, 260, 1, 0.55
+        35.5, 262, 0.7, 0.7
+        43, 270, 0.75, 1
+        49.5, 280, 0.6, 1
+        56.5, 285. 0.45, 1
+        68, 300, 0.35, 1
+        76, 310, 0.3, 0.9
+        83, 325, 0.23, 0.9
+        91, 335, 0.2, 0.9
+        103, 355, 0.18, 0.9
+        114, 370, 0.12, 0.9
+        130, 400, 0.10, 0.8
+        142, 435, 0.08, 0.6
+                */
 
-        angle.add(0, 275);
+
+        angle.add(0, 1);
         angle.add(29, 1);
-        angle.add(33.5, 0.7);
-        angle.add(43, 0.7);
+        angle.add(35.5, 0.7);
+        angle.add(43, 0.75);
         angle.add(49.5, 0.65);
-        angle.add(56.5, 0.58);
-        angle.add(68, 0.5);
-        angle.add(76, 0.45);
-        angle.add(91, 0.3);
-        angle.add(93, 0.4);
-        angle.add(1000, 0.4);
+        angle.add(56.5, 0.45);
+        angle.add(68, 0.35);
+        angle.add(76, 0.3);
+        angle.add(83, 0.23);
+        angle.add(91, 0.2);
+        angle.add(103, 0.18);
+        angle.add(114, 0.12);
+        angle.add(130, 0.10);
+        angle.add(142, 0.08);
         angle.createLUT();
 
-        transfer.add(0, 275);
+                /*
+        distance, rad, hood, transferspeed
+        29, 260, 1, 0.55
+        35.5, 262, 0.7, 0.7
+        43, 270, 0.75, 1
+        49.5, 280, 0.6, 1
+        56.5, 285. 0.45, 1
+        68, 300, 0.35, 1
+        76, 310, 0.3, 0.9
+        83, 325, 0.23, 0.9
+        91, 335, 0.2, 0.9
+        103, 355, 0.18, 0.9
+        114, 370, 0.12, 0.9
+        130, 400, 0.10, 0.8
+        142, 435, 0.08, 0.6
+                */
+
+        transfer.add(0, 0.55);
         transfer.add(29, 0.55);
         transfer.add(33.5, 0.7);
-        transfer.add(43, 0.7);
+        transfer.add(43, 0.75);
         transfer.add(49.5, 1);
         transfer.add(56.5, 1);
         transfer.add(68, 1);
-        transfer.add(76, 1);
-        transfer.add(91, 1);
-        transfer.add(93, 1);
-        transfer.add(1000, 1);
+        transfer.add(76, 0.9);
+        transfer.add(83, 0.9);
+        transfer.add(91, 0.9);
+        transfer.add(103, 0.9);
+        transfer.add(114, 0.9);
+        transfer.add(130, 0.8);
+        transfer.add(142, 0.6);
+        transfer.add(3000, 0.6);
         transfer.createLUT();
 
         shottime.add(0, 0.63);
