@@ -41,10 +41,10 @@ public class ShooterMove extends SubsystemBase {
     public static double SERVO_CENTER = 0.607; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
-    public static double SERVO_MIN = 0.03;
-    public static double SERVO_MAX = 0.97;
+    public static double SERVO_MIN = 0.03;//0.1;//0.03;
+    public static double SERVO_MAX = 0.97;//0.97;
 
-    public static double SERVO_OFFSET = 0.01;
+    public static double SERVO_OFFSET = 0.002;
 
     // --- Abs encoder ---
     public static boolean ABS_ENABLED = false;
@@ -103,6 +103,9 @@ public class ShooterMove extends SubsystemBase {
     // --- Shooter position on field (set by teleop, same as V1) ---
     public static double TURRET_FWD_OFFSET = -1.63;
     public static double TURRET_LEFT_OFFSET = 0.0;
+
+    public static double batteryVoltage = 0.0;
+
 
     // Hardware
     private final ServoEx turretL1, turretL2, turretR1;
@@ -426,6 +429,29 @@ public class ShooterMove extends SubsystemBase {
         return currentServoPos;
     }
 
+    private void setTurretDeg(double targetTurretDeg) {
+        targetTurretDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, targetTurretDeg));
+        double targetServoPos = turretDegToServoPos(targetTurretDeg);
+
+        double error = targetServoPos - currentServoPos;
+        if (Math.abs(error) > MAX_SERVO_STEP) {
+            currentServoPos += Math.signum(error) * MAX_SERVO_STEP;
+        } else {
+            currentServoPos = targetServoPos;
+        }
+
+        // Skip write if position unchanged
+        if (hasAppliedServoPos && Double.compare(lastAppliedServoPos, currentServoPos) == 0) {
+            return;
+        }
+        lastAppliedServoPos = currentServoPos;
+        hasAppliedServoPos = true;
+
+        turretL1.set(currentServoPos + SERVO_OFFSET);
+        turretL2.set(currentServoPos);
+        turretR1.set(currentServoPos- SERVO_OFFSET);
+    }
+
     // --- Periodic ---
 
     @Override
@@ -437,6 +463,8 @@ public class ShooterMove extends SubsystemBase {
 
         Pose robot = followerSupplier.get().getPose();
         double presentVoltage = volt.getVoltage();
+
+        batteryVoltage = presentVoltage;
 
         double robotX = robot.getX();
         double robotY = robot.getY();
@@ -460,7 +488,6 @@ public class ShooterMove extends SubsystemBase {
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-        /*
         for (int i = 0; i < 4; i++) {
             double shotTime = shottime.get(distance);
             double vX = followerSupplier.get().getVelocity().getXComponent();
@@ -468,7 +495,7 @@ public class ShooterMove extends SubsystemBase {
             dx = shooterX - robotX - vX * shotTime - turretX;
             dy = shooterY - robotY - vY * shotTime - turretY;
             distance = Math.sqrt(dx * dx + dy * dy);
-        }*/
+        }
 
         // Turret angle target
         double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
@@ -515,7 +542,7 @@ public class ShooterMove extends SubsystemBase {
 
         lastChosenDeg = chosen;
 
-       // setTurretDeg(chosen);
+        setTurretDeg(chosen);
         currentServoPos = turretDegToServoPos(chosen);
         turretPosDeg = chosen;
 
@@ -531,9 +558,12 @@ public class ShooterMove extends SubsystemBase {
                     currentServoPos, SERVO_MIN, SERVO_MAX));
         }
 
-        turretL1.set(currentServoPos + SERVO_OFFSET);
+       /* turretL1.set(currentServoPos + SERVO_OFFSET);
         turretL2.set(currentServoPos);
         turretR1.set(currentServoPos - SERVO_OFFSET);
+        */
+
+
 
         // Hood
         if (HOOD_ENABLED && hood != null) {

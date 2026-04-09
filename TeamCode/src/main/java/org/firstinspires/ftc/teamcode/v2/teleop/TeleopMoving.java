@@ -23,6 +23,7 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
+import org.firstinspires.ftc.teamcode.v2.shooter.Shooter;
 import org.firstinspires.ftc.teamcode.v2.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
 
@@ -308,7 +309,11 @@ public class TeleopMoving extends CommandOpMode {
         packet.put("RobotHeadingDeg",   ShooterMove.robotHeadingDeg);
         packet.put("ServoPos", shooter.getServoPos());
         packet.put("Heading", Math.toDegrees(follower.getPose().getHeading()));
+        packet.put("BatteryVoltage",  ShooterMove.batteryVoltage);
+        packet.put("X", follower.getPose().getX());
         packet.put("LoopTimeMs", ShooterMove.loopTimeMs);
+        packet.put("OmegaDegPerSec", ShooterMove.omegaDegPerSec);
+        packet.put("ServoLagCompDeg", ShooterMove.servoLagCompDeg);
         packet.put("FlywheelRPM",    shooter.getFlywheelRpm());
         dashboard.sendTelemetryPacket(packet);
 
