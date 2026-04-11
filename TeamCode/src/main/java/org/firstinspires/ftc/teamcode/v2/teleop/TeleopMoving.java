@@ -42,6 +42,8 @@ public class TeleopMoving extends CommandOpMode {
 
     public static double shooterX, shooterY, gateX, gateY;
 
+    public static double OMEGA_SCALE = 0.7; //rotation scaling lower to give translation more priority
+
     private double multiplier = 1;
     private Path Park, Stay;
     private Pose end, start, relocalize;
@@ -211,7 +213,7 @@ public class TeleopMoving extends CommandOpMode {
 
             double vx_r = -gamepad1.left_stick_y * multiplier;
             double vy_r = -gamepad1.left_stick_x * multiplier;
-            double omega = -gamepad1.right_stick_x * multiplier;
+            double omega = -gamepad1.right_stick_x * multiplier * OMEGA_SCALE;
 
             // Robot-frame → field-frame
             double vx_f = vx_r * cosH - vy_r * sinH;
@@ -311,6 +313,7 @@ public class TeleopMoving extends CommandOpMode {
         packet.put("Heading", Math.toDegrees(follower.getPose().getHeading()));
         packet.put("BatteryVoltage",  ShooterMove.batteryVoltage);
         packet.put("X", follower.getPose().getX());
+        packet.put("Y", follower.getPose().getY());
         packet.put("LoopTimeMs", ShooterMove.loopTimeMs);
         packet.put("OmegaDegPerSec", ShooterMove.omegaDegPerSec);
         packet.put("ServoLagCompDeg", ShooterMove.servoLagCompDeg);
