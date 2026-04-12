@@ -5,15 +5,12 @@ import android.util.Log;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
@@ -26,7 +23,7 @@ import org.firstinspires.ftc.teamcode.v2.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
 
 @Autonomous
-public class Blue24 extends CommandOpMode {
+public class Red24 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -36,22 +33,22 @@ public class Blue24 extends CommandOpMode {
 
     // Poses:
     public static int T = 1;
-    private final Pose Start = new Pose(28.4, 129.4, Math.toRadians(134));
-    private final Pose PreloadScore = new Pose(60, 80, Math.toRadians(220));
-    private final Pose Collect2Control = new Pose(56, 60, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(24, 65, Math.toRadians(180));
-    private final Pose Score2 = new Pose(60, 80, Math.toRadians(220));
-    private final Pose CollectGateControl = new Pose(45, 55, Math.toRadians(148.5));
-    private final Pose CollectGate = new Pose(13, 63, Math.toRadians(146));
-    private final Pose GateShoot = new Pose(60, 80, Math.toRadians(220));
+    private final Pose Start = new Pose(115.6, 129.4, Math.toRadians(46));
+    private final Pose PreloadScore = new Pose(84, 80, Math.toRadians(320));
+    private final Pose Collect2Control = new Pose(88, 60, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(120, 65, Math.toRadians(0));
+    private final Pose Score2 = new Pose(84, 80, Math.toRadians(320));
+    private final Pose CollectGateControl = new Pose(99, 55, Math.toRadians(31.5));
+    private final Pose CollectGate = new Pose(131, 63, Math.toRadians(34));
+    private final Pose GateShoot = new Pose(84, 80, Math.toRadians(320));
 
-    private final Pose GateShootLast = new Pose(60, 80, Math.toRadians(150));
-    private final Pose Collect1Control = new Pose(30.5, 85, Math.toRadians(180));
-    private final Pose Collect1 = new Pose(24, 82.5, Math.toRadians(180));
-    private final Pose Score1 = new Pose(60, 80, Math.toRadians(250));
-    private final Pose Collect3Control = new Pose(40.5, 29, Math.toRadians(180));
-    private final Pose Collect3 = new Pose(24, 35, Math.toRadians(180));
-    private final Pose Score3 = new Pose(62, 100, Math.toRadians(250));
+    private final Pose GateShootLast = new Pose(84, 80, Math.toRadians(30));
+    private final Pose Collect1Control = new Pose(113.5, 85, Math.toRadians(0));
+    private final Pose Collect1 = new Pose(118, 82.5, Math.toRadians(0));
+    private final Pose Score1 = new Pose(84, 80, Math.toRadians(290));
+    private final Pose Collect3Control = new Pose(103.5, 29, Math.toRadians(0));
+    private final Pose Collect3 = new Pose(120, 35, Math.toRadians(0));
+    private final Pose Score3 = new Pose(82, 100, Math.toRadians(290));
 
 
 
