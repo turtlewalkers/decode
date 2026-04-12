@@ -38,7 +38,7 @@ public class ShooterMove extends SubsystemBase {
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
     public static double SERVO_RANGE_DEG = 355.0;
     public static double SERVO_TO_TURRET_RATIO = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
-    public static double SERVO_CENTER = 0.607; // tune on real robot — center of turret travel
+    public static double SERVO_CENTER = 0.585;//0.607; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
     public static double SERVO_MIN = 0.03;//0.1;//0.03;
@@ -54,18 +54,12 @@ public class ShooterMove extends SubsystemBase {
 
     // --- r1 direction: all three servos confirmed same direction ---
 
-    //- MAX_SERVO_STEP = 0.01 — matches physical hardware, no over-command
-    //  - MIN_SERVO_STEP = 0.003 — near limits, ~1/3 speed
-    // --- Slew rate limiting — prevents slamming mechanical stops ---
-    public static double MAX_SERVO_STEP = 0.01;  // max position change per loop at full speed
+    // --- Slew rate limiting ---
+    public static boolean DIRECT_WRITE = true;  // true = write target directly (use with Axon Power Limit 75%), false = slew-limit every step
+    public static boolean EDGE_ZONE_ENABLED = true;  // true = slow down near TURRET_MIN/MAX, false = trust servo + Axon Power Limit
+    public static double MAX_SERVO_STEP = 0.03;  // max position change per loop (only used near edges when DIRECT_WRITE=true)
     public static double MIN_SERVO_STEP = 0.003;  // min step near limits
     public static double EDGE_ZONE_DEG  = 20.0;  // degrees from limit where slew starts reducing
-
-    // --- Wrap jump limiting ---
-    // Prevents overcurrent when turret wraps around (>180° jump in one loop)
-    // Spreads the jump over multiple loops — only applies to wrap jumps, not normal tracking
-    public static boolean LIMIT_WRAP_JUMP = false;
-    public static double MAX_WRAP_JUMP_DEG = 90.0;  // max degrees per loop during a wrap jump
 
     // --- Angular velocity compensation ---
     // Feedforward: leads the turret command by omega * T_LAG to compensate for servo lag
@@ -83,8 +77,8 @@ public class ShooterMove extends SubsystemBase {
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
     public static double p = 0.7, i = 0.05, d = 0;
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.021477551;
-    public static double kS = 0.760983135;
+    public static double kV = 0.02174519;//0.021477551;
+    public static double kS = 0.597816782;//0.760983135;
     public static double f = 0.0025;
     // Set > 0 to override LUT and run at a fixed target (rad/s, bypasses distance LUT)
     public static double MANUAL_RPM = 0;
@@ -105,6 +99,9 @@ public class ShooterMove extends SubsystemBase {
     public static double TURRET_LEFT_OFFSET = 0.0;
 
     public static double batteryVoltage = 0.0;
+
+    // Published for Intake to read during shoot mode
+    public static double transferSpeedTarget = 0.6;
 
 
     // Hardware
@@ -172,8 +169,8 @@ public class ShooterMove extends SubsystemBase {
 
         // Initialize from actual servo position — Axon MAX is absolute, always knows where it is.
         // This avoids the 0° assumption when the turret is physically at a different angle at startup.
-        currentServoPos = SERVO_CENTER;//turretL1.getRawPosition();
-        fusedTurretPos = 0.0;//servoPosToTurretDeg(currentServoPos);
+        currentServoPos = turretL1.getRawPosition();
+        fusedTurretPos = servoPosToTurretDeg(currentServoPos);
 
         timer = new ElapsedTime();
         timer.reset();
@@ -370,17 +367,15 @@ public class ShooterMove extends SubsystemBase {
         return -(servoPos - SERVO_CENTER) * SERVO_RANGE_DEG * SERVO_TO_TURRET_RATIO;
     }
 
-    /** Full speed in the middle, linearly reduces near mechanical limits. */
-    private double computeMaxStep(double targetTurretDeg) {
-        double absAngle = Math.abs(targetTurretDeg);
-        double edgeZoneStart = Math.max(Math.abs(TURRET_MIN), Math.abs(TURRET_MAX)) - EDGE_ZONE_DEG;
+    /** Full speed in the middle, linearly reduces near either mechanical limit. */
+    private double computeMaxStep() {
+        double currentDeg = servoPosToTurretDeg(currentServoPos);
+        double distToEdge = Math.min(currentDeg - TURRET_MIN, TURRET_MAX - currentDeg);
 
-        if (absAngle <= edgeZoneStart) {
+        if (distToEdge >= EDGE_ZONE_DEG) {
             return MAX_SERVO_STEP;
         }
-        double edgeZoneEnd = Math.max(Math.abs(TURRET_MIN), Math.abs(TURRET_MAX));
-        double t = (absAngle - edgeZoneStart) / (edgeZoneEnd - edgeZoneStart);
-        t = Math.max(0.0, Math.min(1.0, t));
+        double t = 1.0 - Math.max(0.0, distToEdge / EDGE_ZONE_DEG);
         return MAX_SERVO_STEP + t * (MIN_SERVO_STEP - MAX_SERVO_STEP);
     }
 
@@ -433,11 +428,33 @@ public class ShooterMove extends SubsystemBase {
         targetTurretDeg = Math.max(TURRET_MIN, Math.min(TURRET_MAX, targetTurretDeg));
         double targetServoPos = turretDegToServoPos(targetTurretDeg);
 
-        double error = targetServoPos - currentServoPos;
-        if (Math.abs(error) > MAX_SERVO_STEP) {
-            currentServoPos += Math.signum(error) * MAX_SERVO_STEP;
+        if (DIRECT_WRITE) {
+            // Write target directly — servo manages its own movement.
+            // Only slew-limit near mechanical stops if EDGE_ZONE_ENABLED.
+            double currentDeg = servoPosToTurretDeg(currentServoPos);
+            double distToEdge = Math.min(currentDeg - TURRET_MIN, TURRET_MAX - currentDeg);
+
+            if (EDGE_ZONE_ENABLED && distToEdge < EDGE_ZONE_DEG) {
+                double t = 1.0 - Math.max(0.0, distToEdge / EDGE_ZONE_DEG);
+                double maxStep = MAX_SERVO_STEP + t * (MIN_SERVO_STEP - MAX_SERVO_STEP);
+                double error = targetServoPos - currentServoPos;
+                if (Math.abs(error) > maxStep) {
+                    currentServoPos += Math.signum(error) * maxStep;
+                } else {
+                    currentServoPos = targetServoPos;
+                }
+            } else {
+                currentServoPos = targetServoPos;
+            }
         } else {
-            currentServoPos = targetServoPos;
+            // Full slew limiting every step
+            double maxStep = computeMaxStep();
+            double error = targetServoPos - currentServoPos;
+            if (Math.abs(error) > maxStep) {
+                currentServoPos += Math.signum(error) * maxStep;
+            } else {
+                currentServoPos = targetServoPos;
+            }
         }
 
         // Skip write if position unchanged
@@ -449,7 +466,7 @@ public class ShooterMove extends SubsystemBase {
 
         turretL1.set(currentServoPos + SERVO_OFFSET);
         turretL2.set(currentServoPos);
-        turretR1.set(currentServoPos- SERVO_OFFSET);
+        turretR1.set(currentServoPos - SERVO_OFFSET);
     }
 
     // --- Periodic ---
@@ -499,12 +516,6 @@ public class ShooterMove extends SubsystemBase {
 
         // Turret angle target
         double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
-
-       /* double targetAngleRad = Math.atan2(dy, dx) - robotHeading;
-        //normalize to [-180, 180]
-        targetAngleRad = Math.atan2(Math.sin(targetAngleRad), Math.cos(targetAngleRad));
-        double targetAngleDeg= Math.toDegrees(targetAngleRad);
-       */
         targetAngleDeg += turretOffset;
 
         // Angular velocity compensation — leads the turret command to compensate for servo lag
@@ -518,9 +529,9 @@ public class ShooterMove extends SubsystemBase {
 
         turretTargetDeg = targetAngleDeg;
 
-        // Pick best candidate within limits (handles wrap-around)
+        // Pick the ±360 candidate closest to lastChosenDeg that's within turret range
         double[] cands = { targetAngleDeg, targetAngleDeg + 360.0, targetAngleDeg - 360.0 };
-        double chosen = targetAngleDeg;
+        double chosen = lastChosenDeg; // fallback: hold position if nothing is in range
         double bestDist = Double.MAX_VALUE;
         for (double cand : cands) {
             if (cand >= TURRET_MIN && cand <= TURRET_MAX) {
@@ -531,45 +542,26 @@ public class ShooterMove extends SubsystemBase {
                 }
             }
         }
-        chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
-        double prevChosenDeg = lastChosenDeg;
-
-        // Wrap jump limiting — only applies when jump > 180°, normal tracking unaffected
-        if (LIMIT_WRAP_JUMP && Math.abs(chosen - prevChosenDeg) > 180.0) {
-            chosen = prevChosenDeg + Math.signum(chosen - prevChosenDeg) * MAX_WRAP_JUMP_DEG;
-            chosen = Math.max(TURRET_MIN, Math.min(TURRET_MAX, chosen));
-        }
 
         lastChosenDeg = chosen;
 
         setTurretDeg(chosen);
-        currentServoPos = turretDegToServoPos(chosen);
-        turretPosDeg = chosen;
+        turretPosDeg = servoPosToTurretDeg(currentServoPos);
 
-        // Logcat warnings — only fire on rare events, no per-loop logging
-        if (Math.abs(chosen - prevChosenDeg) > 180.0) {
-            Log.w("Turret", String.format(
-                    "WRAP JUMP: %.1f -> %.1f (%.1f deg) servoPos=%.4f limitActive=%b",
-                    prevChosenDeg, chosen, chosen - prevChosenDeg, currentServoPos, LIMIT_WRAP_JUMP));
-        }
         if (currentServoPos <= SERVO_MIN + 0.01 || currentServoPos >= SERVO_MAX - 0.01) {
             Log.w("Turret", String.format(
                     "SERVO NEAR LIMIT: servoPos=%.4f (min=%.2f max=%.2f)",
                     currentServoPos, SERVO_MIN, SERVO_MAX));
         }
 
-       /* turretL1.set(currentServoPos + SERVO_OFFSET);
-        turretL2.set(currentServoPos);
-        turretR1.set(currentServoPos - SERVO_OFFSET);
-        */
-
-
-
         // Hood
         if (HOOD_ENABLED && hood != null) {
             double theta = Math.max(0, Math.min(1, angle.get(distance) + hoodOffset));
             hood.set(theta);
         }
+
+        // Update transfer speed target for Intake to read
+        transferSpeedTarget = transfer.get(distance);
 
         // Flywheel
         if (flywheelOn) {
