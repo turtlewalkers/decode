@@ -102,7 +102,7 @@ public class ShooterMove extends SubsystemBase {
 
     // Published for Intake to read during shoot mode
     public static double transferSpeedTarget = 0.6;
-
+    private double turretOff = 1;
 
     // Hardware
     private final ServoEx turretL1, turretL2, turretR1;
@@ -176,6 +176,7 @@ public class ShooterMove extends SubsystemBase {
         timer.reset();
 
         controllerShooter = new PIDController(p, i, d);
+        turretOff(false);
 
         /* Lookup table values from 11:15 pm April 05
 
@@ -309,6 +310,10 @@ public class ShooterMove extends SubsystemBase {
     }
 
     // --- Public commands ---
+
+    public Command turretOff (boolean off) {
+        return new InstantCommand(() -> turretOff = off ? 0 : 1);
+    }
 
     public Command flywheel(boolean on) {
         return new InstantCommand(() -> flywheelOn = on);
@@ -516,6 +521,7 @@ public class ShooterMove extends SubsystemBase {
 
         // Turret angle target
         double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
+        targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
 
         // Angular velocity compensation — leads the turret command to compensate for servo lag
