@@ -42,7 +42,7 @@ public class Blue24 extends CommandOpMode {
     private final Pose Collect2 = new Pose(24, 65, Math.toRadians(180));
     private final Pose Score2 = new Pose(60, 80, Math.toRadians(220));
     private final Pose CollectGateControl = new Pose(45, 55, Math.toRadians(148.5));
-    private final Pose CollectGate = new Pose(13, 63, Math.toRadians(146));
+    private final Pose CollectGate = new Pose(13.5, 61.5, Math.toRadians(146));
     private final Pose GateShoot = new Pose(60, 80, Math.toRadians(220));
 
     private final Pose GateShootLast = new Pose(60, 80, Math.toRadians(150));
@@ -138,36 +138,74 @@ public class Blue24 extends CommandOpMode {
 
         schedule(
                 new RunCommand(() -> follower.update()),
-                new SequentialCommandGroup(
+                new SequentialCommandGroup (
                         new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(550),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1100),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, Shoot2, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(550),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         new WaitCommand(1000),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(500),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
-                        new WaitCommand(500),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(500),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         new WaitCommand(1500),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(500),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         new WaitCommand(1500),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(500),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         new WaitCommand(1500),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                        new WaitCommand(100),
+                        intake.shootStart(),
                         new WaitCommand(500),
+                        intake.shootStop(),
+                        intake.collectStart(),
                         new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
                         new WaitCommand(1500),
+                        intake.collectStop(),
                         new FollowPathCommand(follower, GateScoreLast, true).withTimeout(1100),
-                        new WaitCommand(500)
+                        new WaitCommand(100),
+                        intake.shootStart(),
+                        new WaitCommand(500),
+                        intake.shootStop(),
+                        intake.collectStart()
                         //new FollowPathCommand(follower, Intake3, true).withTimeout(2000),
                         //new FollowPathCommand(follower, Shoot3, true).withTimeout(1100)
                         )
