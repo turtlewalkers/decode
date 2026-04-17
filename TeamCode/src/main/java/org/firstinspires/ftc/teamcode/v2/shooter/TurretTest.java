@@ -68,6 +68,10 @@ public class TurretTest extends LinearOpMode {
     public static double TURRET_MIN = -160.0; //-130.0
     public static double TURRET_MAX =  265.0; //-255.0
 
+    public static double SERVO_OFFSET_TL1 = -0.0028;
+    public static double SERVO_OFFSET_TL2 = 0.0025;
+    public static double SERVO_OFFSET_TR1 = -0.0003;
+
     // --- Slew rate limiting (tune here, copy to ShooterMove) ---
     public static double MAX_SERVO_STEP = 0.05;  // max position change per loop (~20ms)
     public static double MIN_SERVO_STEP = 0.01;  // step near mechanical limits
@@ -88,9 +92,9 @@ public class TurretTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        ServoEx l1 = new ServoEx(hardwareMap, "tl1");
-        ServoEx l2 = new ServoEx(hardwareMap, "tl2");
-        ServoEx r1 = new ServoEx(hardwareMap, "tr1");
+        ServoEx l1 = new ServoEx(hardwareMap, "tl1"); //:5 port
+        ServoEx l2 = new ServoEx(hardwareMap, "tl2"); //:4 port
+        ServoEx r1 = new ServoEx(hardwareMap, "tr1"); //:3 port
         AnalogInput abs = ABS_ENABLED
                 ? hardwareMap.get(AnalogInput.class, "abs")
                 : null;
@@ -158,25 +162,25 @@ public class TurretTest extends LinearOpMode {
                     currentServoPosr1 = Math.max(SERVO_MIN, currentServoPos - STEP_SIZE);
                 }
                 if (a     && !lastA) {
-                    currentServoPosl1 = SERVO_CENTER;
-                    currentServoPosl2 = SERVO_CENTER;
-                    currentServoPosr1 = SERVO_CENTER;
+                    currentServoPosl1 = SERVO_CENTER + SERVO_OFFSET_TL1;
+                    currentServoPosl2 = SERVO_CENTER + SERVO_OFFSET_TL2;
+                    currentServoPosr1 = SERVO_CENTER + SERVO_OFFSET_TR1;
                 }
                 if (bBtn  && !lastB)    {
                     //Keep this for later for zeroing the servos
-                    //currentServoPosl1 = SERVO_MIN + 0.001;
-                    //currentServoPosl2 = SERVO_MIN;
-                    //currentServoPosr1 = SERVO_MIN - 0.001;
+                    currentServoPosl1 = SERVO_MIN + SERVO_OFFSET_TL1;
+                    currentServoPosl2 = SERVO_MIN + SERVO_OFFSET_TL2;
+                    currentServoPosr1 = SERVO_MIN + SERVO_OFFSET_TR1;
 
-                    currentServoPosl1 = SERVO_MIN;
-                    currentServoPosl2 = SERVO_MIN;
-                    currentServoPosr1 = SERVO_MIN;
+                   // currentServoPosl1 = SERVO_MIN;
+                   // currentServoPosl2 = SERVO_MIN;
+                   // currentServoPosr1 = SERVO_MIN;
 
                 }
                 if (y     && !lastY)  {
-                    currentServoPosl1 = SERVO_MAX;
-                    currentServoPosl2 = SERVO_MAX;
-                    currentServoPosr1 = SERVO_MAX;
+                    currentServoPosl1 = SERVO_MAX + SERVO_OFFSET_TL1;;
+                    currentServoPosl2 = SERVO_MAX + SERVO_OFFSET_TL2;;
+                    currentServoPosr1 = SERVO_MAX + SERVO_OFFSET_TR1;;
                 }
                 if (lb    && !lastLB)    STEP_SIZE = Math.max(0.005, STEP_SIZE - 0.005);
                 if (rb    && !lastRB)    STEP_SIZE = Math.min(0.05,  STEP_SIZE + 0.005);

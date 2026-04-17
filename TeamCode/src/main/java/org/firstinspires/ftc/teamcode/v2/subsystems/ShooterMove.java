@@ -44,7 +44,9 @@ public class ShooterMove extends SubsystemBase {
     public static double SERVO_MIN = 0.03;//0.1;//0.03;
     public static double SERVO_MAX = 0.97;//0.97;
 
-    public static double SERVO_OFFSET = 0.002;
+    public static double SERVO_OFFSET_TL1 = -0.0028; //
+    public static double SERVO_OFFSET_TL2 = 0.0025;
+    public static double SERVO_OFFSET_TR1 = -0.0003;
 
     // --- Abs encoder ---
     public static boolean ABS_ENABLED = false;
@@ -95,7 +97,7 @@ public class ShooterMove extends SubsystemBase {
     public static double robotHeadingDeg = 0;
 
     // --- Shooter position on field (set by teleop, same as V1) ---
-    public static double TURRET_FWD_OFFSET = -1.63;
+    public static double TURRET_FWD_OFFSET = -0.3937;//-1.63;
     public static double TURRET_LEFT_OFFSET = 0.0;
 
     public static double batteryVoltage = 0.0;
@@ -469,9 +471,9 @@ public class ShooterMove extends SubsystemBase {
         lastAppliedServoPos = currentServoPos;
         hasAppliedServoPos = true;
 
-        turretL1.set(currentServoPos + SERVO_OFFSET);
-        turretL2.set(currentServoPos);
-        turretR1.set(currentServoPos - SERVO_OFFSET);
+        turretL1.set(currentServoPos + SERVO_OFFSET_TL1);
+        turretL2.set(currentServoPos + SERVO_OFFSET_TL2);
+        turretR1.set(currentServoPos + SERVO_OFFSET_TR1);
     }
 
     // --- Periodic ---
