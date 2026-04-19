@@ -64,8 +64,8 @@ public class LUTTest extends OpMode {
     public static double p = 0.7, i = 0.05, d = 0;
     public static double f = 0.0025;
     public static boolean ENABLE_FF = false;
-    public static double kV = 0.021448433;
-    public static double kS = 0.784184038;
+    public static double kV = 0.022312028;
+    public static double kS = 0.323009673;
 
     // --- Intake / transfer / latch ---
     public static double INTAKE_SPEED   = 1.0;
@@ -116,6 +116,7 @@ public class LUTTest extends OpMode {
         //hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
         hood = hardwareMap.get(Servo.class, "hood");
         volt = hardwareMap.get(VoltageSensor.class, "Control Hub");
+        hood.setDirection(Servo.Direction.REVERSE);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {

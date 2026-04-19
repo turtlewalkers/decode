@@ -42,8 +42,8 @@ public class Shooter extends OpMode {
     public static double f = 0.0025;
     public static double TARGET_RAD = 300;        // rad/s — 300 rad/s ≈ 2865 RPM (~0.55 power)
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.021477551;
-    public static double kS = 0.760983135;
+    public static double kV = 0.022312028; // 0.021477551
+    public static double kS = 0.323009673; // 0.760983135
 
     // --- Hood ---
     public static boolean HOOD_ENABLED = true;
@@ -97,7 +97,9 @@ public class Shooter extends OpMode {
             latch.setPosition(LATCH_CLOSED);
         }
 
-        hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
+       // hood = HOOD_ENABLED ? hardwareMap.get(Servo.class, "hood") : null;
+        hood = hardwareMap.get(Servo.class, "hood");
+        hood.setDirection(Servo.Direction.REVERSE);
 
         telemetry.addData("Status", "Ready — LEFT=collect  RIGHT=shoot");
         telemetry.addData("TARGET_RAD",     TARGET_RAD);

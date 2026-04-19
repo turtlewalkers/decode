@@ -38,7 +38,7 @@ public class ShooterMove extends SubsystemBase {
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
     public static double SERVO_RANGE_DEG = 355.0;
     public static double SERVO_TO_TURRET_RATIO = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
-    public static double SERVO_CENTER = 0.585;//0.607; // tune on real robot — center of turret travel
+    public static double SERVO_CENTER = 0.59;//0.607; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
     public static double SERVO_MIN = 0.03;//0.1;//0.03;
@@ -79,8 +79,8 @@ public class ShooterMove extends SubsystemBase {
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
     public static double p = 0.7, i = 0.05, d = 0;
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.02174519;//0.021477551;
-    public static double kS = 0.597816782;//0.760983135;
+    public static double kV = 0.022312028;//0.021477551;
+    public static double kS = 0.323009673;//0.760983135;
     public static double f = 0.0025;
     // Set > 0 to override LUT and run at a fixed target (rad/s, bypasses distance LUT)
     public static double MANUAL_RPM = 0;
@@ -108,7 +108,7 @@ public class ShooterMove extends SubsystemBase {
 
     // Hardware
     private final ServoEx turretL1, turretL2, turretR1;
-    private final ServoEx hood;  // null when HOOD_ENABLED = false
+    private final Servo hood;  // null when HOOD_ENABLED = false
     private final MotorEx shooterB, shooterT;
     private final AnalogInput abs;  // null when ABS_ENABLED = false
     private final VoltageSensor volt;
@@ -159,7 +159,7 @@ public class ShooterMove extends SubsystemBase {
         ((PwmControl) hMap.get(Servo.class, "tl1")).setPwmRange(axonRange);
         ((PwmControl) hMap.get(Servo.class, "tl2")).setPwmRange(axonRange);
         ((PwmControl) hMap.get(Servo.class, "tr1")).setPwmRange(axonRange);
-        hood     = HOOD_ENABLED ? new ServoEx(hMap, "hood") : null;
+       // hood     = HOOD_ENABLED ?  hMap.get(Servo.class, "hood") : null;
         shooterB = new MotorEx(hMap, "sb");
         shooterT = new MotorEx(hMap, "st");
         abs      = ABS_ENABLED ? hMap.get(AnalogInput.class, "abs") : null;
@@ -168,6 +168,8 @@ public class ShooterMove extends SubsystemBase {
         shooterB.setRunMode(MotorEx.RunMode.RawPower);
         shooterT.setRunMode(MotorEx.RunMode.RawPower);
         shooterB.setInverted(true);
+        hood = hMap.get(Servo.class, "hood");
+        hood.setDirection(Servo.Direction.REVERSE);
 
         // Initialize from actual servo position — Axon MAX is absolute, always knows where it is.
         // This avoids the 0° assumption when the turret is physically at a different angle at startup.
@@ -197,22 +199,52 @@ public class ShooterMove extends SubsystemBase {
         130, 400, 0.10, 0.8
         142, 435, 0.08, 0.6
          */
+                /* Lookup table values from 6:00pM April 18
+
+        distance, rpm, hood, transferspeed, shottime
+        29, 260, 1, 0.55, 0.6
+
+        35.5, 250, 0.6, 0.7, 0.65
+
+        43, 255, 0.7, 1, 0.5
+
+        49.5, 257, 0.7, 1, 0.55
+
+        56.5, 263. 0.45, 1, 0.54
+
+        68, 272, 0.3, 1, 0.6
+
+        76, 287, 0.25, 1, 0.64
+
+        83, 304, 0.2, 1, 0.7
+
+        91, 310, 0.19, 1, 0.7
+
+        103, 330, 0.17, 0.9, 0.72
+
+        114, 348, 0.2, 0.75, 0.76
+
+        130, 370, 0.20, 0.75, 0.87
+
+        142, 410, 0.3, 0.77, 1
+         */
+
 
         // LUTs — V1 values, retune on V2
         RPM.add(0, 260);
         RPM.add(29, 260);
-        RPM.add(35.5, 262);
-        RPM.add(43, 270);
-        RPM.add(49.5, 280);
-        RPM.add(56.5, 285);
-        RPM.add(68, 300);
-        RPM.add(76, 310);
-        RPM.add(83, 325);
-        RPM.add(91, 335);
-        RPM.add(103, 355);
-        RPM.add(114, 370);
-        RPM.add(130, 400);
-        RPM.add(142, 435);
+        RPM.add(35.5, 250);
+        RPM.add(43, 255);
+        RPM.add(49.5, 257);
+        RPM.add(56.5, 263);
+        RPM.add(68, 272);
+        RPM.add(76, 287);
+        RPM.add(83, 304);
+        RPM.add(91, 310);
+        RPM.add(103, 330);
+        RPM.add(114, 348);
+        RPM.add(130, 370);
+        RPM.add(142, 410);
         RPM.add(3000, 435);
         RPM.createLUT();
         /*
@@ -235,18 +267,18 @@ public class ShooterMove extends SubsystemBase {
 
         angle.add(0, 1);
         angle.add(29, 1);
-        angle.add(35.5, 0.7);
-        angle.add(43, 0.75);
-        angle.add(49.5, 0.65);
+        angle.add(35.5, 0.6);
+        angle.add(43, 0.7);
+        angle.add(49.5, 0.68);
         angle.add(56.5, 0.45);
-        angle.add(68, 0.35);
-        angle.add(76, 0.3);
-        angle.add(83, 0.23);
-        angle.add(91, 0.2);
-        angle.add(103, 0.18);
-        angle.add(114, 0.12);
-        angle.add(130, 0.10);
-        angle.add(142, 0.08);
+        angle.add(68, 0.3);
+        angle.add(76, 0.25);
+        angle.add(83, 0.2);
+        angle.add(91, 0.19);
+        angle.add(103, 0.17);
+        angle.add(114, 0.2);
+        angle.add(130, 0.20);
+        angle.add(142, 0.3);
         angle.add(3000, 0.08);
         angle.createLUT();
 
@@ -270,30 +302,35 @@ public class ShooterMove extends SubsystemBase {
         transfer.add(0, 0.55);
         transfer.add(29, 0.55);
         transfer.add(33.5, 0.7);
-        transfer.add(43, 0.75);
+        transfer.add(43, 1);
         transfer.add(49.5, 1);
         transfer.add(56.5, 1);
         transfer.add(68, 1);
-        transfer.add(76, 0.9);
-        transfer.add(83, 0.9);
-        transfer.add(91, 0.9);
+        transfer.add(76, 1);
+        transfer.add(83, 1);
+        transfer.add(91, 1);
         transfer.add(103, 0.9);
-        transfer.add(114, 0.9);
-        transfer.add(130, 0.8);
-        transfer.add(142, 0.6);
+        transfer.add(114, 0.75);
+        transfer.add(130, 0.75);
+        transfer.add(142, 0.78);
         transfer.add(3000, 0.6);
         transfer.createLUT();
 
-        shottime.add(0, 0.63);
-        shottime.add(42.5, 0.53);
-        shottime.add(55, 0.41);
-        shottime.add(66.7, 0.45);
-        shottime.add(81.9, 0.55);
-        shottime.add(95.7, 0.67);
-        shottime.add(101.9, 0.7);
-        shottime.add(116.6, 0.72);
-        shottime.add(136.6, 0.95);
-        shottime.add(3000, 1);
+        shottime.add(0, 0.55);
+        shottime.add(29, 0.6);
+        shottime.add(33.5, 0.65);
+        shottime.add(43, 0.5);
+        shottime.add(49.5, 0.55);
+        shottime.add(56.5, 0.54);
+        shottime.add(68, 0.6);
+        shottime.add(76, 0.64);
+        shottime.add(83, 0.7);
+        shottime.add(91, 0.7);
+        shottime.add(103, 0.73);
+        shottime.add(114, 0.76);
+        shottime.add(130, 0.83);
+        shottime.add(142, 1);
+        shottime.add(3000, 0.6);
         shottime.createLUT();
 
         /*
@@ -565,7 +602,7 @@ public class ShooterMove extends SubsystemBase {
         // Hood
         if (HOOD_ENABLED && hood != null) {
             double theta = Math.max(0, Math.min(1, angle.get(distance) + hoodOffset));
-            hood.set(theta);
+            hood.setPosition(theta);
         }
 
         // Update transfer speed target for Intake to read
