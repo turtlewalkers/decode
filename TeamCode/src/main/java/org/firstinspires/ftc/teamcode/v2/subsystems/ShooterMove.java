@@ -265,20 +265,20 @@ public class ShooterMove extends SubsystemBase {
                 */
 
 
-        angle.add(0, 1);
-        angle.add(29, 1);
-        angle.add(35.5, 0.6);
-        angle.add(43, 0.7);
-        angle.add(49.5, 0.68);
-        angle.add(56.5, 0.45);
-        angle.add(68, 0.3);
-        angle.add(76, 0.25);
-        angle.add(83, 0.2);
-        angle.add(91, 0.19);
-        angle.add(103, 0.17);
-        angle.add(114, 0.2);
-        angle.add(130, 0.20);
-        angle.add(142, 0.3);
+        angle.add(0, 0.9063);
+        angle.add(29, 0.9063);
+        angle.add(35.5, 0.5063);
+        angle.add(43, 0.6063);
+        angle.add(49.5, 0.5863);
+        angle.add(56.5, 0.3563);
+        angle.add(68, 0.2063);
+        angle.add(76, 0.1563);
+        angle.add(83, 0.1063);
+        angle.add(91, 0.0963);
+        angle.add(103, 0.0763);
+        angle.add(114, 0.1063);
+        angle.add(130, 0.1063);
+        angle.add(142, 0.2063);
         angle.add(3000, 0.08);
         angle.createLUT();
 
