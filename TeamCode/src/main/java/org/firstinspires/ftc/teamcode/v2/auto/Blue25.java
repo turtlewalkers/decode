@@ -184,14 +184,13 @@ public class Blue25 extends CommandOpMode {
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(500),
+                                        new WaitCommand(400),
                                         intake.shootStart(),
                                         new WaitCommand(500),
                                         intake.shootStop(),
                                         intake.collectStart()
                                 )
                         ),
-
 
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1100),
                         new FollowPathCommand(follower, Shoot2, true).withTimeout(1100),
@@ -203,7 +202,7 @@ public class Blue25 extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, GateIntakeFirst, true).withTimeout(1100),
-                        new WaitCommand(1200),
+                        new WaitCommand(1300),
                         intake.collectStop(),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateScore1, true).withTimeout(1100),
@@ -249,7 +248,7 @@ public class Blue25 extends CommandOpMode {
                         //new FollowPathCommand(follower, GateIntakeP1, false).withTimeout(1100),
                         //new FollowPathCommand(follower, GateIntakeP2, true).withTimeout(400),
                         new FollowPathCommand(follower, gateintake, true).withTimeout(1500),
-                        new WaitCommand(1200),
+                        new WaitCommand(1300),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
                                 new SequentialCommandGroup(
@@ -258,7 +257,7 @@ public class Blue25 extends CommandOpMode {
                                 )
                         ),
                         shooter.turretOff(false),
-                        new WaitCommand(100),
+                        new WaitCommand(150),
                         intake.shootStart(),
                         new WaitCommand(500),
                         shooter.turretOff(true),
@@ -269,7 +268,7 @@ public class Blue25 extends CommandOpMode {
                         //new FollowPathCommand(follower, GateIntakeP1, false).withTimeout(1100),
                         //new FollowPathCommand(follower, GateIntakeP2, true).withTimeout(400),
                         new FollowPathCommand(follower, gateintake, true).withTimeout(1500),
-                        new WaitCommand(1200),
+                        new WaitCommand(1300),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
                                 new SequentialCommandGroup(
@@ -278,7 +277,7 @@ public class Blue25 extends CommandOpMode {
                                 )
                         ),
                         shooter.turretOff(false),
-                        new WaitCommand(100),
+                        new WaitCommand(150),
                         intake.shootStart(),
                         new WaitCommand(500),
                         shooter.turretOff(true),
@@ -288,10 +287,10 @@ public class Blue25 extends CommandOpMode {
                         //new FollowPathCommand(follower, GateIntakeP1, false).withTimeout(1100),
                         //new FollowPathCommand(follower, GateIntakeP2, true).withTimeout(400),
                         new FollowPathCommand(follower, gateintake, true).withTimeout(1500),
-                        new WaitCommand(1200),
+                        new WaitCommand(1300),
                         new FollowPathCommand(follower, GateScoreLast, true).withTimeout(1100),
                         shooter.turretOff(false),
-                        new WaitCommand(100),
+                        new WaitCommand(150),
                         intake.shootStart(),
                         new WaitCommand(500),
                         intake.shootStop(),
