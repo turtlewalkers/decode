@@ -118,6 +118,8 @@ public class ShooterMove extends SubsystemBase {
 
     // State
     private boolean flywheelOn = true;
+
+    private boolean SWM = true;
     private double hoodOffset = 0;
     private final PIDController controllerShooter;
     private double shooterX, shooterY;
@@ -362,6 +364,14 @@ public class ShooterMove extends SubsystemBase {
         return new InstantCommand(() -> flywheelOn = !flywheelOn);
     }
 
+    public Command SWMon() {
+        return new InstantCommand(() -> SWM = true);
+    }
+
+    public Command SWMoff() {
+        return new InstantCommand(() -> SWM = false);
+    }
+
     /** Returns current flywheel RPM (bottom motor velocity converted from rad/s). */
     /** Returns flywheel velocity in rad/s (same units as PID target). */
     public double getFlywheelRpm() {
@@ -548,14 +558,15 @@ public class ShooterMove extends SubsystemBase {
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
-
-        for (int i = 0; i < 4; i++) {
-            double shotTime = shottime.get(distance);
-            double vX = followerSupplier.get().getVelocity().getXComponent();
-            double vY = followerSupplier.get().getVelocity().getYComponent();
-            dx = shooterX - robotX - vX * shotTime - turretX;
-            dy = shooterY - robotY - vY * shotTime - turretY;
-            distance = Math.sqrt(dx * dx + dy * dy);
+        if (SWM == true) {
+            for (int i = 0; i < 4; i++) {
+                double shotTime = shottime.get(distance);
+                double vX = followerSupplier.get().getVelocity().getXComponent();
+                double vY = followerSupplier.get().getVelocity().getYComponent();
+                dx = shooterX - robotX - vX * shotTime - turretX;
+                dy = shooterY - robotY - vY * shotTime - turretY;
+                distance = Math.sqrt(dx * dx + dy * dy);
+            }
         }
 
         // Turret angle target

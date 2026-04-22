@@ -5,12 +5,15 @@ import android.util.Log;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
@@ -33,22 +36,26 @@ public class Red24 extends CommandOpMode {
 
     // Poses:
     public static int T = 1;
-    private final Pose Start = new Pose(115.6, 129.4, Math.toRadians(46));
-    private final Pose PreloadScore = new Pose(84, 80, Math.toRadians(320));
-    private final Pose Collect2Control = new Pose(88, 60, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(120, 65, Math.toRadians(0));
-    private final Pose Score2 = new Pose(84, 80, Math.toRadians(320));
-    private final Pose CollectGateControl = new Pose(99, 55, Math.toRadians(31.5));
-    private final Pose CollectGate = new Pose(133, 63, Math.toRadians(24));
-    private final Pose GateShoot = new Pose(84, 80, Math.toRadians(330));
+    private final Pose Start = new Pose(144-28.4, 129.4, Math.toRadians(180-134));
+    private final Pose PreloadScore = new Pose(144-55, 80, Math.toRadians(180-220));
+    private final Pose Collect2Control = new Pose(144-56, 60, Math.toRadians(180-180));
+    private final Pose Collect2 = new Pose(144-22, 62, Math.toRadians(180-180));
+    private final Pose Score2 = new Pose(144-58, 82, Math.toRadians(180-220));
+    private final Pose CollectGateControl = new Pose(144-45, 67, Math.toRadians(180-148.5));
 
-    private final Pose GateShootLast = new Pose(84, 80, Math.toRadians(-15));
-    private final Pose Collect1Control = new Pose(113.5, 85, Math.toRadians(0));
-    private final Pose Collect1 = new Pose(118, 82.5, Math.toRadians(0));
-    private final Pose Score1 = new Pose(84, 80, Math.toRadians(290));
-    private final Pose Collect3Control = new Pose(103.5, 29, Math.toRadians(0));
-    private final Pose Collect3 = new Pose(120, 35, Math.toRadians(0));
-    private final Pose Score3 = new Pose(82, 100, Math.toRadians(290));
+    private final Pose CollectGateTurn = new Pose(144-27.5, 61, Math.toRadians(180-163));
+    private final Pose CollectGate = new Pose(144-14.5, 61.5, Math.toRadians(180-153));
+    private final Pose GateShoot = new Pose(144-60, 80, Math.toRadians(180-200));
+    private final Pose GateShoot1 = new Pose(144-58, 82, Math.toRadians(180-170));
+    private final Pose GateShootLast = new Pose(144-60, 80, Math.toRadians(180-170));
+
+    private final Pose Collect1Control = new Pose(144-30.5, 80, Math.toRadians(180-180));
+    private final Pose Collect1 = new Pose(144-24, 82.5, Math.toRadians(180-180));
+    private final Pose Score1 = new Pose(144-58, 82, Math.toRadians(180-190));
+
+    private final Pose Collect3Control = new Pose(144-40.5, 29, Math.toRadians(180-180));
+    private final Pose Collect3 = new Pose(144-24, 35, Math.toRadians(180-180));
+    private final Pose Score3 = new Pose(144-62, 100, Math.toRadians(180-250));
 
 
 
@@ -56,15 +63,19 @@ public class Red24 extends CommandOpMode {
     private Path PreloadShoot;
     private Path Intake2;
     private Path Shoot2;
-    private Path GateIntake;
+    private Path GateIntakeFirst;
+
+    private Path GateIntakeP1;
+    private Path GateIntakeP2;
+    private PathChain GateIntakeP12;
     private Path GateScore;
+
+    private Path GateScore1;
+
+    private Path GateIntake1;
     private Path GateScoreLast;
     private Path Intake1;
     private Path Shoot1;
-    private Path Intake3;
-
-    private Path Shoot3;
-    private PathChain tatawireless2;
 
 
     public void buildpaths() {
@@ -72,6 +83,7 @@ public class Red24 extends CommandOpMode {
         follower.setStartingPose(Start);
         follower.setMaxPower(1);
 
+        // run 1
         PreloadShoot = new Path(new BezierLine(Start, PreloadScore));
         PreloadShoot.setLinearHeadingInterpolation(Start.getHeading(), PreloadScore.getHeading());
         PreloadShoot.setTimeoutConstraint(50);
@@ -84,33 +96,62 @@ public class Red24 extends CommandOpMode {
         Shoot2.setLinearHeadingInterpolation(Collect2.getHeading(), Score2.getHeading());
         Shoot2.setTimeoutConstraint(50);
 
-        GateIntake = new Path(new BezierCurve(Score2, CollectGateControl, CollectGate));
-        GateIntake.setLinearHeadingInterpolation(Score2.getHeading(), CollectGate.getHeading());
-        GateIntake.setTimeoutConstraint(50);
 
-        GateScore = new Path(new BezierLine(CollectGate, GateShoot));
-        GateScore.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot.getHeading());
-        GateScore.setTimeoutConstraint(50);
+        GateIntakeFirst = new Path(new BezierCurve(Score2, CollectGateControl, CollectGate));
+        GateIntakeFirst.setLinearHeadingInterpolation(Score2.getHeading(), CollectGate.getHeading());
+        GateIntakeFirst.setTimeoutConstraint(50);
 
-        GateScoreLast = new Path(new BezierLine(CollectGate, GateShootLast));
-        GateScoreLast.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShootLast.getHeading());
-        GateScoreLast.setTimeoutConstraint(50);
+        GateScore1 = new Path(new BezierLine(CollectGate, GateShoot1));
+        GateScore1.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot1.getHeading());
+        GateScore1.setTimeoutConstraint(50);
 
-        Intake1 = new Path(new BezierCurve(GateShootLast, Collect1Control, Collect1));
-        Intake1.setLinearHeadingInterpolation(GateShootLast.getHeading(), Collect1.getHeading());
+
+
+        Intake1 = new Path(new BezierCurve(GateShoot1, Collect1Control, Collect1));
+        Intake1.setLinearHeadingInterpolation(GateShoot1.getHeading(), Collect1.getHeading());
         Intake1.setTimeoutConstraint(50);
 
         Shoot1 = new Path(new BezierLine(Collect1, Score1));
         Shoot1.setLinearHeadingInterpolation(Collect1.getHeading(), Score1.getHeading());
         Shoot1.setTimeoutConstraint(50);
 
-        Intake3 = new Path(new BezierCurve(Score1, Collect3Control, Collect3));
-        Intake3.setLinearHeadingInterpolation(Score1.getHeading(), Collect3.getHeading());
-        Intake3.setTimeoutConstraint(50);
 
-        Shoot3 = new Path(new BezierLine(Collect3, Score3));
-        Shoot3.setLinearHeadingInterpolation(Collect3.getHeading(), Score3.getHeading());
-        Shoot3.setTimeoutConstraint(50);
+        GateIntake1 = new Path(new BezierCurve(Score1, CollectGateControl, CollectGate));
+        GateIntake1.setLinearHeadingInterpolation(Score1.getHeading(), CollectGate.getHeading());
+        GateIntake1.setTimeoutConstraint(50);
+
+        GateScore = new Path(new BezierLine(CollectGate, GateShoot));
+        GateScore.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot.getHeading());
+        GateScore.setTimeoutConstraint(50);
+
+        GateIntakeP1 = new Path(new BezierCurve(GateShoot, CollectGateControl, CollectGateTurn));
+        GateIntakeP1.setLinearHeadingInterpolation(GateShoot.getHeading(), CollectGateTurn.getHeading());
+        GateIntakeP1.setTimeoutConstraint(50);
+
+        GateIntakeP2 = new Path(new BezierLine(CollectGateTurn, CollectGate));
+        GateIntakeP2.setLinearHeadingInterpolation(CollectGateTurn.getHeading(), CollectGate.getHeading());
+        GateIntakeP2.setTimeoutConstraint(50);
+
+        GateIntakeP12 = new PathChain(
+                GateIntakeP1,
+                GateIntakeP2
+        );
+
+//        GateScore = new Path(new BezierLine(CollectGate, GateShoot));
+//        GateScore.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot.getHeading());
+//        GateScore.setTimeoutConstraint(50);
+
+        GateScoreLast = new Path(new BezierLine(CollectGate, GateShootLast));
+        GateScoreLast.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShootLast.getHeading());
+        GateScoreLast.setTimeoutConstraint(50);
+//
+//        Intake3 = new Path(new BezierCurve(Score1, Collect3Control, Collect3));
+//        Intake3.setLinearHeadingInterpolation(Score1.getHeading(), Collect3.getHeading());
+//        Intake3.setTimeoutConstraint(50);
+//
+//        Shoot3 = new Path(new BezierLine(Collect3, Score3));
+//        Shoot3.setLinearHeadingInterpolation(Collect3.getHeading(), Score3.getHeading());
+//        Shoot3.setTimeoutConstraint(50);
     }
 
     @Override
@@ -128,79 +169,116 @@ public class Red24 extends CommandOpMode {
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 136, 136);
-        intake = new Intake(hardwareMap, () -> follower, 136, 136);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138);
+        intake = new Intake(hardwareMap, () -> follower, 138, 138);
         this.resetRuntime();
         buildpaths();
 
         schedule(
                 new RunCommand(() -> follower.update()),
                 new SequentialCommandGroup (
-                        new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
-                        new WaitCommand(500),
-                        intake.shootStart(),
-                        new WaitCommand(550),
+                        shooter.SWMon(),
                         intake.shootStop(),
-                        intake.collectStart(),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(500),
+                                        intake.shootStart(),
+                                        new WaitCommand(400),
+                                        intake.shootStop(),
+                                        intake.collectStart()
+                                )
+                        ),
+
+                        shooter.SWMoff(),
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1100),
-                        intake.collectStop(),
                         new FollowPathCommand(follower, Shoot2, true).withTimeout(1100),
-                        new WaitCommand(100),
+                        new WaitCommand(150),
                         intake.shootStart(),
-                        new WaitCommand(550),
+                        new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        new WaitCommand(1000),
+
+
+                        new FollowPathCommand(follower, GateIntakeFirst, true).withTimeout(1100),
+                        new WaitCommand(1200),
                         intake.collectStop(),
-                        new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
-                        new WaitCommand(100),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, GateScore1, true).withTimeout(1100),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(900),
+                                        intake.collectStop()
+                                )
+                        ),
+                        new WaitCommand(150),
                         intake.shootStart(),
-                        new WaitCommand(500),
+                        new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
+
+
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
-                        intake.collectStop(),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
-                        new WaitCommand(100),
+                        new WaitCommand(200),
+                        intake.shootStart(),
+                        new WaitCommand(400),
+                        intake.shootStop(),
+                        intake.collectStart(),
+
+
+                        new FollowPathCommand(follower, GateIntake1, true).withTimeout(1100),
+                        new WaitCommand(1300),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(900),
+                                        intake.collectStop()
+                                )
+                        ),
+                        new WaitCommand(200),
                         intake.shootStart(),
                         new WaitCommand(500),
                         intake.shootStop(),
                         intake.collectStart(),
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        new WaitCommand(1500),
-                        intake.collectStop(),
-                        new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
-                        new WaitCommand(100),
+
+
+                        new FollowPathCommand(follower, GateIntakeP12, false).withTimeout(1700),
+                        new WaitCommand(1300),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(900),
+                                        intake.collectStop()
+                                )
+                        ),
+                        new WaitCommand(200),
                         intake.shootStart(),
-                        new WaitCommand(500),
+                        new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        new WaitCommand(1500),
-                        intake.collectStop(),
-                        new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
-                        new WaitCommand(100),
+
+
+                        new FollowPathCommand(follower, GateIntakeP12, true).withTimeout(1700),
+                        new WaitCommand(1300),
+                        new ParallelCommandGroup(
+                                new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
+                                new SequentialCommandGroup(
+                                        new WaitCommand(900),
+                                        intake.collectStop()
+                                )
+                        ),
+                        new WaitCommand(200),
                         intake.shootStart(),
-                        new WaitCommand(500),
+                        new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        new WaitCommand(1500),
-                        intake.collectStop(),
-                        new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
-                        new WaitCommand(100),
-                        intake.shootStart(),
-                        new WaitCommand(500),
-                        intake.shootStop(),
-                        intake.collectStart(),
-                        new FollowPathCommand(follower, GateIntake, true).withTimeout(1100),
-                        new WaitCommand(1500),
-                        intake.collectStop(),
+
+                        new FollowPathCommand(follower, GateIntakeP12, true).withTimeout(1700),
+                        new WaitCommand(1300),
                         new FollowPathCommand(follower, GateScoreLast, true).withTimeout(1100),
-                        new WaitCommand(100),
+                        new WaitCommand(200),
                         intake.shootStart(),
-                        new WaitCommand(500),
+                        new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart()
                         //new FollowPathCommand(follower, Intake3, true).withTimeout(2000),
