@@ -31,6 +31,7 @@ public class Intake extends SubsystemBase {
     public static double TRANSFER_SPEED = 1.0;
     public static double LATCH_OPEN = 0.71;
     public static double LATCH_CLOSED = 0.95;
+    public static double SHOOT_SPEED = 1;
 
     private final Supplier<Follower> followerSupplier;
     InterpLUT transferPos    = new InterpLUT();
@@ -108,6 +109,7 @@ public class Intake extends SubsystemBase {
 
     public Command shootStart() {
         return new InstantCommand(() -> {
+            SHOOT_SPEED = 0.75;
             shootMode = true;
             ballLoaded = false;  // clear loaded state — shoot cycle empties the latch
             stallCount = 0;
@@ -120,6 +122,7 @@ public class Intake extends SubsystemBase {
     public Command shootStop() {
         return new InstantCommand(() -> {
             shootMode = false;
+            SHOOT_SPEED = 1;
             latch.set(LATCH_CLOSED);
             intake.set(0);
             stopTransfer();

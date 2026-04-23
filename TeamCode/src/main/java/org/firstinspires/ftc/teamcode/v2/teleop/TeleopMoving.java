@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.v2.teleop;
 
+import static org.firstinspires.ftc.teamcode.v2.subsystems.Intake.SHOOT_SPEED;
+
 import android.util.Log;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -282,7 +284,7 @@ public class TeleopMoving extends CommandOpMode {
             double vx_r_safe =  vx_f_safe * cosH + vy_f_safe * sinH;
             double vy_r_safe = -vx_f_safe * sinH + vy_f_safe * cosH;
 
-            follower.setTeleOpDrive(vx_r_safe, vy_r_safe, omega, true);
+            follower.setTeleOpDrive(vx_r_safe * SHOOT_SPEED, vy_r_safe * SHOOT_SPEED, omega * SHOOT_SPEED, true);
         }
         follower.update();
 
