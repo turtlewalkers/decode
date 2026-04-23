@@ -37,20 +37,22 @@ public class Blue25 extends CommandOpMode {
     // Poses:
     public static int T = 1;
     private final Pose Start = new Pose(28.4, 129.4, Math.toRadians(134));
-    private final Pose PreloadScore = new Pose(55, 80, Math.toRadians(220));
+    private final Pose PreloadScore = new Pose(61, 82, Math.toRadians(200));
     private final Pose Collect2Control = new Pose(56, 60, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(22, 62, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(20, 62, Math.toRadians(180));
     private final Pose Score2 = new Pose(58, 82, Math.toRadians(220));
-    private final Pose CollectGateControl = new Pose(45, 67, Math.toRadians(148.5));
+    private final Pose CollectGateControl = new Pose(45.5, 68.5, Math.toRadians(148.5));
 
-    private final Pose CollectGateTurn = new Pose(27.5, 61, Math.toRadians(163));
-    private final Pose CollectGate = new Pose(14.5, 61.5, Math.toRadians(153));
-    private final Pose GateShoot = new Pose(60, 80, Math.toRadians(200));
+    private final Pose CollectGateTurn = new Pose(27.5, 61, Math.toRadians(165));
+    private final Pose CollectGate = new Pose(14.6, 63, Math.toRadians(158));
+    private final Pose GateShoot = new Pose(60, 80, Math.toRadians(205));
+    private final Pose GateShootControl = new Pose(31, 55, Math.toRadians(200));
+
     private final Pose GateShoot1 = new Pose(58, 82, Math.toRadians(170));
-    private final Pose GateShootLast = new Pose(60, 80, Math.toRadians(170));
+    private final Pose GateShootLast = new Pose(58, 93, Math.toRadians(240));
 
     private final Pose Collect1Control = new Pose(30.5, 80, Math.toRadians(180));
-    private final Pose Collect1 = new Pose(24, 82.5, Math.toRadians(180));
+    private final Pose Collect1 = new Pose(22, 82.5, Math.toRadians(180));
     private final Pose Score1 = new Pose(58, 82, Math.toRadians(190));
 
     private final Pose Collect3Control = new Pose(40.5, 29, Math.toRadians(180));
@@ -64,6 +66,8 @@ public class Blue25 extends CommandOpMode {
     private Path Intake2;
     private Path Shoot2;
     private Path GateIntakeFirst;
+
+    private Path TurnGS;
 
     private Path GateIntakeP1;
     private Path GateIntakeP2;
@@ -102,9 +106,12 @@ public class Blue25 extends CommandOpMode {
         GateIntakeFirst.setTimeoutConstraint(50);
 
         GateScore1 = new Path(new BezierLine(CollectGate, GateShoot1));
-        GateScore1.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot1.getHeading());
+        GateScore1.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot.getHeading());
         GateScore1.setTimeoutConstraint(50);
 
+        TurnGS = new Path(new BezierLine(GateShoot1, GateShoot1));
+        TurnGS.setLinearHeadingInterpolation(GateShoot.getHeading(), GateShoot1.getHeading());
+        TurnGS.setTimeoutConstraint(50);
 
 
         Intake1 = new Path(new BezierCurve(GateShoot1, Collect1Control, Collect1));
@@ -120,7 +127,7 @@ public class Blue25 extends CommandOpMode {
         GateIntake1.setLinearHeadingInterpolation(Score1.getHeading(), CollectGate.getHeading());
         GateIntake1.setTimeoutConstraint(50);
 
-        GateScore = new Path(new BezierLine(CollectGate, GateShoot));
+        GateScore = new Path(new BezierCurve(CollectGate, GateShootControl, GateShoot));
         GateScore.setLinearHeadingInterpolation(CollectGate.getHeading(), GateShoot.getHeading());
         GateScore.setTimeoutConstraint(50);
 
@@ -179,12 +186,13 @@ public class Blue25 extends CommandOpMode {
                 new SequentialCommandGroup (
                         shooter.SWMon(),
                         intake.shootStop(),
+                        shooter.turretOff(false),
                         new ParallelCommandGroup(
-                                new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
+                                new FollowPathCommand(follower, PreloadShoot, true, 0.6).withTimeout(1100),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(500),
+                                        new WaitCommand(650),
                                         intake.shootStart(),
-                                        new WaitCommand(400),
+                                        new WaitCommand(500),
                                         intake.shootStop(),
                                         intake.collectStart()
                                 )
@@ -193,7 +201,7 @@ public class Blue25 extends CommandOpMode {
                         shooter.SWMoff(),
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1100),
                         new FollowPathCommand(follower, Shoot2, true).withTimeout(1100),
-                        new WaitCommand(150),
+                        new WaitCommand(100),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
@@ -210,16 +218,16 @@ public class Blue25 extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(150),
+                        new WaitCommand(50),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
 
-
+                        new FollowPathCommand(follower, TurnGS, true).withTimeout(400),
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
-                        new WaitCommand(200),
+                        new WaitCommand(50),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
@@ -227,7 +235,7 @@ public class Blue25 extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, GateIntake1, true).withTimeout(1100),
-                        new WaitCommand(1300),
+                        new WaitCommand(1200),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
                                 new SequentialCommandGroup(
@@ -235,48 +243,48 @@ public class Blue25 extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(200),
+                        new WaitCommand(100),
                         intake.shootStart(),
-                        new WaitCommand(500),
+                        new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
 
 
                         new FollowPathCommand(follower, GateIntakeP12, false).withTimeout(1700),
-                        new WaitCommand(1300),
+                        new WaitCommand(1350),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(900),
+                                        new WaitCommand(1000),
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(200),
+                        new WaitCommand(100),
                         intake.shootStart(),
-                        new WaitCommand(400),
+                        new WaitCommand(350),
                         intake.shootStop(),
                         intake.collectStart(),
 
 
                         new FollowPathCommand(follower, GateIntakeP12, true).withTimeout(1700),
-                        new WaitCommand(1300),
+                        new WaitCommand(1350),
                         new ParallelCommandGroup(
                                 new FollowPathCommand(follower, GateScore, true).withTimeout(1100),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(900),
+                                        new WaitCommand(1000),
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(200),
+                        new WaitCommand(100),
                         intake.shootStart(),
-                        new WaitCommand(400),
+                        new WaitCommand(350),
                         intake.shootStop(),
                         intake.collectStart(),
 
                         new FollowPathCommand(follower, GateIntakeP12, true).withTimeout(1700),
-                        new WaitCommand(1300),
+                        new WaitCommand(1350),
                         new FollowPathCommand(follower, GateScoreLast, true).withTimeout(1100),
-                        new WaitCommand(200),
+                        new WaitCommand(100),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
