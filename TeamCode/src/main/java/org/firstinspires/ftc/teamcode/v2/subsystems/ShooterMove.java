@@ -364,10 +364,12 @@ public class ShooterMove extends SubsystemBase {
         return new InstantCommand(() -> flywheelOn = !flywheelOn);
     }
 
+    public Command SWMToggle() {
+        return new InstantCommand(() -> SWM = !SWM);
+    }
     public Command SWMon() {
         return new InstantCommand(() -> SWM = true);
     }
-
     public Command SWMoff() {
         return new InstantCommand(() -> SWM = false);
     }
@@ -558,14 +560,16 @@ public class ShooterMove extends SubsystemBase {
         double dx = shooterX - robotX - turretX;
         double dy = shooterY - robotY - turretY;
         double distance = Math.sqrt(dx * dx + dy * dy);
+//        Log.d("Distance", String.valueOf(distance));
         if (SWM == true) {
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 3; i++) {
                 double shotTime = shottime.get(distance);
                 double vX = followerSupplier.get().getVelocity().getXComponent();
                 double vY = followerSupplier.get().getVelocity().getYComponent();
                 dx = shooterX - robotX - vX * shotTime - turretX;
                 dy = shooterY - robotY - vY * shotTime - turretY;
                 distance = Math.sqrt(dx * dx + dy * dy);
+                Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
             }
         }
 

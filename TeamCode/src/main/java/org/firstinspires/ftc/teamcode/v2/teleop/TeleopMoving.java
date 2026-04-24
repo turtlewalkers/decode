@@ -136,6 +136,9 @@ public class TeleopMoving extends CommandOpMode {
         // A — flywheel on
         gamepad.getGamepadButton(GamepadKeys.Button.A).whenPressed(shooter.flywheel(true));
 
+        // RB — Toggle SWM
+        //gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(shooter.SWMToggle());
+
         // B — flywheel off
         gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(shooter.flywheel(false));
 
