@@ -5,6 +5,7 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -15,6 +16,8 @@ import com.seattlesolvers.solverslib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+
+import org.firstinspires.ftc.teamcode.robot.Memory;
 
 import java.util.function.Supplier;
 
@@ -32,12 +35,15 @@ public class Intake extends SubsystemBase {
     public static double LATCH_OPEN = 0.71;
     public static double LATCH_CLOSED = 0.95;
     public static double SHOOT_SPEED = 1;
+    public static int MAX_BALLS = 3;
 
     private final Supplier<Follower> followerSupplier;
     InterpLUT transferPos    = new InterpLUT();
     private final MotorEx intake;
     private final DcMotorEx transfer;
     private final ServoEx latch;
+    private final DigitalChannel beamBreak2;
+    private final DigitalChannel beamBreak3;
 
     private double shooterX, shooterY;
 
@@ -53,6 +59,10 @@ public class Intake extends SubsystemBase {
 
     // Shoot mode flag — disables stall detection
     private boolean shootMode = false;
+
+    // Ball counting via beam break
+    private int ballCount = 0;
+    private boolean prevBB2Broken = false;
 
     public Intake(final HardwareMap hMap,  Supplier<Follower> followerSupplier, double shooterX, double shooterY) {
         this.followerSupplier = followerSupplier;
@@ -81,6 +91,11 @@ public class Intake extends SubsystemBase {
         transfer.setDirection(com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE);
         transfer.setPower(0);
         latch.set(LATCH_CLOSED);
+
+        beamBreak2 = hMap.get(DigitalChannel.class, "beamBreak2");
+        beamBreak3 = hMap.get(DigitalChannel.class, "beamBreak3");
+        beamBreak2.setMode(DigitalChannel.Mode.INPUT);
+        beamBreak3.setMode(DigitalChannel.Mode.INPUT);
     }
 
     // --- Collect mode commands (left trigger) ---
@@ -88,6 +103,8 @@ public class Intake extends SubsystemBase {
     public Command collectStart() {
         return new InstantCommand(() -> {
             shootMode = false;
+            ballCount = 0;
+            prevBB2Broken = false;
             intake.set(INTAKE_SPEED);
             // Don't restart transfer if ball is already loaded at latch —
             // wait for shoot cycle (right trigger) to clear it first
@@ -141,6 +158,8 @@ public class Intake extends SubsystemBase {
 
     // --- Internal helpers ---
 
+    public int getBallCount() { return ballCount; }
+
     private void startTransfer() {
         distanceTo = distanceToTarget();
         transfer.setPower(transferPos.get(distanceTo));
@@ -165,9 +184,23 @@ public class Intake extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Ball counting via BB2 — only after first ball is at latch, intake still running
+        if (ballLoaded && !shootMode) {
+            boolean bb2Broken = !beamBreak2.getState();
+            if (bb2Broken && !prevBB2Broken) {
+                ballCount++;
+            }
+            prevBB2Broken = bb2Broken;
+
+            if (ballCount >= MAX_BALLS) {
+                intake.set(0);
+            }
+        }
+
         if (!transferRunning || shootMode) {
             return;
         }
+
         distanceTo = distanceToTarget();
         transfer.setPower(transferPos.get(distanceTo));
         // Skip stall detection during motor startup ramp-up
@@ -177,12 +210,16 @@ public class Intake extends SubsystemBase {
         }
 
         double current = transfer.getCurrent(CurrentUnit.AMPS);
-        Log.d("Transfer Current", String.valueOf(current));
-        Log.d("Transfer Pos", String.valueOf(transferPos.get(distanceTo)));
-        Log.d("Transfer Pos Dist", String.valueOf(distanceTo));
+        if (Memory.debugMode) {
+            Log.d("Transfer Current", String.valueOf(current));
+            Log.d("Transfer Pos", String.valueOf(transferPos.get(distanceTo)));
+            Log.d("Transfer Pos Dist", String.valueOf(distanceTo));
+        }
         if (current > STALL_CURRENT) {
             stallCount++;
-            Log.d("Transfer StallCount", String.valueOf(stallCount));
+            if (Memory.debugMode) {
+                Log.d("Transfer StallCount", String.valueOf(stallCount));
+            }
             if (stallCount >= STALL_LOOPS) {
                 Log.d("Transfer", "Stall detected — stopping transfer, ball loaded");
                 ballLoaded = true;

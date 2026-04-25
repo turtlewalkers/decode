@@ -246,7 +246,7 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(103, 330);
         RPM.add(114, 348);
         RPM.add(130, 370);
-        RPM.add(142, 410);
+        RPM.add(142, 415); //410
         RPM.add(3000, 435);
         RPM.createLUT();
         /*
@@ -313,8 +313,8 @@ public class ShooterMove extends SubsystemBase {
         transfer.add(91, 1);
         transfer.add(103, 0.9);
         transfer.add(114, 0.75);
-        transfer.add(130, 0.75);
-        transfer.add(142, 0.78);
+        transfer.add(130, 0.7); //0.75
+        transfer.add(142, 0.65); //0.78
         transfer.add(3000, 0.6);
         transfer.createLUT();
 
@@ -531,8 +531,10 @@ public class ShooterMove extends SubsystemBase {
     public void periodic() {
        // updateFusedPosition();
 
-        loopTimeMs = loopTimer.milliseconds();
-        loopTimer.reset();
+        if (Memory.debugMode) {
+            loopTimeMs = loopTimer.milliseconds();
+            loopTimer.reset();
+        }
 
         Pose robot = followerSupplier.get().getPose();
         double presentVoltage = volt.getVoltage();
@@ -569,7 +571,9 @@ public class ShooterMove extends SubsystemBase {
                 dx = shooterX - robotX - vX * shotTime - turretX;
                 dy = shooterY - robotY - vY * shotTime - turretY;
                 distance = Math.sqrt(dx * dx + dy * dy);
-                Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
+                if (Memory.debugMode) {
+                    Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
+                }
             }
         }
 
@@ -609,9 +613,11 @@ public class ShooterMove extends SubsystemBase {
         turretPosDeg = servoPosToTurretDeg(currentServoPos);
 
         if (currentServoPos <= SERVO_MIN + 0.01 || currentServoPos >= SERVO_MAX - 0.01) {
-            Log.w("Turret", String.format(
-                    "SERVO NEAR LIMIT: servoPos=%.4f (min=%.2f max=%.2f)",
-                    currentServoPos, SERVO_MIN, SERVO_MAX));
+            if (Memory.debugMode) {
+                Log.w("Turret", String.format(
+                        "SERVO NEAR LIMIT: servoPos=%.4f (min=%.2f max=%.2f)",
+                        currentServoPos, SERVO_MIN, SERVO_MAX));
+            }
         }
 
         // Hood

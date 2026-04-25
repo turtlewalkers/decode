@@ -44,7 +44,10 @@ public class TeleopMoving extends CommandOpMode {
 
     public static double shooterX, shooterY, gateX, gateY;
 
+    public static boolean DEBUG_MODE = false;  // Dashboard-tunable: false = match mode, true = full telemetry
     public static double OMEGA_SCALE = 0.7; //rotation scaling lower to give translation more priority
+    public static double MATCH_DURATION = 120.0;   // seconds
+    public static double ENDGAME_THRESHOLD = 5.0;   // last N seconds
 
     private double multiplier = 1;
     private Path Park, Stay;
@@ -58,6 +61,10 @@ public class TeleopMoving extends CommandOpMode {
     private static final double SAFE_DISTANCE = 20.0;
 
     private GoBildaPinpointDriver pinpoint;
+
+    private long startTimeMs = 0;
+    // private ServoEx tip;
+    private boolean tipDeployed = false;
 
     @Override
     public void reset() {
@@ -189,6 +196,18 @@ public class TeleopMoving extends CommandOpMode {
                 new InstantCommand(() -> Memory.allianceRed = !Memory.allianceRed)
         );
 
+        // X (gamepad2) — deploy tip servo (endgame only, last ENDGAME_THRESHOLD seconds)
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.X).whenPressed(
+                new InstantCommand(() -> {
+                    double elapsed = (System.currentTimeMillis() - startTimeMs) / 1000.0;
+                    double remainingSec = MATCH_DURATION - elapsed;
+                    if (startTimeMs > 0 && remainingSec <= ENDGAME_THRESHOLD) {
+                        tipDeployed = !tipDeployed;
+                        // tip.set(tipDeployed ? 1.0 : 0.0);
+                    }
+                })
+        );
+
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -279,7 +298,9 @@ public class TeleopMoving extends CommandOpMode {
                     double removeProj = commandedProj - allowedCommandedProj;
                     vx_f_safe = vx_f - removeProj * gxHat;
                     vy_f_safe = vy_f - removeProj * gyHat;
-                    Log.d("GateSafety", String.format("clamped proj: %.2f → %.2f", commandedProj, allowedCommandedProj));
+                    if (DEBUG_MODE) {
+                        Log.d("GateSafety", String.format("clamped proj: %.2f → %.2f", commandedProj, allowedCommandedProj));
+                    }
                 }
             }
 
@@ -293,37 +314,52 @@ public class TeleopMoving extends CommandOpMode {
 
         super.run();
 
+        // Match timer
+        if (startTimeMs == 0) {
+            startTimeMs = System.currentTimeMillis();
+        }
+        Memory.debugMode = DEBUG_MODE;
+        double elapsed = (System.currentTimeMillis() - startTimeMs) / 1000.0;
+        double remainingSec = Math.max(0, MATCH_DURATION - elapsed);
+
+        // Always show: minimal driver hub telemetry
         telemetryData.addData("X",           follower.getPose().getX());
         telemetryData.addData("Y",           follower.getPose().getY());
         telemetryData.addData("Heading",     Math.toDegrees(follower.getPose().getHeading()));
-        telemetryData.addData("TurretDeg",   ShooterMove.turretPosDeg);
-        telemetryData.addData("FlywheelRPM", shooter.getFlywheelRpm());
         telemetryData.addData("Alliance",    Memory.allianceRed ? "RED" : "BLUE");
+        telemetryData.addData("Balls",       intake.getBallCount());
+        telemetryData.addData("Time",        String.format("%.1f", remainingSec));
+        telemetryData.addData("Tip",         tipDeployed ? "DEPLOYED" : "STOWED");
 
-        double vx   = follower.getVelocity().getXComponent();
-        double vy   = follower.getVelocity().getYComponent();
-        double speed = Math.hypot(vx, vy);
-        telemetryData.addData("Speed (in/s)", speed);
-        telemetryData.addData("VX (in/s)",    vx);
-        telemetryData.addData("VY (in/s)",    vy);
+        if (DEBUG_MODE) {
+            telemetryData.addData("TurretDeg",   ShooterMove.turretPosDeg);
+            telemetryData.addData("FlywheelRPM", shooter.getFlywheelRpm());
 
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Speed (in/s)",   speed);
-        packet.put("VX (in/s)",      vx);
-        packet.put("VY (in/s)",      vy);
-        packet.put("TurretDeg",      ShooterMove.turretPosDeg);
-        packet.put("TurretTargetDeg",ShooterMove.turretTargetDeg);
-        packet.put("RobotHeadingDeg",   ShooterMove.robotHeadingDeg);
-        packet.put("ServoPos", shooter.getServoPos());
-        packet.put("Heading", Math.toDegrees(follower.getPose().getHeading()));
-        packet.put("BatteryVoltage",  ShooterMove.batteryVoltage);
-        packet.put("X", follower.getPose().getX());
-        packet.put("Y", follower.getPose().getY());
-        packet.put("LoopTimeMs", ShooterMove.loopTimeMs);
-        packet.put("OmegaDegPerSec", ShooterMove.omegaDegPerSec);
-        packet.put("ServoLagCompDeg", ShooterMove.servoLagCompDeg);
-        packet.put("FlywheelRPM",    shooter.getFlywheelRpm());
-        dashboard.sendTelemetryPacket(packet);
+            double vx   = follower.getVelocity().getXComponent();
+            double vy   = follower.getVelocity().getYComponent();
+            double speed = Math.hypot(vx, vy);
+            telemetryData.addData("Speed (in/s)", speed);
+            telemetryData.addData("VX (in/s)",    vx);
+            telemetryData.addData("VY (in/s)",    vy);
+
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("Speed (in/s)",   speed);
+            packet.put("VX (in/s)",      vx);
+            packet.put("VY (in/s)",      vy);
+            packet.put("TurretDeg",      ShooterMove.turretPosDeg);
+            packet.put("TurretTargetDeg",ShooterMove.turretTargetDeg);
+            packet.put("RobotHeadingDeg",   ShooterMove.robotHeadingDeg);
+            packet.put("ServoPos", shooter.getServoPos());
+            packet.put("Heading", Math.toDegrees(follower.getPose().getHeading()));
+            packet.put("BatteryVoltage",  ShooterMove.batteryVoltage);
+            packet.put("X", follower.getPose().getX());
+            packet.put("Y", follower.getPose().getY());
+            packet.put("LoopTimeMs", ShooterMove.loopTimeMs);
+            packet.put("OmegaDegPerSec", ShooterMove.omegaDegPerSec);
+            packet.put("ServoLagCompDeg", ShooterMove.servoLagCompDeg);
+            packet.put("FlywheelRPM",    shooter.getFlywheelRpm());
+            dashboard.sendTelemetryPacket(packet);
+        }
 
         telemetryData.update();
     }
