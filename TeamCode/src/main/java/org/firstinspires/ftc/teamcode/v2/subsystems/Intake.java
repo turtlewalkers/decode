@@ -109,8 +109,10 @@ public class Intake extends SubsystemBase {
             // Don't restart transfer if ball is already loaded at latch —
             // wait for shoot cycle (right trigger) to clear it first
             if (!ballLoaded) {
-                startTransfer();
-            }
+                transfer.setPower(1);
+                transferRunning = true;
+                stallCount = 0;
+                startupCount = 0;            }
         });
     }
 
