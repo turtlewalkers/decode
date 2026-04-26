@@ -137,6 +137,7 @@ public class ShooterMove extends SubsystemBase {
 
     private ElapsedTime loopTimer = new ElapsedTime();
     public static double loopTimeMs = 0;
+    private Double fixedAngleDeg = null;
 
     // LUTs (carry over from V1 — retune on V2)
     InterpLUT RPM      = new InterpLUT();
@@ -351,7 +352,26 @@ public class ShooterMove extends SubsystemBase {
     public Command flywheel(boolean on) {
         return new InstantCommand(() -> flywheelOn = on);
     }
-
+    public Command aimAt(Pose shootPose, double heading) {
+        double finalDeg = computeTurretAngle(shootPose, heading);
+        return new InstantCommand(() -> fixedAngleDeg = finalDeg);
+    }
+    /** Direct setter for use in initialize() (not as a scheduled command). */
+    public void aimAtNow(Pose shootPose, double heading) {
+        fixedAngleDeg = computeTurretAngle(shootPose, heading);
+    }
+    public Command clearFixedAngle() {
+        return new InstantCommand(() -> fixedAngleDeg = null);
+    }
+    private double computeTurretAngle(Pose shootPose, double heading) {
+        double dx = shooterX - shootPose.getX();
+        double dy = shooterY - shootPose.getY();
+        double fieldDeg = Math.toDegrees(Math.atan2(dy, dx));
+        double turretDeg = fieldDeg - Math.toDegrees(heading);
+        while (turretDeg > 180) turretDeg -= 360;
+        while (turretDeg < -180) turretDeg += 360;
+        return turretDeg;
+    }
     public Command flywheelToggle() {
         return new InstantCommand(() -> flywheelOn = !flywheelOn);
     }
@@ -562,15 +582,22 @@ public class ShooterMove extends SubsystemBase {
                 double vY = followerSupplier.get().getVelocity().getYComponent();
                 dx = shooterX - robotX - vX * shotTime - turretX;
                 dy = shooterY - robotY - vY * shotTime - turretY;
-                distance = Math.sqrt(dx * dx + dy * dy);
-                if (Memory.debugMode) {
-                    Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
-                }
+                Log.d("Velocity " + String.valueOf(i), String.valueOf(Math.sqrt(vX * vX + vY * vY)));
+                if (Math.sqrt(vX * vX + vY * vY) > 10)
+                    distance = Math.sqrt(dx * dx + dy * dy);
+                    if (Memory.debugMode) {
+                        Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
+                    }
             }
         }
 
         // Turret angle target
         double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(robotHeading);
+
+        if (fixedAngleDeg != null) {
+            targetAngleDeg = fixedAngleDeg;
+        }
+
         targetAngleDeg *= turretOff;
         targetAngleDeg += turretOffset;
 
