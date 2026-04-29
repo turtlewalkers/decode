@@ -583,7 +583,7 @@ public class ShooterMove extends SubsystemBase {
                 dx = shooterX - robotX - vX * shotTime - turretX;
                 dy = shooterY - robotY - vY * shotTime - turretY;
                 Log.d("Velocity " + String.valueOf(i), String.valueOf(Math.sqrt(vX * vX + vY * vY)));
-                if (Math.sqrt(vX * vX + vY * vY) > 10)
+                if (Math.sqrt(vX * vX + vY * vY) > 7)
                     distance = Math.sqrt(dx * dx + dy * dy);
                     if (Memory.debugMode) {
                         Log.d("Distance " + String.valueOf(i), String.valueOf(distance));

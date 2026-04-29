@@ -6,23 +6,19 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
-import com.seattlesolvers.solverslib.pedroCommand.TurnToCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.v2.subsystems.Intake;
@@ -30,7 +26,7 @@ import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
 
 @Configurable
 @Autonomous
-public class Blue21Abhi extends CommandOpMode {
+public class Blue21Safe extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -41,10 +37,11 @@ public class Blue21Abhi extends CommandOpMode {
     // Poses:
     public static int T = 1;
     private final Pose Start = new Pose(27, 128, Math.toRadians(134));
-    private final Pose PreloadScore = new Pose( 57, 78, Math.toRadians(134));
-    private final Pose TurnPreloadScore = new Pose( 56.9, 78, Math.toRadians(190));
-    private final Pose Collect2Control = new Pose(16, 59, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(17, 59, Math.toRadians(190));
+    private final Pose PreloadScore = new Pose( 60, 72, Math.toRadians(134));
+
+    private final Pose TurnPreloadScore = new Pose( 60, 72, Math.toRadians(190));
+    private final Pose Collect2Control = new Pose(40, 62, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(16, 59, Math.toRadians(180));
     private final Pose Score2 = new Pose(52, 80, Math.toRadians(220));
 
     private final Pose CollectGateControl2 = new Pose(30, 57, Math.toRadians(0));
@@ -104,11 +101,7 @@ public class Blue21Abhi extends CommandOpMode {
         PreloadShoot.setLinearHeadingInterpolation(Start.getHeading(), PreloadScore.getHeading());
         PreloadShoot.setTimeoutConstraint(50);
 
-        TurnPreloadShoot = new Path(new BezierLine(PreloadScore, TurnPreloadScore));
-        TurnPreloadShoot.setLinearHeadingInterpolation(PreloadScore.getHeading(), TurnPreloadScore.getHeading());
-        TurnPreloadShoot.setTimeoutConstraint(50);
-
-        Intake2 = new Path(new BezierLine(TurnPreloadScore, Collect2));
+        Intake2 = new Path(new BezierCurve(TurnPreloadScore, Collect2Control, Collect2));
         Intake2.setLinearHeadingInterpolation(TurnPreloadScore.getHeading(), Collect2.getHeading());
         Intake2.setTimeoutConstraint(50);
 
@@ -220,20 +213,18 @@ public class Blue21Abhi extends CommandOpMode {
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.SWMoff(),
-                        new FollowPathCommand(follower, TurnPreloadShoot).withTimeout(300),
-                        new WaitCommand(1000),
                         new FollowPathCommand(follower, Intake2).withTimeout(1400),
                         shooter.aimAt(Score2, Score2.getHeading()),
                         new FollowPathCommand(follower, Shoot2, true).setGlobalMaxPower(1).withTimeout(1100),
-                        new WaitCommand(50),
+                        new WaitCommand(250),
                         intake.shootStart(),
-                        new WaitCommand(350),
+                        new WaitCommand(450),
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.clearFixedAngle(),
 
                         new FollowPathCommand(follower, IntakeGate2, true).withTimeout(1100),
-                        new WaitCommand(1100),
+                        new WaitCommand(1700),
                         intake.collectStop(),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot1, GateShoot.getHeading()),
@@ -243,9 +234,9 @@ public class Blue21Abhi extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(50),
+                        new WaitCommand(250),
                         intake.shootStart(),
-                        new WaitCommand(350),
+                        new WaitCommand(450),
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.clearFixedAngle(),
@@ -255,16 +246,16 @@ public class Blue21Abhi extends CommandOpMode {
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
                         shooter.aimAt(Score1, Score1.getHeading()),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
-                        new WaitCommand(50),
+                        new WaitCommand(150),
                         intake.shootStart(),
-                        new WaitCommand(350),
+                        new WaitCommand(450),
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.clearFixedAngle(),
 
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new WaitCommand(1100),
+                        new WaitCommand(1700),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot, GateShoot.getHeading()),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1400),
@@ -273,9 +264,9 @@ public class Blue21Abhi extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(50),
+                        new WaitCommand(150),
                         intake.shootStart(),
-                        new WaitCommand(350),
+                        new WaitCommand(450),
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.clearFixedAngle(),
@@ -292,9 +283,9 @@ public class Blue21Abhi extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        new WaitCommand(50),
+                        new WaitCommand(150),
                         intake.shootStart(),
-                        new WaitCommand(350),
+                        new WaitCommand(550),
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.clearFixedAngle(),
@@ -319,11 +310,11 @@ public class Blue21Abhi extends CommandOpMode {
 
                         shooter.aimAt(GateShootLast, GateShootLast.getHeading()),
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1700),
-                        new WaitCommand(2100),
+                        new WaitCommand(1700),
                         new FollowPathCommand(follower, GateScoreEnd, true).withTimeout(1600),
                         new WaitCommand(50),
                         intake.shootStart(),
-                        new WaitCommand(350),
+                        new WaitCommand(450),
                         intake.shootStop(),
                         intake.collectStart(),
                         shooter.clearFixedAngle()
