@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
 
 @Configurable
 @Autonomous
-public class Blue21Safe extends CommandOpMode {
+public class Red21Safe extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -36,31 +36,31 @@ public class Blue21Safe extends CommandOpMode {
 
     // Poses:
     public static int T = 1;
-    private final Pose Start = new Pose(27.3, 127.5, Math.toRadians(134));
-    private final Pose PreloadScore = new Pose( 57, 75, Math.toRadians(134));
+    private final Pose Start = new Pose(144-27.3, 127.5, Math.toRadians(180-134));
+    private final Pose PreloadScore = new Pose( 144-57, 75, Math.toRadians(180-134));
 
-    private final Pose TurnPreloadScore = new Pose( 57, 75, Math.toRadians(190));
-    private final Pose Collect2Control = new Pose(38, 62, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(18, 59, Math.toRadians(180));
-    private final Pose Score2 = new Pose(52, 80, Math.toRadians(220));
+    private final Pose TurnPreloadScore = new Pose( 144-57, 75, Math.toRadians(180-190));
+    private final Pose Collect2Control = new Pose(144-38, 62, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(144-16, 59, Math.toRadians(0));
+    private final Pose Score2 = new Pose(144-52, 80, Math.toRadians(180-220));
 
-    private final Pose CollectGateControl2 = new Pose(30, 57, Math.toRadians(0));
-    private final Pose CollectGate1Control = new Pose(28, 57, Math.toRadians(0));
-    private final Pose CollectGateCycleControl = new Pose(25, 57, Math.toRadians(0));
-    private final Pose CollectGateTurn = new Pose(18.8, 59.5, Math.toRadians(150));
-    private final Pose CollectGate = new Pose(11, 60, Math.toRadians(150));
+    private final Pose CollectGateControl2 = new Pose(144-30, 57, Math.toRadians(180-0));
+    private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
+    private final Pose CollectGateCycleControl = new Pose(144-25, 57, Math.toRadians(180));
+    private final Pose CollectGateTurn = new Pose(144-18.8, 59.5, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(144-11, 60, Math.toRadians(30));
 
 
-    private final Pose GateShootLeave = new Pose(13.5, 57.5, Math.toRadians(205));
-    private final Pose GateShoot = new Pose(53, 80, Math.toRadians(205));
-    private final Pose GateShootControl = new Pose(28, 55, Math.toRadians(0));
+    private final Pose GateShootLeave = new Pose(144-13.5, 57.5, Math.toRadians(180-205));
+    private final Pose GateShoot = new Pose(144-53, 80, Math.toRadians(180-205));
+    private final Pose GateShootControl = new Pose(144-28, 55, Math.toRadians(180));
 
-    private final Pose GateShoot1 = new Pose(52, 82, Math.toRadians(170));
-    private final Pose GateShootLast = new Pose(56, 103, Math.toRadians(230));
+    private final Pose GateShoot1 = new Pose(144-52, 82, Math.toRadians(10));
+    private final Pose GateShootLast = new Pose(144-57.5, 101, Math.toRadians(180-210));
 
-    private final Pose Collect1Control = new Pose(30.5, 87, Math.toRadians(0));
-    private final Pose Collect1 = new Pose(24, 84, Math.toRadians(180));
-    private final Pose Score1 = new Pose(58, 82, Math.toRadians(190));
+    private final Pose Collect1Control = new Pose(144-30.5, 87, Math.toRadians(180));
+    private final Pose Collect1 = new Pose(144-24, 84, Math.toRadians(0));
+    private final Pose Score1 = new Pose(144-58, 82, Math.toRadians(180-190));
 
 //    private final Pose Collect3Control = new Pose(40.5, 29, Math.toRadians(180));
 //    private final Pose Collect3 = new Pose(24, 35, Math.toRadians(180));
@@ -185,13 +185,13 @@ public class Blue21Safe extends CommandOpMode {
     @Override
     public void initialize() {
         super.reset();
-        Memory.allianceRed = false;
+        Memory.allianceRed = true;
         Memory.autoRan = true;
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
-        shooter = new ShooterMove(hardwareMap, () -> follower, 6, 138);
-        intake = new Intake(hardwareMap, () -> follower, 6, 138);
+        shooter = new ShooterMove(hardwareMap, () -> follower, 138, 138);
+        intake = new Intake(hardwareMap, () -> follower, 138, 138);
         this.resetRuntime();
         buildpaths();
 
