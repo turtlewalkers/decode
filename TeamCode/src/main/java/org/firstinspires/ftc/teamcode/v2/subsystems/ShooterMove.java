@@ -77,7 +77,7 @@ public class ShooterMove extends SubsystemBase {
     public static double servoLagCompDeg = 0;
 
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
-    public static double p = 0.65, i = 0.02, d = 0.0035;
+    public static double p = 0.62, i = 0.02, d = 0.0035;
     public static boolean ENABLE_FF = true;
     public static double kV = 0.02049082; //0.022312028;//0.021477551;
     public static double kS = 0.499555731; //0.323009673;//0.760983135;
@@ -162,7 +162,7 @@ public class ShooterMove extends SubsystemBase {
         ((PwmControl) hMap.get(Servo.class, "tl1")).setPwmRange(axonRange);
         ((PwmControl) hMap.get(Servo.class, "tl2")).setPwmRange(axonRange);
         ((PwmControl) hMap.get(Servo.class, "tr1")).setPwmRange(axonRange);
-       // hood     = HOOD_ENABLED ?  hMap.get(Servo.class, "hood") : null;
+        // hood     = HOOD_ENABLED ?  hMap.get(Servo.class, "hood") : null;
         shooterB = new MotorEx(hMap, "sb");
         shooterT = new MotorEx(hMap, "st");
         abs      = ABS_ENABLED ? hMap.get(AnalogInput.class, "abs") : null;
@@ -286,9 +286,9 @@ public class ShooterMove extends SubsystemBase {
         angle.add(43, 0.62);
         angle.add(59, 0.65);
         angle.add(67, 0.49);
-        angle.add(75, 0.35);
-        angle.add(83, 0.19);
-        angle.add(91, 0.19);
+        angle.add(75, 0.355);
+        angle.add(83, 0.20);
+        angle.add(91, 0.195);
         angle.add(99, 0.19);
         angle.add(107, 0.17);
         angle.add(118, 0.18);
@@ -299,13 +299,13 @@ public class ShooterMove extends SubsystemBase {
 
         transfer.add(0, 1);
         transfer.add(43, 1);
-        transfer.add(59, 0.96);
-        transfer.add(67, 0.93);
-        transfer.add(75, 0.92);
-        transfer.add(83, 0.91);
-        transfer.add(91, 0.9);
-        transfer.add(99, 0.9);
-        transfer.add(107, 0.9);
+        transfer.add(59, 0.925);
+        transfer.add(67, 0.91);
+        transfer.add(75, 0.90);
+        transfer.add(83, 0.89);
+        transfer.add(91, 0.89);
+        transfer.add(99, 0.89);
+        transfer.add(107, 0.89);
         transfer.add(118, 0.88);
         transfer.add(131, 0.8);
         transfer.add(147, 0.45);
@@ -314,13 +314,13 @@ public class ShooterMove extends SubsystemBase {
 
 
 
-        shottime.add(0, 1.1);
-        shottime.add(59, 0.8);
+        shottime.add(0, 0.8);
+        shottime.add(59, 0.78);
         shottime.add(67, 0.78);
         shottime.add(75, 0.66);
         shottime.add(83, 0.71);
         shottime.add(91, 0.72);
-        shottime.add(99, 0.85);
+        shottime.add(99, 0.83);
         shottime.add(107, 0.92);
         shottime.add(118, 0.9);
         shottime.add(131, 0.92);
@@ -347,6 +347,17 @@ public class ShooterMove extends SubsystemBase {
 
     public Command turretOff (boolean off) {
         return new InstantCommand(() -> turretOff = off ? 0 : 1);
+    }
+
+    public void startTurret() {
+        turretOff = 0;
+        this.periodic();
+
+    }
+
+    public void flywheelOff() {
+        flywheelOn = false;
+
     }
 
     public Command flywheel(boolean on) {
@@ -541,7 +552,7 @@ public class ShooterMove extends SubsystemBase {
 
     @Override
     public void periodic() {
-       // updateFusedPosition();
+        // updateFusedPosition();
 
         if (Memory.debugMode) {
             loopTimeMs = loopTimer.milliseconds();
@@ -585,9 +596,9 @@ public class ShooterMove extends SubsystemBase {
                 Log.d("Velocity " + String.valueOf(i), String.valueOf(Math.sqrt(vX * vX + vY * vY)));
                 if (Math.sqrt(vX * vX + vY * vY) > 7)
                     distance = Math.sqrt(dx * dx + dy * dy);
-                    if (Memory.debugMode) {
-                        Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
-                    }
+                if (Memory.debugMode) {
+                    Log.d("Distance " + String.valueOf(i), String.valueOf(distance));
+                }
             }
         }
 

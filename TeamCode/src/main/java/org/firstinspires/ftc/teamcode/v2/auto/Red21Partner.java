@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
 
 @Configurable
 @Autonomous
-public class Red21Safe extends CommandOpMode {
+public class Red21Partner extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -37,17 +37,16 @@ public class Red21Safe extends CommandOpMode {
     // Poses:
     public static int T = 1;
     private final Pose Start = new Pose(144-27.3, 127.5, Math.toRadians(180-134));
-    private final Pose PreloadScore = new Pose( 144-57, 75, Math.toRadians(180-134));
+    private final Pose PreloadScore = new Pose( 144-59, 72, Math.toRadians(180-134));
 
-    private final Pose TurnPreloadScore = new Pose( 144-57, 75, Math.toRadians(180-190));
-    private final Pose Collect2Control = new Pose(144-38, 59, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(128, 59, Math.toRadians(0));
+    private final Pose TurnPreloadScore = new Pose( 144-59, 72, Math.toRadians(180-190));
+    private final Pose Collect2Control = new Pose(100, 56, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(126, 64, Math.toRadians(0));
     private final Pose Score2 = new Pose(144-52, 80, Math.toRadians(180-220));
-
     private final Pose CollectGateControl2 = new Pose(144-30, 57, Math.toRadians(180-0));
     private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
     private final Pose CollectGateCycleControl = new Pose(144-25, 59, Math.toRadians(180));
-    private final Pose CollectGateTurn = new Pose(144-16.3, 60.5, Math.toRadians(30));
+    private final Pose CollectGateTurn = new Pose(144-17, 61.5, Math.toRadians(30));
     private final Pose CollectGate = new Pose(144-11, 59.5, Math.toRadians(30));
 
 
