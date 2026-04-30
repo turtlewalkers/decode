@@ -270,7 +270,7 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(43, 237);
         RPM.add(59, 252);
         RPM.add(67, 265);
-        RPM.add(75, 275);
+        RPM.add(75, 273);
         RPM.add(83, 292);
         RPM.add(91, 299);
         RPM.add(99, 320);
