@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
 
 @Configurable
 @Autonomous
-public class Blue21Safe extends CommandOpMode {
+public class Blue21Safe1 extends CommandOpMode {
     private Follower follower;
     private Intake intake;
     private ShooterMove shooter;
@@ -229,10 +229,7 @@ public class Blue21Safe extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, IntakeGate2, true).withTimeout(1100),
-                        new ParallelRaceGroup(
-                                new WaitCommand(1600),
-                                new WaitUntilCommand(() -> intake.getBallCount() >= 3)
-                        ),
+                        new WaitCommand(1600),
                         intake.collectStop(),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot1, GateShoot.getHeading()),
@@ -265,10 +262,7 @@ public class Blue21Safe extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new ParallelRaceGroup(
-                                new WaitCommand(1600),
-                                new WaitUntilCommand(() -> intake.getBallCount() >= 3)
-                        ),
+                        new WaitCommand(1600),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot, GateShoot.getHeading()),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1400),
@@ -288,10 +282,7 @@ public class Blue21Safe extends CommandOpMode {
 
 
                         new FollowPathCommand(follower, IntakeGateCycle, false).withTimeout(1700),
-                        new ParallelRaceGroup(
-                                new WaitCommand(1600),
-                                new WaitUntilCommand(() -> intake.getBallCount() >= 3)
-                        ),
+                        new WaitCommand(1600),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot, GateShoot.getHeading()),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1500),
@@ -328,10 +319,7 @@ public class Blue21Safe extends CommandOpMode {
 
                         shooter.aimAt(GateShootLast, GateShootLast.getHeading()),
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1700),
-                        new ParallelRaceGroup(
-                                new WaitCommand(1600),
-                                new WaitUntilCommand(() -> intake.getBallCount() >= 3)
-                        ),
+                        new WaitCommand(1600),
                         new FollowPathCommand(follower, GateScoreEnd, true).withTimeout(1600),
                         shooter.clearFixedAngle(),
                         new WaitCommand(100),

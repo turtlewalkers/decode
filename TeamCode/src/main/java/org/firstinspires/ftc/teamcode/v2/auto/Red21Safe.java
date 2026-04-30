@@ -13,9 +13,11 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.ParallelRaceGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
+import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
 
@@ -23,6 +25,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.v2.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.v2.subsystems.ShooterMove;
+
+import java.util.function.BooleanSupplier;
 
 @Configurable
 @Autonomous
@@ -46,9 +50,9 @@ public class Red21Safe extends CommandOpMode {
 
     private final Pose CollectGateControl2 = new Pose(144-30, 57, Math.toRadians(180-0));
     private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
-    private final Pose CollectGateCycleControl = new Pose(144-25, 59, Math.toRadians(180));
-    private final Pose CollectGateTurn = new Pose(144-16.3, 60.5, Math.toRadians(30));
-    private final Pose CollectGate = new Pose(144-11, 59.5, Math.toRadians(30));
+    private final Pose CollectGateCycleControl = new Pose(144-28, 57, Math.toRadians(180));
+    private final Pose CollectGateTurn = new Pose(120, 61, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(132, 60.5, Math.toRadians(30));
 
 
     private final Pose GateShootLeave = new Pose(144-13.5, 57.5, Math.toRadians(180-205));
@@ -91,6 +95,8 @@ public class Red21Safe extends CommandOpMode {
     private Path Shoot1;
     private PathChain IntakeGate1, IntakeGate2, IntakeGateCycle, GateScoreFull, GateScoreFull1, GateScoreEnd;
 
+    private boolean has3 = true;
+    private BooleanSupplier supplier;
     public void buildpaths() {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Start);
@@ -204,24 +210,31 @@ public class Red21Safe extends CommandOpMode {
                         intake.shootStop(),
                         shooter.flywheel(true),
                         shooter.turretOff(false),
+                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()),
                         new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
+                        new WaitCommand(100),
                         intake.collectStart(),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
+
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1400),
                         shooter.aimAt(Score2, Score2.getHeading()),
                         new FollowPathCommand(follower, Shoot2, true).setGlobalMaxPower(1).withTimeout(1100),
-                        new WaitCommand(250),
+                        new WaitCommand(270),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
 
 
-                        new FollowPathCommand(follower, IntakeGate2, true).withTimeout(1100),
-                        new WaitCommand(1200),
+                        new FollowPathCommand(follower, IntakeGate2, true).withTimeout(1200),
+                        new ParallelRaceGroup(
+                                new WaitCommand(1400),
+                                new WaitUntilCommand(() -> intake.getBallCount() >= 3)
+                        ),
+                        new WaitCommand(100),
                         intake.collectStop(),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot1, GateShoot.getHeading()),
@@ -231,7 +244,7 @@ public class Red21Safe extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        shooter.clearFixedAngle(),
+//                        shooter.clearFixedAngle(),
                         new WaitCommand(250),
                         intake.shootStart(),
                         new WaitCommand(400),
@@ -244,7 +257,7 @@ public class Red21Safe extends CommandOpMode {
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
                         shooter.aimAt(Score1, Score1.getHeading()),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
-                        shooter.clearFixedAngle(),
+//                        shooter.clearFixedAngle(),
                         new WaitCommand(250),
                         intake.shootStart(),
                         new WaitCommand(400),
@@ -253,8 +266,12 @@ public class Red21Safe extends CommandOpMode {
                         shooter.clearFixedAngle(),
 
 
-                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1100),
-                        new WaitCommand(1200),
+                        new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1200),
+                        new ParallelRaceGroup(
+                                new WaitCommand(1700),
+                                new WaitUntilCommand(() -> intake.getBallCount() == 3)
+                        ),
+                        new WaitCommand(100),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot, GateShoot.getHeading()),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1700),
@@ -263,7 +280,7 @@ public class Red21Safe extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        shooter.clearFixedAngle(),
+//                        shooter.clearFixedAngle(),
                         new WaitCommand(250),
                         intake.shootStart(),
                         new WaitCommand(400),
@@ -273,8 +290,12 @@ public class Red21Safe extends CommandOpMode {
 
 
 
-                        new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1700),
-                        new WaitCommand(1500),
+                        new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
+                        new ParallelRaceGroup(
+                                new WaitCommand(1800),
+                                new WaitUntilCommand(() -> intake.getBallCount() >= 3)
+                        ),
+                        new WaitCommand(100),
                         new ParallelCommandGroup(
                                 shooter.aimAt(GateShoot, GateShoot.getHeading()),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1500),
@@ -283,13 +304,13 @@ public class Red21Safe extends CommandOpMode {
                                         intake.collectStop()
                                 )
                         ),
-                        shooter.clearFixedAngle(),
-                        new WaitCommand(150),
+//                        shooter.clearFixedAngle(),
+                        new WaitCommand(200),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
-                        shooter.clearFixedAngle(),
+//                        shooter.clearFixedAngle(),
 
 
 //                        new FollowPathCommand(follower, IntakeGateCycle, false).withTimeout(1700),
@@ -310,16 +331,22 @@ public class Red21Safe extends CommandOpMode {
 //                        shooter.clearFixedAngle(),
 
                         shooter.aimAt(GateShootLast, GateShootLast.getHeading()),
-                        new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1700),
-                        new WaitCommand(1500),
+                        new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
+                        new ParallelRaceGroup(
+                                new WaitCommand(1800),
+                                new WaitUntilCommand(() -> intake.getBallCount() == 3)
+                        ),
+                        new WaitCommand(100),
+                        //new WaitCommand()
+                        //int temp = intake.getBallCount() == 3 ? elapsedTime :
                         new FollowPathCommand(follower, GateScoreEnd, true).withTimeout(1600),
-                        shooter.clearFixedAngle(),
-                        new WaitCommand(150),
+//                        shooter.clearFixedAngle(),
+                        new WaitCommand(200),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
-                        intake.collectStart(),
-                        shooter.clearFixedAngle()
+                        intake.collectStart()
+//                        shooter.clearFixedAngle()
 
                         //new FollowPathCommand(follower, Intake3, true).withTimeout(2000),
                         //new FollowPathCommand(follower, Shoot3, true).withTimeout(1100)
@@ -339,6 +366,9 @@ public class Red21Safe extends CommandOpMode {
         }
         Memory.autoRan = true;
 
+//        has3 = intake.getBallCount() == 3;
+//        supplier = () -> intake.getBallCount() == 3;
+//        Log.d("Supplier", String.valueOf(supplier.getAsBoolean()));
 
         telemetryData.addData("X", follower.getPose().getX());
         telemetryData.addData("Y", follower.getPose().getY());

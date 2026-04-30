@@ -314,11 +314,11 @@ public class ShooterMove extends SubsystemBase {
 
 
 
-        shottime.add(0, 0.8);
-        shottime.add(59, 0.78);
-        shottime.add(67, 0.78);
-        shottime.add(75, 0.66);
-        shottime.add(83, 0.71);
+        shottime.add(0, 0.7);
+        shottime.add(59, 0.7);
+        shottime.add(67, 0.76);
+        shottime.add(75, 0.64);
+        shottime.add(83, 0.7);
         shottime.add(91, 0.72);
         shottime.add(99, 0.83);
         shottime.add(107, 0.92);
