@@ -74,8 +74,8 @@ public class Intake extends SubsystemBase {
         transferPos.add(59, 0.92);
         transferPos.add(67, 0.9);
         transferPos.add(75, 0.89);
-        transferPos.add(83, 0.88);
-        transferPos.add(91, 0.88);
+        transferPos.add(83, 0.87);
+        transferPos.add(91, 0.87);
         transferPos.add(99, 0.87);
         transferPos.add(107, 0.87);
         transferPos.add(118, 0.86);
@@ -136,7 +136,9 @@ public class Intake extends SubsystemBase {
             ballLoaded = false;  // clear loaded state — shoot cycle empties the latch
             stallCount = 0;
             latch.set(LATCH_OPEN);
-            intake.set(INTAKE_SPEED);
+           // intake.set(INTAKE_SPEED);
+            double dist = distanceToTarget();
+            intake.set(transferPos.get(dist));
             startTransfer();
         });
     }
@@ -203,6 +205,10 @@ public class Intake extends SubsystemBase {
         }
 
         if (!transferRunning || shootMode) {
+            if (shootMode && transferRunning) {
+                distanceTo = distanceToTarget();
+                intake.set(transferPos.get(distanceTo));
+            }
             return;
         }
 

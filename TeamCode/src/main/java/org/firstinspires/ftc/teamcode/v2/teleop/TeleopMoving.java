@@ -49,9 +49,15 @@ public class TeleopMoving extends CommandOpMode {
     public static double MATCH_DURATION = 120.0;   // seconds
     public static double ENDGAME_THRESHOLD = 5.0;   // last N seconds
 
+    // Smart relocalization
+    public static double RELOC_THRESHOLD = 25.0;     // inches from boundary to trigger
+    public static double RELOC_HEADING_TOL = 45.0;   // degrees tolerance for front/back detection
+    private static final double RAMP_Y_MIN = 70.0;
+    private static final double RAMP_Y_MAX = 118.0;
+
     private double multiplier = 1;
     private Path Park, Stay;
-    private Pose end, start, relocalize;
+    private Pose end, start;
     List<LynxModule> allHubs;
 
     // Gate safety
@@ -92,14 +98,12 @@ public class TeleopMoving extends CommandOpMode {
             gateX      = 6;
             gateY      = 70;
             end        = new Pose(36.5, 38, Math.toRadians(90));
-            relocalize = new Pose(12.315, 8.7159, Math.toRadians(174.392));
         } else {
             shooterX   = 6;
             shooterY   = 138;
             gateX      = 138;
             gateY      = 70;
             end        = new Pose(105, 33, Math.toRadians(90));
-            relocalize = new Pose(132.8288, 8.3812, Math.toRadians(6.7524));
         }
 
         if (!Memory.autoRan) {
@@ -116,6 +120,7 @@ public class TeleopMoving extends CommandOpMode {
 
         // Flywheel always on at startup
         shooter.flywheel(true);
+       // shooter.setPredictiveAim(true);
         Memory.autoRan = false;
 
         // ---------------------------------------------------------------
@@ -146,17 +151,21 @@ public class TeleopMoving extends CommandOpMode {
         // RB — Toggle SWM
         //gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(shooter.SWMToggle());
 
+        // LB — hold to disable shoot-while-moving (faster loops for gate cycles)
+        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(shooter.SWMoff());
+        gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenReleased(shooter.SWMon());
+
         // B — flywheel off
         gamepad.getGamepadButton(GamepadKeys.Button.B).whenPressed(shooter.flywheel(false));
 
         // Y — park
-        gamepad.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
+       /* gamepad.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
                 new InstantCommand(() -> {
                     start = follower.getPose();
                     Park = new Path(new BezierLine(start, end));
                     Park.setLinearHeadingInterpolation(start.getHeading(), end.getHeading());
                 })
-        ).whenPressed(new FollowPathCommand(follower, Park));
+        ).whenPressed(new FollowPathCommand(follower, Park));*/
 
         // X — cancel auto commands, resume manual drive
         gamepad.getGamepadButton(GamepadKeys.Button.X).whenPressed(
@@ -186,9 +195,10 @@ public class TeleopMoving extends CommandOpMode {
         // A — zero all offsets
         gamepadOffset.getGamepadButton(GamepadKeys.Button.A).whenPressed(shooter.offsetZero());
 
-        // B — manual relocalize (snap pose to known position)
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.B).whenPressed(
-                new InstantCommand(() -> follower.setPose(relocalize))
+        // B — smart relocalize (auto-detect nearest wall/ramp)
+        // Temporarily change to gamepad Y and remove park.
+        gamepad.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
+                new InstantCommand(() -> smartRelocalize())
         );
 
         // DPAD right (gamepad2) — toggle alliance color
@@ -362,5 +372,92 @@ public class TeleopMoving extends CommandOpMode {
         }
 
         telemetryData.update();
+    }
+
+    private void smartRelocalize() {
+        Pose current = follower.getPose();
+        double x = current.getX();
+        double y = current.getY();
+        double headingDeg = Math.toDegrees(current.getHeading()) % 360;
+        if (headingDeg < 0) headingDeg += 360;
+
+        double newX = x;
+        double newY = y;
+        boolean isRampZone = (y >= RAMP_Y_MIN && y <= RAMP_Y_MAX);
+
+        // --- Y-axis correction ---
+        if (y > 144 - RELOC_THRESHOLD) {
+            // Back wall
+            if (isFacing(headingDeg, 90, RELOC_HEADING_TOL)) {
+                newY = 132.8;
+            } else if (isFacing(headingDeg, 270, RELOC_HEADING_TOL)) {
+                newY = 136.5;
+            }
+        } else if (y < RELOC_THRESHOLD) {
+            // Audience wall
+            if (isFacing(headingDeg, 270, RELOC_HEADING_TOL)) {
+                newY = 13.14;
+            } else if (isFacing(headingDeg, 90, RELOC_HEADING_TOL)) {
+                newY = 10.1;
+            }
+        }
+
+        // --- X-axis correction (both sides) ---
+        if (x < RELOC_THRESHOLD) {
+            // Blue side
+            if (isRampZone) {
+                if (isFacing(headingDeg, 180, RELOC_HEADING_TOL)) {
+                    newX = 17.8;
+                } else if (isFacing(headingDeg, 0, RELOC_HEADING_TOL)) {
+                    newX = 14.2;
+                }
+            } else {
+                if (isFacing(headingDeg, 180, RELOC_HEADING_TOL)) {
+                    newX = 11.5;
+                } else if (isFacing(headingDeg, 0, RELOC_HEADING_TOL)) {
+                    newX = 8.3;
+                }
+            }
+        } else if (x > 144 - RELOC_THRESHOLD) {
+            // Red side
+            if (isRampZone) {
+                if (isFacing(headingDeg, 0, RELOC_HEADING_TOL)) {
+                    newX = 126.3;
+                } else if (isFacing(headingDeg, 180, RELOC_HEADING_TOL)) {
+                    newX = 129.4;
+                }
+            } else {
+                if (isFacing(headingDeg, 0, RELOC_HEADING_TOL)) {
+                    newX = 133.6;
+                } else if (isFacing(headingDeg, 180, RELOC_HEADING_TOL)) {
+                    newX = 136.5;
+                }
+            }
+        }
+
+        if (newX != x || newY != y) {
+            double newHeading = current.getHeading();
+
+            // Corner — use precise measured poses at audience-side corners
+            if (newX != x && newY != y && y < RELOC_THRESHOLD) {
+                if (Memory.allianceRed && x < RELOC_THRESHOLD) {
+                    newX = 12.315;
+                    newY = 8.7159;
+                    newHeading = Math.toRadians(174.392);
+                } else if (!Memory.allianceRed && x > 144 - RELOC_THRESHOLD) {
+                    newX = 132.8288;
+                    newY = 8.3812;
+                    newHeading = Math.toRadians(6.7524);
+                }
+            }
+
+            follower.setPose(new Pose(newX, newY, newHeading));
+        }
+    }
+
+    private boolean isFacing(double headingDeg, double targetDeg, double tolerance) {
+        double diff = Math.abs(headingDeg - targetDeg);
+        if (diff > 180) diff = 360 - diff;
+        return diff <= tolerance;
     }
 }
