@@ -68,9 +68,9 @@ public class TurretTest extends LinearOpMode {
     public static double TURRET_MIN = -160.0; //-130.0
     public static double TURRET_MAX =  265.0; //-255.0
 
-    public static double SERVO_OFFSET_TL1 = -0.0028;
-    public static double SERVO_OFFSET_TL2 = 0.0025;
-    public static double SERVO_OFFSET_TR1 = -0.0003;
+    public static double SERVO_OFFSET_TL1 = 0;//-0.0028;
+    public static double SERVO_OFFSET_TL2 = 0;//0.0025;
+    public static double SERVO_OFFSET_TR1 = 0;//-0.0003;
 
     // --- Slew rate limiting (tune here, copy to ShooterMove) ---
     public static double MAX_SERVO_STEP = 0.05;  // max position change per loop (~20ms)
@@ -108,8 +108,12 @@ public class TurretTest extends LinearOpMode {
 
        // currentServoPos = SERVO_CENTER;
         // Read actual servo position - Axon max is absolute, always knows where it is
-        currentServoPos = l1.getRawPosition();
-        applyServoPos(l1, l2, r1, currentServoPos);
+        double currentServoPosl1 = l1.getRawPosition();//SERVO_CENTER;
+        double currentServoPosl2 = l2.getRawPosition(); //SERVO_CENTER;
+        double currentServoPosr1 = r1.getRawPosition(); //SERVO_CENTER;
+        applyServoPosl1(l1, currentServoPosl1);
+        applyServoPosl2(l2, currentServoPosl2);
+        applyServoPosr1(r1, currentServoPosr1);
 
         telemetry.addLine("TurretTest ready.  START = toggle MANUAL / SLEW mode");
         telemetry.update();
@@ -118,10 +122,6 @@ public class TurretTest extends LinearOpMode {
         boolean lastRight = false, lastLeft = false, lastA = false;
         boolean lastB = false, lastY = false, lastLB = false, lastRB = false;
         boolean lastStart = false;
-
-        double currentServoPosl1 = l1.getRawPosition();//SERVO_CENTER;
-        double currentServoPosl2 = l1.getRawPosition(); //SERVO_CENTER;
-        double currentServoPosr1 = l1.getRawPosition(); //SERVO_CENTER;
 
         waitForStart();
 
