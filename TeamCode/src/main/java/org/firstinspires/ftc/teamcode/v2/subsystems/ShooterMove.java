@@ -90,7 +90,7 @@ public class ShooterMove extends SubsystemBase {
     // --- Turret offset adjustment ---
     public static double turretOffset = 0;
 
-    public static double rpmScalar = 0.958;
+    public static double rpmScalar = 0.955;
 
     // --- Turret position (published for telemetry / other subsystems) ---
     public static double turretPosDeg = 0;
@@ -313,18 +313,18 @@ public class ShooterMove extends SubsystemBase {
         transfer.createLUT();
 
 
-
+c
         shottime.add(0, 0.59);
-        shottime.add(31, 0.59);
-        shottime.add(43, 0.54);
-        shottime.add(51, 0.60);
-        shottime.add(59, 0.62);
-        shottime.add(67, 0.74);
-        shottime.add(75, 0.76);
-        shottime.add(83, 0.83);
-        shottime.add(91, 0.79); //
-        shottime.add(99, 0.86);
-        shottime.add(120, 0.94);
+        shottime.add(31, 0.57);
+        shottime.add(43, 0.53);
+        shottime.add(51, 0.63);
+        shottime.add(59, 0.64);
+        shottime.add(67, 0.71);
+        shottime.add(75, 0.75);
+        shottime.add(83, 0.87);
+        shottime.add(91, 0.9); //
+        shottime.add(99, 0.91);
+        shottime.add(120, 1.05);
         shottime.add(131, 1.07);
         shottime.add(3000, 1.11);
         shottime.createLUT();
