@@ -313,7 +313,7 @@ public class ShooterMove extends SubsystemBase {
         transfer.createLUT();
 
 
-c
+
         shottime.add(0, 0.59);
         shottime.add(31, 0.57);
         shottime.add(43, 0.53);
