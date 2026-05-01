@@ -90,6 +90,8 @@ public class ShooterMove extends SubsystemBase {
     // --- Turret offset adjustment ---
     public static double turretOffset = 0;
 
+    public static double rpmScalar = 0.958;
+
     // --- Turret position (published for telemetry / other subsystems) ---
     public static double turretPosDeg = 0;
 
@@ -265,34 +267,34 @@ public class ShooterMove extends SubsystemBase {
         142, 435, 0.08, 0.6
                 */
         // LUTs — V1 values, retune on V2
-        RPM.add(0, 240);
-        RPM.add(31, 245); //
-        RPM.add(43, 257); //
-        RPM.add(51, 266); //
-        RPM.add(59, 274);
-        RPM.add(67, 286);
-        RPM.add(75, 303);
-        RPM.add(83, 317);
-        RPM.add(91, 330);
-        RPM.add(99, 346);
-        RPM.add(120, 377);
-        RPM.add(131, 399);
-        RPM.add(3000, 420);
+        RPM.add(0, 235);
+        RPM.add(31, 237); //
+        RPM.add(43, 250); //
+        RPM.add(51, 258); //
+        RPM.add(59, 266);
+        RPM.add(67, 278);
+        RPM.add(75, 295);
+        RPM.add(83, 309);
+        RPM.add(91, 322);
+        RPM.add(99, 338);
+        RPM.add(120, 369);
+        RPM.add(131, 391);
+        RPM.add(3000, 412);
         RPM.createLUT();
 
         angle.add(0, 1);
-        angle.add(31, 0.85); //
-        angle.add(43, 0.6); //
-        angle.add(51, 0.56); //
-        angle.add(59, 0.58);
-        angle.add(67, 0.6);
-        angle.add(75, 0.61);
-        angle.add(83, 0.58);
-        angle.add(91, 0.62);
-        angle.add(99, 0.48);
-        angle.add(120, 0.35);
-        angle.add(131, 0.32);
-        angle.add(3000, 0.3);
+        angle.add(31, 0.84); //
+        angle.add(43, 0.59); //
+        angle.add(51, 0.55); //
+        angle.add(59, 0.57);
+        angle.add(67, 0.59);
+        angle.add(75, 0.62);
+        angle.add(83, 0.59);
+        angle.add(91, 0.61);
+        angle.add(99, 0.47);
+        angle.add(120, 0.34);
+        angle.add(131, 0.31);
+        angle.add(3000, 0.29);
         angle.createLUT();
 
         transfer.add(0, 1);
@@ -312,19 +314,19 @@ public class ShooterMove extends SubsystemBase {
 
 
 
-        shottime.add(0, 0.6);
-        shottime.add(31, 0.6);
-        shottime.add(43, 0.55);
-        shottime.add(51, 0.61);
-        shottime.add(59, 0.63);
-        shottime.add(67, 0.75);
-        shottime.add(75, 0.77);
-        shottime.add(83, 0.85);
-        shottime.add(91, 0.8); //
-        shottime.add(99, 0.87);
-        shottime.add(120, 0.95);
-        shottime.add(131, 1.08);
-        shottime.add(3000, 1.2);
+        shottime.add(0, 0.59);
+        shottime.add(31, 0.59);
+        shottime.add(43, 0.54);
+        shottime.add(51, 0.60);
+        shottime.add(59, 0.62);
+        shottime.add(67, 0.74);
+        shottime.add(75, 0.76);
+        shottime.add(83, 0.83);
+        shottime.add(91, 0.79); //
+        shottime.add(99, 0.86);
+        shottime.add(120, 0.94);
+        shottime.add(131, 1.07);
+        shottime.add(3000, 1.11);
         shottime.createLUT();
 
         /*
@@ -408,11 +410,11 @@ public class ShooterMove extends SubsystemBase {
     }
 
     public Command increaseTurretOffset() {
-        return new InstantCommand(() -> turretOffset += 5);
+        return new InstantCommand(() -> turretOffset += 1);
     }
 
     public Command decreaseTurretOffset() {
-        return new InstantCommand(() -> turretOffset -= 5);
+        return new InstantCommand(() -> turretOffset -= 1);
     }
 
     public Command increaseHoodOffset() {
@@ -426,8 +428,17 @@ public class ShooterMove extends SubsystemBase {
     public Command offsetZero() {
         return new ParallelCommandGroup(
                 new InstantCommand(() -> hoodOffset = 0),
-                new InstantCommand(() -> turretOffset = 0)
+                new InstantCommand(() -> turretOffset = 0),
+                new InstantCommand(() -> rpmScalar = 1.0)
         );
+    }
+
+    public Command increaseRpmScalar() {
+        return new InstantCommand(() -> rpmScalar += 0.005);
+    }
+
+    public Command decreaseRpmScalar() {
+        return new InstantCommand(() -> rpmScalar -= 0.005);
     }
 
     // --- Absolute encoder ---
@@ -671,7 +682,7 @@ public class ShooterMove extends SubsystemBase {
                 shooterT.set(MANUAL_POWER);
             } else {
                 // PID + FF mode — target from MANUAL_RPM override or distance LUT
-                double target = MANUAL_RPM > 0 ? MANUAL_RPM : RPM.get(distance);
+                double target = MANUAL_RPM > 0 ? MANUAL_RPM : RPM.get(distance)*rpmScalar;
                 double vel = shooterB.getVelocity() * (2 * Math.PI / 28);  // rad/s — matches V1
                 controllerShooter.setPID(p, i, d);
                 double pidVolts = controllerShooter.calculate(vel, target);
@@ -688,6 +699,7 @@ public class ShooterMove extends SubsystemBase {
             shooterT.set(0);
         }
         Log.d("Distance", String.valueOf(distance));
+        Log.d("Scalar", String.valueOf(rpmScalar));
         /*
         Log.d("Distance", String.valueOf(distance));
         Log.d("FlywheelRPM", String.valueOf(shooterB.getVelocity() / 28.0 * 60.0));

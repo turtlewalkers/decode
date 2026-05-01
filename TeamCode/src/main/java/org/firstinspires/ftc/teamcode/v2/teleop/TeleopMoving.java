@@ -212,8 +212,11 @@ public class TeleopMoving extends CommandOpMode {
                 new InstantCommand(() -> smartRelocalize())
         );
 
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(shooter.increaseRpmScalar());
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(shooter.decreaseRpmScalar());
+
         // DPAD right (gamepad2) — toggle alliance color
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
 //                new InstantCommand(() -> Memory.allianceRed = !Memory.allianceRed),
                 new InstantCommand(() -> {
                     Memory.allianceRed = !Memory.allianceRed;
