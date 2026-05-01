@@ -31,14 +31,14 @@ public class ShooterMove extends SubsystemBase {
     public static double m = -123.71, b = 256.37;
 
     // --- Turret angle limits in turret degrees (TBD from mechanical stops, max ~500°) ---
-    public static double TURRET_MIN = -160.0; //-140.0;
+    public static double TURRET_MIN = -170.0; //-140.0;
     public static double TURRET_MAX = 265.0; //245.0;
 
     // --- Turret servo geometry ---
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
     public static double SERVO_RANGE_DEG = 355.0;
     public static double SERVO_TO_TURRET_RATIO = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
-    public static double SERVO_CENTER = 0.59;//0.607; // tune on real robot — center of turret travel
+    public static double SERVO_CENTER = 0.588;//0.59;//0.607; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
     public static double SERVO_MIN = 0.03;//0.1;//0.03;
@@ -77,10 +77,10 @@ public class ShooterMove extends SubsystemBase {
     public static double servoLagCompDeg = 0;
 
     // --- Flywheel PID + FF (carry over from V1 — retune on V2) ---
-    public static double p = 0.62, i = 0.02, d = 0.0035;
+    public static double p = 0.3, i = 0.0, d = 0.001;
     public static boolean ENABLE_FF = true;
-    public static double kV = 0.02049082; //0.022312028;//0.021477551;
-    public static double kS = 0.499555731; //0.323009673;//0.760983135;
+    public static double kV = 0.02; //0.022312028;//0.021477551;
+    public static double kS = 0.38; //0.323009673;//0.760983135;
     public static double f = 0.0025;
     // Set > 0 to override LUT and run at a fixed target (rad/s, bypasses distance LUT)
     public static double MANUAL_RPM = 0;
@@ -265,68 +265,66 @@ public class ShooterMove extends SubsystemBase {
         142, 435, 0.08, 0.6
                 */
         // LUTs — V1 values, retune on V2
-        RPM.add(0, 225);
-        RPM.add(27, 225);
-        RPM.add(43, 237);
-        RPM.add(59, 252);
-        RPM.add(67, 265);
-        RPM.add(75, 273);
-        RPM.add(83, 292);
-        RPM.add(91, 299);
-        RPM.add(99, 320);
-        RPM.add(107, 335);
-        RPM.add(118, 365);
-        RPM.add(131, 375);
-        RPM.add(147, 395);
-        RPM.add(3000, 435);
+        RPM.add(0, 240);
+        RPM.add(31, 245); //
+        RPM.add(43, 257); //
+        RPM.add(51, 266); //
+        RPM.add(59, 274);
+        RPM.add(67, 286);
+        RPM.add(75, 303);
+        RPM.add(83, 317);
+        RPM.add(91, 330);
+        RPM.add(99, 346);
+        RPM.add(120, 377);
+        RPM.add(131, 399);
+        RPM.add(3000, 420);
         RPM.createLUT();
 
-        angle.add(0, 0.9313);
-        angle.add(27, 0.97);
-        angle.add(43, 0.63);
-        angle.add(59, 0.66);
-        angle.add(67, 0.50);
-        angle.add(75, 0.365);
-        angle.add(83, 0.19);
-        angle.add(91, 0.215);
-        angle.add(99, 0.20);
-        angle.add(107, 0.18);
-        angle.add(118, 0.19);
-        angle.add(131, 0.13);
-        angle.add(147, 0.08);
-        angle.add(3000, 0.09);
+        angle.add(0, 1);
+        angle.add(31, 0.85); //
+        angle.add(43, 0.6); //
+        angle.add(51, 0.56); //
+        angle.add(59, 0.58);
+        angle.add(67, 0.6);
+        angle.add(75, 0.61);
+        angle.add(83, 0.58);
+        angle.add(91, 0.62);
+        angle.add(99, 0.48);
+        angle.add(120, 0.35);
+        angle.add(131, 0.32);
+        angle.add(3000, 0.3);
         angle.createLUT();
 
         transfer.add(0, 1);
-        transfer.add(43, 1);
-        transfer.add(59, 0.925);
-        transfer.add(67, 0.91);
-        transfer.add(75, 0.90);
-        transfer.add(83, 0.89);
-        transfer.add(91, 0.89);
-        transfer.add(99, 0.89);
-        transfer.add(107, 0.89);
-        transfer.add(118, 0.88);
-        transfer.add(131, 0.8);
-        transfer.add(147, 0.45);
-        transfer.add(3000, 0.45);
+        transfer.add(31, 1); //
+        transfer.add(43, 1); //
+        transfer.add(51, 1);
+        transfer.add(59, 1);
+        transfer.add(67, 1);
+        transfer.add(75, 0.95);
+        transfer.add(83, 0.92);
+        transfer.add(91, 0.9);
+        transfer.add(99, 0.9);
+        transfer.add(120, 0.9);
+        transfer.add(131, 0.85);
+        transfer.add(3000, 0.8);
         transfer.createLUT();
 
 
 
-
-        shottime.add(0, 0.7);
-        shottime.add(59, 0.7);
-        shottime.add(67, 0.76);
-        shottime.add(75, 0.64);
-        shottime.add(83, 0.68);
-        shottime.add(91, 0.72);
-        shottime.add(99, 0.83);
-        shottime.add(107, 0.92);
-        shottime.add(118, 0.9);
-        shottime.add(131, 0.92);
-        shottime.add(147, 1.02);
-        shottime.add(3000, 0.6);
+        shottime.add(0, 0.6);
+        shottime.add(31, 0.6);
+        shottime.add(43, 0.55);
+        shottime.add(51, 0.61);
+        shottime.add(59, 0.63);
+        shottime.add(67, 0.75);
+        shottime.add(75, 0.77);
+        shottime.add(83, 0.85);
+        shottime.add(91, 0.8); //
+        shottime.add(99, 0.87);
+        shottime.add(120, 0.95);
+        shottime.add(131, 1.08);
+        shottime.add(3000, 1.2);
         shottime.createLUT();
 
         /*
@@ -360,6 +358,11 @@ public class ShooterMove extends SubsystemBase {
         flywheelOn = false;
 
     }
+    public void setShooterPos(double X, double Y) {
+        shooterX = X;
+        shooterY = Y;
+    }
+
 
     public Command flywheel(boolean on) {
         return new InstantCommand(() -> flywheelOn = on);

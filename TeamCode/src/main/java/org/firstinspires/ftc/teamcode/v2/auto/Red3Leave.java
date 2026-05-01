@@ -41,7 +41,7 @@ public class Red3Leave extends CommandOpMode {
     // Poses:
     public static int T = 1;
     private final Pose Start = new Pose(144-27.3, 127.5, Math.toRadians(180-134));
-    private final Pose PreloadScore = new Pose( 144-57, 75, Math.toRadians(180-134));
+    private final Pose PreloadScore = new Pose( 144-57, 78, Math.toRadians(180-134));
 
     private final Pose TurnPreloadScore = new Pose( 144-57, 75, Math.toRadians(180-190));
     private final Pose Collect2Control1 = new Pose(116.5, 59, Math.toRadians(0));

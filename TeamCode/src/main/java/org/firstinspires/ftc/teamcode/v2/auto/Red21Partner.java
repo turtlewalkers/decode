@@ -61,7 +61,7 @@ public class Red21Partner extends CommandOpMode {
     private final Pose GateShootControl = new Pose(144-28, 55, Math.toRadians(180));
 
     private final Pose GateShoot1 = new Pose(144-52, 82, Math.toRadians(10));
-    private final Pose GateShootLast = new Pose(144-58.5, 103, Math.toRadians(180-210));
+    private final Pose GateShootLast = new Pose(144-58.5, 105.5, Math.toRadians(180-210));
 
     private final Pose Collect1Control = new Pose(144-30.5, 87, Math.toRadians(180));
     private final Pose Collect1 = new Pose(144-21, 84, Math.toRadians(0));

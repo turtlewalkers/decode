@@ -14,6 +14,8 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.command.InstantCommand;
@@ -22,6 +24,7 @@ import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 import com.seattlesolvers.solverslib.util.TelemetryData;
+import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robot.Memory;
@@ -47,7 +50,7 @@ public class TeleopMoving extends CommandOpMode {
     public static boolean DEBUG_MODE = false;  // Dashboard-tunable: false = match mode, true = full telemetry
     public static double OMEGA_SCALE = 0.7; //rotation scaling lower to give translation more priority
     public static double MATCH_DURATION = 120.0;   // seconds
-    public static double ENDGAME_THRESHOLD = 5.0;   // last N seconds
+    public static double ENDGAME_THRESHOLD = 10.0;   // last N seconds
 
     // Smart relocalization
     public static double RELOC_THRESHOLD = 25.0;     // inches from boundary to trigger
@@ -69,7 +72,7 @@ public class TeleopMoving extends CommandOpMode {
     private GoBildaPinpointDriver pinpoint;
 
     private long startTimeMs = 0;
-    // private ServoEx tip;
+    private ServoEx tip;
     private boolean tipDeployed = false;
 
     @Override
@@ -83,6 +86,10 @@ public class TeleopMoving extends CommandOpMode {
     public void initialize() {
         super.reset();
         start = Memory.robotPose;
+
+        tip = new ServoEx(hardwareMap, "tip");
+      /*  PwmControl.PwmRange axonRange = new PwmControl.PwmRange(500, 2500);
+        ((PwmControl) hardwareMap.get(Servo.class, "tip")).setPwmRange(axonRange); */
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(start);
@@ -201,20 +208,40 @@ public class TeleopMoving extends CommandOpMode {
                 new InstantCommand(() -> smartRelocalize())
         );
 
-        // DPAD right (gamepad2) — toggle alliance color
-        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> Memory.allianceRed = !Memory.allianceRed)
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.B).whenPressed(
+                new InstantCommand(() -> smartRelocalize())
         );
 
+        // DPAD right (gamepad2) — toggle alliance color
+        gamepadOffset.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+//                new InstantCommand(() -> Memory.allianceRed = !Memory.allianceRed),
+                new InstantCommand(() -> {
+                    Memory.allianceRed = !Memory.allianceRed;
+                    if (Memory.allianceRed) {
+                        shooterX = 138;
+                        shooterY = 138;
+                        gateX = 6;
+                        gateY = 70;
+                    } else {
+                        shooterX = 6;
+                        shooterY = 138;
+                        gateX = 138;
+                        gateY = 70;
+                    }
+                    intake.setShooterPos(shooterX,  shooterY);
+                    shooter.setShooterPos(shooterX, shooterY);
+                })
+        );
         // X (gamepad2) — deploy tip servo (endgame only, last ENDGAME_THRESHOLD seconds)
         gamepadOffset.getGamepadButton(GamepadKeys.Button.X).whenPressed(
                 new InstantCommand(() -> {
-                    double elapsed = (System.currentTimeMillis() - startTimeMs) / 1000.0;
+                  double elapsed = (System.currentTimeMillis() - startTimeMs) / 1000.0;
                     double remainingSec = MATCH_DURATION - elapsed;
                     if (startTimeMs > 0 && remainingSec <= ENDGAME_THRESHOLD) {
                         tipDeployed = !tipDeployed;
-                        // tip.set(tipDeployed ? 1.0 : 0.0);
+                        tip.set(tipDeployed ? 1.0 : 0.0);
                     }
+                   // tip.set(tipDeployed ? 1.0 : 0.0);
                 })
         );
 
@@ -231,6 +258,24 @@ public class TeleopMoving extends CommandOpMode {
     @Override
     public void run() {
      //   super.run();
+//        if (Memory.allianceRed) {
+//            if (shooterX == 138) {
+//                shooterX = 138;
+//                shooterY = 138;
+//                gateX = 6;
+//                gateY = 70;
+//                end = new Pose(36.5, 38, Math.toRadians(90));
+//            }
+//        } else {
+//            if (shooterX == 6) {
+//                shooterX = 6;
+//                shooterY = 6;
+//                gateX = 138;
+//                gateY = 70;
+//                end = new Pose(107.5, 38, Math.toRadians(270));
+//            }
+//        }270
+//        shooter = new ShooterMove(hardwareMap, () -> follower, shooterX, shooterY);
 
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();

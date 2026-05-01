@@ -42,6 +42,9 @@ public class Intake extends SubsystemBase {
     private final MotorEx intake;
     private final DcMotorEx transfer;
     private final ServoEx latch;
+
+//    private final ServoEx tip;
+
     private final DigitalChannel beamBreak2;
     private final DigitalChannel beamBreak3;
 
@@ -88,6 +91,7 @@ public class Intake extends SubsystemBase {
         intake = new MotorEx(hMap, "intake");
         transfer = hMap.get(DcMotorEx.class, "transfer");
         latch = new ServoEx(hMap, "latch");
+//        tip = new ServoEx(hMap, "tip");
 
         intake.setRunMode(MotorEx.RunMode.RawPower);
         intake.set(0);
@@ -161,6 +165,11 @@ public class Intake extends SubsystemBase {
             intake.set(-1.0);
             stopTransfer();
         });
+    }
+
+    public void setShooterPos(double X, double Y) {
+        shooterX = X;
+        shooterY = Y;
     }
 
     // --- Internal helpers ---
