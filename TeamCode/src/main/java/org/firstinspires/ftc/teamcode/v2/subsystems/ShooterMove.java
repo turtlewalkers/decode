@@ -38,7 +38,7 @@ public class ShooterMove extends SubsystemBase {
     // Axon MAX: 355° range. Gear ratio: 48t:15t × 47t:107t = 1.408x
     public static double SERVO_RANGE_DEG = 355.0;
     public static double SERVO_TO_TURRET_RATIO = (48.0 / 15.0) * (47.0 / 107.0); // ~1.408
-    public static double SERVO_CENTER = 0.588;//0.59;//0.607; // tune on real robot — center of turret travel
+    public static double SERVO_CENTER = 0.575;//0.588;//0.59;//0.607; // tune on real robot — center of turret travel
     // Safe servo limits — 0.03/0.97 avoids physical endpoints (~30° margin each side)
     // Usable servo range: 333.7° → turret range: ~470° through 1.408x gear ratio
     public static double SERVO_MIN = 0.03;//0.1;//0.03;
@@ -278,8 +278,9 @@ public class ShooterMove extends SubsystemBase {
         RPM.add(91, 322);
         RPM.add(99, 338);
         RPM.add(120, 369);
-        RPM.add(131, 391);
-        RPM.add(3000, 412);
+        RPM.add(131, 394);
+        RPM.add(150, 420);
+        RPM.add(3000, 420);
         RPM.createLUT();
 
         angle.add(0, 1);

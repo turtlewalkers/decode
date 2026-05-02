@@ -58,7 +58,7 @@ public class TurretTest extends LinearOpMode {
     public static double b = 256.37;
 
     // --- Servo geometry (copy confirmed values to ShooterMove) ---
-    public static double SERVO_CENTER = 0.59;//0.585;//0.607;
+    public static double SERVO_CENTER = 0.575;//0.59;//0.585;//0.607;
     public static double SERVO_MIN    = 0.03;
     public static double SERVO_MAX    = 0.97;
     public static double SERVO_RANGE_DEG        = 355.0;
@@ -111,9 +111,9 @@ public class TurretTest extends LinearOpMode {
         double currentServoPosl1 = l1.getRawPosition();//SERVO_CENTER;
         double currentServoPosl2 = l2.getRawPosition(); //SERVO_CENTER;
         double currentServoPosr1 = r1.getRawPosition(); //SERVO_CENTER;
-        applyServoPosl1(l1, currentServoPosl1);
+        /*applyServoPosl1(l1, currentServoPosl1);
         applyServoPosl2(l2, currentServoPosl2);
-        applyServoPosr1(r1, currentServoPosr1);
+        applyServoPosr1(r1, currentServoPosr1);*/
 
         telemetry.addLine("TurretTest ready.  START = toggle MANUAL / SLEW mode");
         telemetry.update();

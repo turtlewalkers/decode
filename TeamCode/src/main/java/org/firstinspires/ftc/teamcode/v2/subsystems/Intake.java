@@ -201,7 +201,7 @@ public class Intake extends SubsystemBase {
     @Override
     public void periodic() {
         // Ball counting via BB2 — only after first ball is at latch, intake still running
-        if (ballLoaded && !shootMode) {
+     /*   if (ballLoaded && !shootMode) {
             boolean bb2Broken = !beamBreak2.getState();
             if (bb2Broken && !prevBB2Broken) {
                 ballCount++;
@@ -211,7 +211,7 @@ public class Intake extends SubsystemBase {
             if (ballCount >= MAX_BALLS) {
                 intake.set(0);
             }
-        }
+        }*/
 
         if (!transferRunning || shootMode) {
             if (shootMode && transferRunning) {
