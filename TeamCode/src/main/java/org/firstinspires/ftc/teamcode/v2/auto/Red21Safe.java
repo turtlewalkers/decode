@@ -47,25 +47,25 @@ public class Red21Safe extends CommandOpMode {
     private final Pose Collect2Control1 = new Pose(114.2, 59, Math.toRadians(0));
     private final Pose Collect2Control2 = new Pose(100, 59, Math.toRadians(0));
     private final Pose Collect2 = new Pose(126.3, 59, Math.toRadians(0));
-    private final Pose Score2 = new Pose(144-52, 80, Math.toRadians(180-220));
+    private final Pose Score2 = new Pose(144-54, 80, Math.toRadians(180-220));
 
     private final Pose CollectGateControl2 = new Pose(144-30, 57, Math.toRadians(180-0));
     private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
     private final Pose CollectGateCycleControl = new Pose(144-28, 57, Math.toRadians(180));
     private final Pose CollectGateTurn = new Pose(120, 61, Math.toRadians(30));
-    private final Pose CollectGate = new Pose(133, 60.75, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(133, 61.8, Math.toRadians(30));
 
 
     private final Pose GateShootLeave = new Pose(144-17.5, 64, Math.toRadians(180-205));
-    private final Pose GateShoot = new Pose(144-53, 80, Math.toRadians(180-205));
+    private final Pose GateShoot = new Pose(144-54, 80, Math.toRadians(180-205));
     private final Pose GateShootControl = new Pose(144-28, 55, Math.toRadians(180));
 
     private final Pose GateShoot1 = new Pose(144-52, 82, Math.toRadians(10));
-    private final Pose GateShootLast = new Pose(144-58.5, 105.5, Math.toRadians(180-215));
+    private final Pose GateShootLast = new Pose(144-59, 107, Math.toRadians(180-215));
 
     private final Pose Collect1Control = new Pose(144-30.5, 87, Math.toRadians(180));
     private final Pose Collect1 = new Pose(144-21.5, 84, Math.toRadians(0));
-    private final Pose Score1 = new Pose(144-58, 82, Math.toRadians(180-190));
+    private final Pose Score1 = new Pose(144-57, 82, Math.toRadians(180-190));
 
 //    private final Pose Collect3Control = new Pose(40.5, 29, Math.toRadians(180));
 //    private final Pose Collect3 = new Pose(24, 35, Math.toRadians(180));
@@ -211,16 +211,16 @@ public class Red21Safe extends CommandOpMode {
                         intake.shootStop(),
                         shooter.flywheel(true),
                         shooter.turretOff(false),
-                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()),
-                        new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
-                        new WaitCommand(100),
+                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()-Math.toRadians(5)),
+                        new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1150),
+                        new WaitCommand(200),
                         intake.collectStart(),
                         intake.shootStart(),
-                        new WaitCommand(500),
+                        new WaitCommand(450),
                         intake.shootStop(),
                         intake.collectStart(),
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1500),
-                        shooter.aimAt(Score2, Score2.getHeading()),
+                        shooter.aimAt(Score2, Score2.getHeading()-Math.toRadians(1)),
                         new FollowPathCommand(follower, Shoot2, true).setGlobalMaxPower(1).withTimeout(1200),
                         new WaitCommand(200),
                         intake.shootStart(),
@@ -231,13 +231,12 @@ public class Red21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGate2, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1400),
+                                new WaitCommand(1000),
                                 new WaitUntilCommand(() -> intake.getBallCount() >= 3)
                         ),
-                        new WaitCommand(100),
                         intake.collectStop(),
                         new ParallelCommandGroup(
-                                shooter.aimAt(GateShoot1, GateShoot.getHeading()),
+                                shooter.aimAt(GateShoot1, GateShoot.getHeading()-Math.toRadians(1)),
                                 new FollowPathCommand(follower, GateScoreFull1, true).withTimeout(1100),
                                 new SequentialCommandGroup(
                                         new WaitCommand(900),
@@ -245,7 +244,7 @@ public class Red21Safe extends CommandOpMode {
                                 )
                         ),
 //                        shooter.clearFixedAngle(),
-                        new WaitCommand(200),
+                        new WaitCommand(150),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
@@ -255,10 +254,10 @@ public class Red21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, TurnGateShoot1, true).withTimeout(400),
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
-                        shooter.aimAt(Score1, Score1.getHeading()),
+                        shooter.aimAt(Score1, Score1.getHeading()-Math.toRadians(2)),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
 //                        shooter.clearFixedAngle(),
-                        new WaitCommand(200),
+                        new WaitCommand(150),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
@@ -268,12 +267,11 @@ public class Red21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1400),
+                                new WaitCommand(1000),
                                 new WaitUntilCommand(() -> intake.getBallCount() == 3)
                         ),
-                        new WaitCommand(50),
                         new ParallelCommandGroup(
-                                shooter.aimAt(GateShoot, GateShoot.getHeading()),
+                                shooter.aimAt(GateShoot, GateShoot.getHeading()-Math.toRadians(2)),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1700),
                                 new SequentialCommandGroup(
                                         new WaitCommand(900),
@@ -292,12 +290,11 @@ public class Red21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1700),
+                                new WaitCommand(1950),
                                 new WaitUntilCommand(() -> intake.getBallCount() >= 3)
                         ),
-                        new WaitCommand(50),
                         new ParallelCommandGroup(
-                                shooter.aimAt(GateShoot, GateShoot.getHeading()),
+                                shooter.aimAt(GateShoot, GateShoot.getHeading()-Math.toRadians(0)),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1500),
                                 new SequentialCommandGroup(
                                         new WaitCommand(1000),
@@ -330,10 +327,10 @@ public class Red21Safe extends CommandOpMode {
 //                        intake.collectStart(),
 //                        shooter.clearFixedAngle(),
 
-                        shooter.aimAt(GateShootLast, GateShootLast.getHeading()),
+                        shooter.aimAt(GateShootLast, GateShootLast.getHeading()-Math.toRadians(2)),
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1900),
+                                new WaitCommand(1950),
                                 new WaitUntilCommand(() -> intake.getBallCount() == 3)
                         ),
                         new WaitCommand(100),
@@ -343,7 +340,7 @@ public class Red21Safe extends CommandOpMode {
 //                        shooter.clearFixedAngle(),
                         new WaitCommand(200),
                         intake.shootStart(),
-                        new WaitCommand(400),
+                        new WaitCommand(410),
                         intake.shootStop(),
                         intake.collectStart()
 //                        shooter.clearFixedAngle()

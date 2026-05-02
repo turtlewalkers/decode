@@ -41,19 +41,19 @@ public class Red21Partner extends CommandOpMode {
     // Poses:
     public static int T = 1;
     private final Pose Start = new Pose(144-27.3, 127.5, Math.toRadians(180-134));
-    private final Pose PreloadScore = new Pose( 144-57, 75, Math.toRadians(180-134));
+    private final Pose PreloadScore = new Pose( 144-57, 77, Math.toRadians(180-134));
 
-    private final Pose TurnPreloadScore = new Pose( 144-57, 75, Math.toRadians(180-190));
+    private final Pose TurnPreloadScore = new Pose( 144-57, 77, Math.toRadians(180-190));
     private final Pose Collect2Control1 = new Pose(114.2, 59, Math.toRadians(0));
     private final Pose Collect2Control2 = new Pose(100, 59, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(126.3, 65, Math.toRadians(0));
-    private final Pose Score2 = new Pose(144-52, 80, Math.toRadians(180-220));
+    private final Pose Collect2 = new Pose(126.3, 66, Math.toRadians(0));
+    private final Pose Score2 = new Pose(144-54, 80, Math.toRadians(180-220));
 
     private final Pose CollectGateControl2 = new Pose(144-30, 57, Math.toRadians(180-0));
     private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
     private final Pose CollectGateCycleControl = new Pose(144-28, 57, Math.toRadians(180));
     private final Pose CollectGateTurn = new Pose(120, 61, Math.toRadians(30));
-    private final Pose CollectGate = new Pose(133, 60, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(133, 60.7, Math.toRadians(30));
 
 
     private final Pose GateShootLeave = new Pose(144-17.5, 64, Math.toRadians(180-205));
@@ -61,11 +61,11 @@ public class Red21Partner extends CommandOpMode {
     private final Pose GateShootControl = new Pose(144-28, 55, Math.toRadians(180));
 
     private final Pose GateShoot1 = new Pose(144-52, 82, Math.toRadians(10));
-    private final Pose GateShootLast = new Pose(144-58.5, 105.5, Math.toRadians(180-210));
+    private final Pose GateShootLast = new Pose(144-59, 106.5, Math.toRadians(180-210));
 
     private final Pose Collect1Control = new Pose(144-30.5, 87, Math.toRadians(180));
     private final Pose Collect1 = new Pose(144-21, 84, Math.toRadians(0));
-    private final Pose Score1 = new Pose(144-58, 82, Math.toRadians(180-190));
+    private final Pose Score1 = new Pose(144-57, 82, Math.toRadians(180-190));
 
 //    private final Pose Collect3Control = new Pose(40.5, 29, Math.toRadians(180));
 //    private final Pose Collect3 = new Pose(24, 35, Math.toRadians(180));
@@ -293,7 +293,7 @@ public class Red21Partner extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1500),
+                                new WaitCommand(1400),
                                 new WaitUntilCommand(() -> intake.getBallCount() >= 3)
                         ),
                         new WaitCommand(50),
@@ -334,7 +334,7 @@ public class Red21Partner extends CommandOpMode {
                         shooter.aimAt(GateShootLast, GateShootLast.getHeading()),
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1800),
+                                new WaitCommand(1700),
                                 new WaitUntilCommand(() -> intake.getBallCount() == 3)
                         ),
                         new WaitCommand(100),

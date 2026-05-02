@@ -72,19 +72,19 @@ public class Intake extends SubsystemBase {
         this.shooterX = shooterX;
         this.shooterY = shooterY;
 
-        transferPos.add(0, 1);
-        transferPos.add(43, 1);
-        transferPos.add(59, 0.92);
-        transferPos.add(67, 0.9);
-        transferPos.add(75, 0.89);
-        transferPos.add(83, 0.87);
-        transferPos.add(91, 0.87);
-        transferPos.add(99, 0.87);
-        transferPos.add(107, 0.87);
-        transferPos.add(118, 0.86);
-        transferPos.add(131, 0.8);
-        transferPos.add(147, 0.45);
-        transferPos.add(3000, 0.45);
+        transferPos.add(0, 0.97);
+        transferPos.add(43, 0.97);
+        transferPos.add(59, 0.89);
+        transferPos.add(67, 0.87);
+        transferPos.add(75, 0.86);
+        transferPos.add(83, 0.85);
+        transferPos.add(91, 0.85);
+        transferPos.add(99, 0.85);
+        transferPos.add(107, 0.85);
+        transferPos.add(118, 0.84);
+        transferPos.add(131, 0.77);
+        transferPos.add(147, 0.42);
+        transferPos.add(3000, 0.42);
         transferPos.createLUT();
 
 

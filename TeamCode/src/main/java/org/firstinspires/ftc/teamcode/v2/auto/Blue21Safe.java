@@ -205,18 +205,16 @@ public class Blue21Safe extends CommandOpMode {
 //        shooter.startTurret();
         buildpaths();
 
-        double offset = -2;
+        double offset = 0;
         schedule(
                 new RunCommand(() -> follower.update()),
                 new SequentialCommandGroup (
-                        shooter.aimAt(PreloadScore, (PreloadScore.getHeading()+Math.toRadians(offset+3))),
                         shooter.SWMoff(),
                         intake.shootStop(),
                         shooter.flywheel(true),
                         shooter.turretOff(false),
                         shooter.aimAt(PreloadScore, PreloadScore.getHeading()+Math.toRadians(offset+3)),
                         new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
-                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()+Math.toRadians(offset+3)),
                         new WaitCommand(200),
                         intake.collectStart(),
                         intake.shootStart(),
@@ -225,7 +223,7 @@ public class Blue21Safe extends CommandOpMode {
                         intake.collectStart(),
 
                         new FollowPathCommand(follower, Intake2, true).withTimeout(1400),
-                        shooter.aimAt(Score2, Score2.getHeading()+Math.toRadians(offset) ),
+                        shooter.aimAt(Score2, Score2.getHeading()+Math.toRadians(offset+1)),
                         new FollowPathCommand(follower, Shoot2, true).setGlobalMaxPower(1).withTimeout(1100),
                         new WaitCommand(200),
                         intake.shootStart(),
@@ -236,13 +234,13 @@ public class Blue21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGate2, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1400),
+                                new WaitCommand(1200),
                                 new WaitUntilCommand(() -> intake.getBallCount() >= 3)
                         ),
-                        new WaitCommand(100),
+                        new WaitCommand(200),
                         intake.collectStop(),
                         new ParallelCommandGroup(
-                                shooter.aimAt(GateShoot1, GateShoot.getHeading()+Math.toRadians(offset-2)),
+                                shooter.aimAt(GateShoot1, GateShoot.getHeading()+Math.toRadians(offset)),
                                 new FollowPathCommand(follower, GateScoreFull1, true).withTimeout(1100),
                                 new SequentialCommandGroup(
                                         new WaitCommand(900),
@@ -250,7 +248,7 @@ public class Blue21Safe extends CommandOpMode {
                                 )
                         ),
 //                        shooter.clearFixedAngle(),
-                        new WaitCommand(200),
+                        new WaitCommand(250),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
@@ -260,7 +258,7 @@ public class Blue21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, TurnGateShoot1, true).withTimeout(400),
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
-                        shooter.aimAt(Score1, Score1.getHeading()+Math.toRadians(offset+2.5)),
+                        shooter.aimAt(Score1, Score1.getHeading()+Math.toRadians(offset+2)),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
 //                        shooter.clearFixedAngle(),
                         new WaitCommand(100),
@@ -273,7 +271,7 @@ public class Blue21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGate1, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1700),
+                                new WaitCommand(1600),
                                 new WaitUntilCommand(() -> intake.getBallCount() == 3)
                         ),
                         new WaitCommand(100),
@@ -281,7 +279,7 @@ public class Blue21Safe extends CommandOpMode {
                                 shooter.aimAt(GateShoot, GateShoot.getHeading()+Math.toRadians(offset)),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1700),
                                 new SequentialCommandGroup(
-                                        new WaitCommand(900),
+                                        new WaitCommand(1000),
                                         intake.collectStop()
                                 )
                         ),
@@ -297,7 +295,7 @@ public class Blue21Safe extends CommandOpMode {
 
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
                         new ParallelRaceGroup(
-                                new WaitCommand(1800),
+                                new WaitCommand(1600),
                                 new WaitUntilCommand(() -> intake.getBallCount() >= 3)
                         ),
                         new WaitCommand(100),
@@ -310,7 +308,7 @@ public class Blue21Safe extends CommandOpMode {
                                 )
                         ),
 //                        shooter.clearFixedAngle(),
-                        new WaitCommand(100),
+                        new WaitCommand(250),
                         intake.shootStart(),
                         new WaitCommand(400),
                         intake.shootStop(),
@@ -335,7 +333,7 @@ public class Blue21Safe extends CommandOpMode {
 //                        intake.collectStart(),
 //                        shooter.clearFixedAngle(),
 
-                        shooter.aimAt(GateShootLast, GateShootLast.getHeading()+Math.toRadians(offset-4)),
+                        shooter.aimAt(GateShootLast, GateShootLast.getHeading()+Math.toRadians(offset-1.5)),
                         new FollowPathCommand(follower, IntakeGateCycle, true).withTimeout(1200),
                         new ParallelRaceGroup(
                                 new WaitCommand(1600),

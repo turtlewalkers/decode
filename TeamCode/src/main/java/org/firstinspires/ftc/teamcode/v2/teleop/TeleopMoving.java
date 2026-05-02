@@ -50,7 +50,7 @@ public class TeleopMoving extends CommandOpMode {
     public static boolean DEBUG_MODE = false;  // Dashboard-tunable: false = match mode, true = full telemetry
     public static double OMEGA_SCALE = 0.7; //rotation scaling lower to give translation more priority
     public static double MATCH_DURATION = 120.0;   // seconds
-    public static double ENDGAME_THRESHOLD = 10.0;   // last N seconds
+    public static double ENDGAME_THRESHOLD = 30.0;   // last N seconds
 
     // Smart relocalization
     public static double RELOC_THRESHOLD = 25.0;     // inches from boundary to trigger
@@ -103,13 +103,13 @@ public class TeleopMoving extends CommandOpMode {
             shooterX   = 138;
             shooterY   = 138;
             gateX      = 6;
-            gateY      = 70;
+            gateY      = 72;
             end        = new Pose(36.5, 38, Math.toRadians(90));
         } else {
             shooterX   = 6;
             shooterY   = 138;
             gateX      = 138;
-            gateY      = 70;
+            gateY      = 72;
             end        = new Pose(105, 33, Math.toRadians(90));
         }
 
@@ -241,7 +241,7 @@ public class TeleopMoving extends CommandOpMode {
                   double elapsed = (System.currentTimeMillis() - startTimeMs) / 1000.0;
                     double remainingSec = MATCH_DURATION - elapsed;
                     if (startTimeMs > 0 && remainingSec <= ENDGAME_THRESHOLD) {
-                        tipDeployed = !tipDeployed;
+                        tipDeployed = true;
                         tip.set(tipDeployed ? 1.0 : 0.0);
                     }
                    // tip.set(tipDeployed ? 1.0 : 0.0);

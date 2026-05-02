@@ -90,7 +90,7 @@ public class ShooterMove extends SubsystemBase {
     // --- Turret offset adjustment ---
     public static double turretOffset = 0;
 
-    public static double rpmScalar = 0.955;
+    public static double rpmScalar = 0.95;
 
     // --- Turret position (published for telemetry / other subsystems) ---
     public static double turretPosDeg = 0;
@@ -410,11 +410,11 @@ public class ShooterMove extends SubsystemBase {
     }
 
     public Command increaseTurretOffset() {
-        return new InstantCommand(() -> turretOffset += 1);
+        return new InstantCommand(() -> turretOffset += 3);
     }
 
     public Command decreaseTurretOffset() {
-        return new InstantCommand(() -> turretOffset -= 1);
+        return new InstantCommand(() -> turretOffset -= 3);
     }
 
     public Command increaseHoodOffset() {
