@@ -53,7 +53,7 @@ public class Red21Safe extends CommandOpMode {
     private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
     private final Pose CollectGateCycleControl = new Pose(144-28, 57, Math.toRadians(180));
     private final Pose CollectGateTurn = new Pose(120, 61, Math.toRadians(30));
-    private final Pose CollectGate = new Pose(133.1, 60.5, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(133.1, 61.5, Math.toRadians(30));
 
 
     private final Pose GateShootLeave = new Pose(144-17.5, 64, Math.toRadians(180-205));

@@ -44,16 +44,16 @@ public class Red21Partner extends CommandOpMode {
     private final Pose PreloadScore = new Pose( 144-57, 77, Math.toRadians(180-134));
 
     private final Pose TurnPreloadScore = new Pose( 144-57, 77, Math.toRadians(180-190));
-    private final Pose Collect2Control1 = new Pose(114.2, 59, Math.toRadians(0));
+    private final Pose Collect2Control1 = new Pose(114, 60, Math.toRadians(0));
     private final Pose Collect2Control2 = new Pose(100, 59, Math.toRadians(0));
-    private final Pose Collect2 = new Pose(126.3, 66, Math.toRadians(0));
+    private final Pose Collect2 = new Pose(125.5, 67, Math.toRadians(0));
     private final Pose Score2 = new Pose(144-54, 80, Math.toRadians(180-220));
 
     private final Pose CollectGateControl2 = new Pose(144-30, 57, Math.toRadians(180-0));
     private final Pose CollectGate1Control = new Pose(144-28, 57, Math.toRadians(180-0));
     private final Pose CollectGateCycleControl = new Pose(144-28, 57, Math.toRadians(180));
-    private final Pose CollectGateTurn = new Pose(120, 61, Math.toRadians(30));
-    private final Pose CollectGate = new Pose(133, 60.7, Math.toRadians(30));
+    private final Pose CollectGateTurn = new Pose(120, 62, Math.toRadians(30));
+    private final Pose CollectGate = new Pose(133, 61.5, Math.toRadians(30));
 
 
     private final Pose GateShootLeave = new Pose(144-17.5, 64, Math.toRadians(180-205));
@@ -211,7 +211,8 @@ public class Red21Partner extends CommandOpMode {
                         intake.shootStop(),
                         shooter.flywheel(true),
                         shooter.turretOff(false),
-                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()),
+                        shooter.decreaseRpmScalar(),
+                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()-Math.toRadians(3)),
                         new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
                         new WaitCommand(150),
                         intake.collectStart(),
@@ -219,13 +220,14 @@ public class Red21Partner extends CommandOpMode {
                         new WaitCommand(400),
                         intake.shootStop(),
                         intake.collectStart(),
-                        new FollowPathCommand(follower, Intake2, true).withTimeout(1500),
+                        new FollowPathCommand(follower, Intake2, true).withTimeout(1700),
                         new WaitCommand(800),
-                        shooter.aimAt(Score2, Score2.getHeading()),
+                        shooter.aimAt(Score2, Score2.getHeading()-Math.toRadians(3)),
                         new FollowPathCommand(follower, Shoot2, true).setGlobalMaxPower(1).withTimeout(1200),
                         new WaitCommand(200),
                         intake.shootStart(),
                         new WaitCommand(400),
+                        shooter.increaseRpmScalar(),
                         intake.shootStop(),
                         intake.collectStart(),
 
@@ -238,7 +240,7 @@ public class Red21Partner extends CommandOpMode {
                         new WaitCommand(50),
                         intake.collectStop(),
                         new ParallelCommandGroup(
-                                shooter.aimAt(GateShoot1, GateShoot.getHeading()),
+                                shooter.aimAt(GateShoot1, GateShoot.getHeading()-Math.toRadians(2)),
                                 new FollowPathCommand(follower, GateScoreFull1, true).withTimeout(1100),
                                 new SequentialCommandGroup(
                                         new WaitCommand(900),
@@ -256,7 +258,7 @@ public class Red21Partner extends CommandOpMode {
 
                         new FollowPathCommand(follower, TurnGateShoot1, true).withTimeout(400),
                         new FollowPathCommand(follower, Intake1, true).withTimeout(1100),
-                        shooter.aimAt(Score1, Score1.getHeading()),
+                        shooter.aimAt(Score1, Score1.getHeading()-Math.toRadians(2)),
                         new FollowPathCommand(follower, Shoot1, true).withTimeout(1100),
 //                        shooter.clearFixedAngle(),
                         new WaitCommand(200),
@@ -274,7 +276,7 @@ public class Red21Partner extends CommandOpMode {
                         ),
                         new WaitCommand(50),
                         new ParallelCommandGroup(
-                                shooter.aimAt(GateShoot, GateShoot.getHeading()),
+                                shooter.aimAt(GateShoot, GateShoot.getHeading()-Math.toRadians(2)),
                                 new FollowPathCommand(follower, GateScoreFull, true).withTimeout(1700),
                                 new SequentialCommandGroup(
                                         new WaitCommand(900),

@@ -47,17 +47,15 @@ public class Blue21Partner extends CommandOpMode {
     private final Pose TurnPreloadScore = new Pose( 58, 76, Math.toRadians(190));
     private final Pose Collect2Control1 = new Pose(144-114.2, 59, Math.toRadians(180));
     private final Pose Collect2Control2 = new Pose(144-100, 59, Math.toRadians(180));
-    private final Pose Collect2 = new Pose(16.5, 65, Math.toRadians(180));
+    private final Pose Collect2 = new Pose(16.5, 66, Math.toRadians(180));
     private final Pose Score2 = new Pose(52, 80, Math.toRadians(220));
 
     private final Pose CollectGateControl2 = new Pose(30, 57, Math.toRadians(0));
     private final Pose CollectGate1Control = new Pose(28, 57, Math.toRadians(0));
     private final Pose CollectGateCycleControl = new Pose(28, 57, Math.toRadians(0));
-    private final Pose CollectGateTurn = new Pose(19, 61, Math.toRadians(150));
-    private final Pose CollectGate = new Pose(11.8, 60, Math.toRadians(150));
-
-
-    private final Pose GateShootLeave = new Pose(17.5, 64, Math.toRadians(205));
+    private final Pose CollectGateTurn = new Pose(19, 61.5, Math.toRadians(150));
+    private final Pose CollectGate = new Pose(11.8, 61, Math.toRadians(150));
+    private final Pose GateShootLeave = new Pose(13.5, 57.5, Math.toRadians(205));
     private final Pose GateShoot = new Pose(53, 80, Math.toRadians(205));
     private final Pose GateShootControl = new Pose(28, 55, Math.toRadians(0));
 
@@ -65,7 +63,7 @@ public class Blue21Partner extends CommandOpMode {
     private final Pose GateShootLast = new Pose(54, 103, Math.toRadians(220));
 
     private final Pose Collect1Control = new Pose(30.5, 87, Math.toRadians(0));
-    private final Pose Collect1 = new Pose(22, 84, Math.toRadians(180));
+    private final Pose Collect1 = new Pose(19, 84, Math.toRadians(180));
     private final Pose Score1 = new Pose(58, 82, Math.toRadians(190));
 
 //    private final Pose Collect3Control = new Pose(40.5, 29, Math.toRadians(180));
@@ -210,14 +208,12 @@ public class Blue21Partner extends CommandOpMode {
         schedule(
                 new RunCommand(() -> follower.update()),
                 new SequentialCommandGroup (
-                        shooter.aimAt(PreloadScore, (PreloadScore.getHeading()+Math.toRadians(offset+3))),
                         shooter.SWMoff(),
                         intake.shootStop(),
                         shooter.flywheel(true),
                         shooter.turretOff(false),
-                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()+Math.toRadians(offset+3)),
+                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()+Math.toRadians(offset+2)),
                         new FollowPathCommand(follower, PreloadShoot, true).withTimeout(1100),
-                        shooter.aimAt(PreloadScore, PreloadScore.getHeading()+Math.toRadians(offset+3)),
                         new WaitCommand(200),
                         intake.collectStart(),
                         intake.shootStart(),
