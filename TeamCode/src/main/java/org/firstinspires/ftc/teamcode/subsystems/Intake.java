@@ -19,17 +19,17 @@ import java.util.function.Supplier;
 
 public class Intake extends SubsystemBase {
     private final MotorEx intake;
-    private final ServoEx latch;
-    private final RevBlinkinLedDriver led;
+ //   private final ServoEx latch;
+ //   private final RevBlinkinLedDriver led;
     private  double speed = 1;
     private final double shooterX, shooterY;
     private final Supplier<Follower> followerSupplier;
 
     public Intake(final HardwareMap hMap, Supplier<Follower> followerSupplier, double shooterX, double shooterY) {
         intake = new MotorEx(hMap, "intake");
-        latch = new ServoEx(hMap, "latch");
+//        latch = new ServoEx(hMap, "latch");
 //        led = new ServoEx(hMap, "led");
-        led = hMap.get(RevBlinkinLedDriver.class, "led");
+  //      led = hMap.get(RevBlinkinLedDriver.class, "led");
         intake.setRunMode(MotorEx.RunMode.RawPower);
         intake.set(0);
 
@@ -49,21 +49,22 @@ public class Intake extends SubsystemBase {
     public Command stop() {
         return new InstantCommand(() -> intake.set(0));
     }
-    public Command open() {
+   /* public Command open() {
         return new InstantCommand(() -> latch.set(ShooterMove.canShoot));
-    }
+    }*/
 
-    public Command close() {
+   /* public Command close() {
+
         return new InstantCommand(() -> latch.set(0));
-    }
+    }*/
 
-    public Command LEDon() {
+   /* public Command LEDon() {
         return new InstantCommand(() -> led.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE));
     }
 
     public Command LEDoff() {
         return new InstantCommand(() -> led.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED));
-    }
+    }*/
 
     @Override
     public void periodic() {

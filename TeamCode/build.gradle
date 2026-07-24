@@ -93,6 +93,6 @@ dependencies {
     // sloth
     implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
     implementation("page.j5155.AdvantageScope:lite:v26.0.0")
-    implementation 'org.psilynx.psikit:core:0.1.0-beta2'
-    implementation 'org.psilynx.psikit:ftc:0.1.0-beta2'
+   // implementation 'org.psilynx.psikit:core:0.1.0-beta2'
+   // implementation 'org.psilynx.psikit:ftc:0.1.0-beta2'
 }

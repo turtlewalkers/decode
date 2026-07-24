@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.teleop;
 
 
@@ -30,13 +31,11 @@ import org.firstinspires.ftc.teamcode.robot.Memory;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterMove;
-import org.psilynx.psikit.ftc.autolog.PsiKitAutoLog;
 
 import java.util.List;
 
 @Config
 @TeleOp
-@PsiKitAutoLog(rlogPort = 5900)
 public class TeleopMoving extends CommandOpMode {
     Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
@@ -350,3 +349,4 @@ public class TeleopMoving extends CommandOpMode {
         telemetryData.update();
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.camera;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -80,3 +81,4 @@ public class ArtifactDetector extends OpMode {
         }
     }
 }
+*/

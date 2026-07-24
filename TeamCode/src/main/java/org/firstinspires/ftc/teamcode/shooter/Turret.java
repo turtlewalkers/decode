@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.shooter;
 
 import android.util.Log;
@@ -79,4 +80,4 @@ public class Turret extends OpMode {
         previousVelocity = currentVelocity;
         timer.reset();
     }
-}
+}*/
